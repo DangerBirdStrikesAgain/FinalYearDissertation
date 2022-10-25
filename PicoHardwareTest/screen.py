@@ -1,3 +1,6 @@
+"""
+Makes that screen you brought that is cute and tiny and plugs directly into the Pico work
+"""
 
 from machine import Pin,SPI,PWM
 import framebuf
@@ -51,7 +54,7 @@ class LCD_1inch8(framebuf.FrameBuffer):
         self.cs(1)
 
     def init_display(self):
-        """Initialize dispaly"""  
+        """Initialize display"""  
         self.rst(1)
         self.rst(0)
         self.rst(1)
@@ -187,6 +190,7 @@ if __name__=='__main__':
     LCD = LCD_1inch8()
     #color BRG
     LCD.fill(LCD.BLUE)
+    # TODO : make it so that overflows are 'automatically' moved to the next line
     LCD.text("The quick red fox",2,8,LCD.WHITE)
     LCD.text("jumped over the", 2, 16, LCD.WHITE)
     LCD.text("lazy brown dog", 2, 24, LCD.WHITE)

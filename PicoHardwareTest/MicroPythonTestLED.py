@@ -1,5 +1,10 @@
+"""
+This makes the LED on the pico blink (in MicroPython)
+"""
+
 from machine import Pin, Timer
-# 20 was for offboard LED, 25 was onboard LED
+# 20 (or number of your choice) for offboard LED
+# 25 onboard LED
 led = Pin(25, Pin.OUT)
 timer = Timer()
 

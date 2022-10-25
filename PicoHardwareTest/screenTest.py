@@ -1,3 +1,6 @@
+"""
+This shows all the colours on the screen to make sure that it works
+"""
 
 from machine import Pin,SPI,PWM
 import framebuf
