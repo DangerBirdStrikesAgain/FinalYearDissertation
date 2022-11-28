@@ -6,7 +6,7 @@ import time
 import board
 import digitalio
 
-# 20 was for offboard LED, 25 was onboard LED
+# pin for offboard LED, 25 for onboard LED
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
  
