@@ -445,7 +445,7 @@ class RFM69:
         self._reset.value = True
         time.sleep(0.0001)  # 100 us
         self._reset.value = False
-        time.sleep(0.005)  # 5 ms
+        time.sleep(0.005)   # 5 ms
 
     def idle(self) -> None:
         """Enter idle standby mode (switching off high power amplifiers if necessary)."""
@@ -780,6 +780,7 @@ class RFM69:
         self.idle()  # Stop receiving to clear FIFO and keep it clear.
         # Fill the FIFO with a packet to send.
         # Combine header and data to form payload
+        # CHANGE THESE!
         payload = bytearray(5)
         payload[0] = 4 + len(data)
         if destination is None:  # use attribute

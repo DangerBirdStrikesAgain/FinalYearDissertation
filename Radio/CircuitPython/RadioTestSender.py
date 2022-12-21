@@ -1,5 +1,5 @@
 """
-This should send hello world messages through the radio
+CircuitPython - sends hello world messages through the radio
 
 Wiring:
 Radio  Pico

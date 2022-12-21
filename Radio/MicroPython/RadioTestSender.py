@@ -9,9 +9,9 @@ Radio  Pico
 -----------
 GND  -> GND
 VIN  -> 3V3
-SCK  -> GP2
+SCK  -> GP2 clock
 MISO -> GP0
-MOSI -> GP3
+MOSI -> GP3 (master out)
 CS   -> GP1
 RST  -> GP4
 
