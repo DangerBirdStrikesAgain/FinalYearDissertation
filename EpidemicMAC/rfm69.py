@@ -6,16 +6,11 @@ SPDX-License-Identifier: MIT
 Designed to send and recieve packets with Adafruit's RFM69HCW transceiver radio breakout, to support an implementation of Epidemic routing
 with media access control
 
-.. note:: This is a 'best effort' at receiving data using pure Python code--there is not interrupt
-    support so you might lose packets if they're sent too quickly for the board to process them.
-    You will have the most luck using this in simple low bandwidth scenarios like sending and
-    receiving a 60 byte packet at a time--don't try to receive many kilobytes of data at a time!
-
-**Software and Dependencies:**
-* Adafruit CircuitPython firmware for the ESP8622 and M0-based boards:
-  https://github.com/adafruit/circuitpython/releases
-* Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
+Software and Dependencies:
+    Adafruit CircuitPython firmware for the ESP8622 and M0-based boards: https://github.com/adafruit/circuitpython/releases
+    Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
+
 import random
 import time
 import adafruit_bus_device.spi_device as spidev
@@ -29,7 +24,7 @@ try:
     print("Yes supervisor")
     HAS_SUPERVISOR = hasattr(supervisor, "ticks_ms")
 except ImportError:
-    print("Oh no! No supervisor")
+    print("No supervisor")
     pass
 
 try:
@@ -39,10 +34,6 @@ try:
     from busio import SPI
 except ImportError:
     pass
-
-__version__ = "0.0.0+auto.0"
-__repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_RFM69.git"
-
 
 # Internal constants:
 _REG_FIFO = const(0x00)
@@ -87,6 +78,7 @@ _TEST_PA2_BOOST = const(0x7C)
 _FXOSC = 32000000.0
 _FSTEP = _FXOSC / 524288
 
+"""
 # RadioHead specific compatibility constants.
 _RH_BROADCAST_ADDRESS = const(0xFF)
 # The acknowledgement bit in the FLAGS
@@ -94,6 +86,7 @@ _RH_BROADCAST_ADDRESS = const(0xFF)
 # for application layer use.
 _RH_FLAGS_ACK = const(0x80)
 _RH_FLAGS_RETRY = const(0x40)
+"""
 
 # User facing constants:
 SLEEP_MODE = 0b000
@@ -101,20 +94,16 @@ STANDBY_MODE = 0b001
 FS_MODE = 0b010
 TX_MODE = 0b011
 RX_MODE = 0b100
+
 # supervisor.ticks_ms() contants
 _TICKS_PERIOD = const(1 << 29)
 _TICKS_MAX = const(_TICKS_PERIOD - 1)
 _TICKS_HALFPERIOD = const(_TICKS_PERIOD // 2)
 
-# Disable the silly too many instance members warning.  Pylint has no knowledge
-# of the context and is merely guessing at the proper amount of members.  This
-# is a complex chip which requires exposing many attributes and state.  Disable
-# the warning to work around the error.
-# pylint: disable=too-many-instance-attributes
-
 
 def ticks_diff(ticks1: int, ticks2: int) -> int:
-    """Compute the signed difference between two ticks values
+    """
+    Compute the signed difference between two ticks values
     assuming that they are within 2**28 ticks
     """
     diff = (ticks1 - ticks2) & _TICKS_MAX
@@ -123,7 +112,9 @@ def ticks_diff(ticks1: int, ticks2: int) -> int:
 
 
 def check_timeout(flag: Callable, limit: float) -> bool:
-    """test for timeout waiting for specified flag"""
+    """
+    Test for timeout waiting for specified flag
+    """
     timed_out = False
     if HAS_SUPERVISOR:
         start = supervisor.ticks_ms()
@@ -139,7 +130,8 @@ def check_timeout(flag: Callable, limit: float) -> bool:
 
 
 class RFM69:
-    """Interface to a RFM69 series packet radio.  Allows simple sending and
+    """
+    Interface to a RFM69 series packet radio.  Allows simple sending and
     receiving of wireless data at supported frequencies of the radio
     (433/915mhz).
 
@@ -191,17 +183,6 @@ class RFM69:
         # used by the parent RFM69 class instance vs. each having their own
         # buffer and taking too much memory).
 
-        # Quirk of pylint that it requires public methods for a class.  This
-        # is a decorator class in Python and by design it has no public methods.
-        # Instead it uses dunder accessors like get and set below.  For some
-        # reason pylint can't figure this out so disable the check.
-        # pylint: disable=too-few-public-methods
-
-        # Again pylint fails to see the true intent of this code and warns
-        # against private access by calling the write and read functions below.
-        # This is by design as this is an internally used class.  Disable the
-        # check from pylint.
-        # pylint: disable=protected-access
 
         def __init__(self, address: int, *, offset: int = 0, bits: int = 1) -> None:
             assert 0 <= offset <= 7
@@ -252,8 +233,8 @@ class RFM69:
     mode_ready = _RegisterBits(_REG_IRQ_FLAGS1, offset=7)
     dio_0_mapping = _RegisterBits(_REG_DIO_MAPPING1, offset=6, bits=2)
 
-    # pylint: disable=too-many-statements
-    def __init__(  # pylint: disable=invalid-name
+
+    def __init__(  
         self,
         spi: SPI,
         cs: DigitalInOut,
@@ -262,42 +243,44 @@ class RFM69:
         *,
         sync_word: bytes = b"\x2D\xD4",
         preamble_length: int = 4,
-        encryption_key: Optional[bytes] = None,
-        high_power: bool = True,
         baudrate: int = 2000000
     ) -> None:
         self._tx_power = 13
-        self.high_power = high_power
+        self.high_power = True
         # Device support SPI mode 0 (polarity & phase = 0) up to a max of 10mhz.
         self._device = spidev.SPIDevice(spi, cs, baudrate=baudrate, polarity=0, phase=0)
         # Setup reset as a digital output that's low.
         self._reset = reset
         self._reset.switch_to_output(value=False)
-        self.reset()  # Reset the chip.
+        # Reset chip
+        self.reset() 
         # Check the version of the chip.
         version = self._read_u8(_REG_VERSION)
         if version != 0x24:
             raise RuntimeError(
                 "Failed to find RFM69 with expected version, check wiring!"
             )
-        self.idle()  # Enter idle state.
+
+        # Enter idle state
+        self.idle() 
+
         # Setup the chip in a similar way to the RadioHead RFM69 library.
         # Set FIFO TX condition to not empty and the default FIFO threshold to 15.
         self._write_u8(_REG_FIFO_THRESH, 0b10001111)
         # Configure low beta off.
         self._write_u8(_REG_TEST_DAGC, 0x30)
-        # Disable boost.
+        # Disable boost TODO - what is boost? Perhaps enable?
         self._write_u8(_REG_TEST_PA1, _TEST_PA1_NORMAL)
         self._write_u8(_REG_TEST_PA2, _TEST_PA2_NORMAL)
-        # Set the syncronization word.
+        # Set the syncronization word TODO - is this needed?
         self.sync_word = sync_word
         self.preamble_length = preamble_length  # Set the preamble length.
         self.frequency_mhz = frequency  # Set frequency.
-        self.encryption_key = encryption_key  # Set encryption key.
+        self.encryption_key = None  # Set encryption key.
         # Configure modulation for RadioHead library GFSK_Rb250Fd250 mode
         # by default.  Users with advanced knowledge can manually reconfigure
         # for any other mode (consulting the datasheet is absolutely
-        # necessary!).
+        # necessary!) TODO - WHAT IS THIS 
         self.modulation_shaping = 0b01  # Gaussian filter, BT=1.0
         self.bitrate = 250000  # 250kbs
         self.frequency_deviation = 250000  # 250khz
@@ -314,10 +297,12 @@ class RFM69:
 
         # initialize last RSSI reading
         self.last_rssi = 0.0
-        """The RSSI of the last received packet. Stored when the packet was received.
+        """
+           The RSSI of the last received packet. Stored when the packet was received.
            This instantaneous RSSI value may not be accurate once the
            operating mode has been changed.
         """
+        
         # initialize timeouts and delays delays
         self.ack_wait = 0.5
         """The delay time before attempting a retry after not receiving an ACK"""
@@ -329,12 +314,7 @@ class RFM69:
         """The amount of time to wait for the HW to transmit the packet.
            This is mainly used to prevent a hang due to a HW issue
         """
-        self.ack_retries = 5
-        """The number of ACK retries before reporting a failure."""
-        self.ack_delay = None
-        """The delay time before attemting to send an ACK.
-           If ACKs are being missed try setting this to .1 or .2.
-        """
+        
         # initialize sequence number counter for reliabe datagram mode
         self.sequence_number = 0
         # create seen Ids list
@@ -364,10 +344,7 @@ class RFM69:
            Fourth byte of the RadioHead header.
         """
 
-    # pylint: enable=too-many-statements
-
-    # pylint: disable=no-member
-    # Reconsider this disable when it can be tested.
+    
     def _read_into(
         self, address: int, buf: WriteableBuffer, length: Optional[int] = None
     ) -> None:
@@ -459,23 +436,24 @@ class RFM69:
 
     @property
     def temperature(self) -> float:
-        """The internal temperature of the chip in degrees Celsius. Be warned this is not
-        calibrated or very accurate.
+        """
+        Returns the internal temperature of the chip in degrees Celsius
+        Not calibrated or very accurate
 
-        .. warning:: Reading this will STOP any receiving/sending that might be happening!
+        Reading this will STOP any receiving/sending that might be happening!
         """
         # Start a measurement then poll the measurement finished bit.
         self.temp_start = 1
         while self.temp_running > 0:
             pass
         # Grab the temperature value and convert it to Celsius.
-        # This uses the same observed value formula from the Radiohead library.
         temp = self._read_u8(_REG_TEMP2)
         return 166.0 - temp
 
     @property
     def operation_mode(self) -> int:
-        """The operation mode value.  Unless you're manually controlling the chip you shouldn't
+        """
+        The operation mode value.  Unless you're manually controlling the chip you shouldn't
         change the operation_mode with this property as other side-effects are required for
         changing logical modes--use :py:func:`idle`, :py:func:`sleep`, :py:func:`transmit`,
         :py:func:`listen` instead to signal intent for explicit logical modes.
@@ -717,19 +695,16 @@ class RFM69:
         """Receive status"""
         return (self._read_u8(_REG_IRQ_FLAGS2) & 0x4) >> 2
 
-    # pylint: disable=too-many-branches
     def send(
         self,
         data: ReadableBuffer,
         *,
-        keep_listening: bool = False,
         destination: Optional[int] = None,
-        node: Optional[int] = None,
-        identifier: Optional[int] = None,
-        flags: Optional[int] = None
+        packetType
     ) -> bool:
-        """Send a string of data using the transmitter.
-        You can only send 60 bytes at a time
+        """
+        Send a string of data using the transmitter
+        Can only send 60 bytes at a time
         (limited by chip's FIFO size and appended headers).
         This appends a 4 byte header to be compatible with the RadioHead library.
         The header defaults to using the initialized attributes:
@@ -738,21 +713,24 @@ class RFM69:
         Values passed via kwargs do not alter the attribute settings.
         The keep_listening argument should be set to True if you want to start listening
         automatically after the packet is sent. The default setting is False.
+        
+        Args: 
+            data (ReadableBuffer): The data to be transmitted
+            destination (int): The destination address for the packet
+            packetType (int): The type of the packet
 
-        Returns: True if success or False if the send timed out.
+
+        Returns: 
+            bool: True if success and False if failure
         """
-        # Disable pylint warning to not use length as a check for zero.
-        # This is a puzzling warning as the below code is clearly the most
-        # efficient and proper way to ensure a precondition that the provided
-        # buffer be within an expected range of bounds.  Disable this check.
-        # pylint: disable=len-as-condition
         assert 0 < len(data) <= 60
-        # pylint: enable=len-as-condition
         self.idle()  # Stop receiving to clear FIFO and keep it clear.
         # Fill the FIFO with a packet to send.
         # Combine header and data to form payload
         # CHANGE THESE!
         payload = bytearray(5)
+        
+
         payload[0] = 4 + len(data)
         if destination is None:  # use attribute
             payload[1] = self.destination
@@ -770,57 +748,19 @@ class RFM69:
             payload[4] = self.flags
         else:  # use kwarg
             payload[4] = flags
-        payload = payload + data
+        payload = packetType + payload + data
         # Write payload to transmit fifo
         self._write_from(_REG_FIFO, payload)
         # Turn on transmit mode to send out the packet.
         self.transmit()
         # Wait for packet sent interrupt with explicit polling (not ideal but
         # best that can be done right now without interrupts).
+        # TODO - what does this do? What is packet timeout?
         timed_out = check_timeout(self.packet_sent, self.xmit_timeout)
-        # Listen again if requested.
-        if keep_listening:
-            self.listen()
-        else:  # Enter idle mode to stop receiving other packets.
-            self.idle()
+        # Enter idle mode to stop receiving other packets.
+        self.idle()
         return not timed_out
 
-    def send_with_ack(self, data: int) -> bool:
-        """Reliable Datagram mode:
-        Send a packet with data and wait for an ACK response.
-        The packet header is automatically generated.
-        If enabled, the packet transmission will be retried on failure
-        """
-        if self.ack_retries:
-            retries_remaining = self.ack_retries
-        else:
-            retries_remaining = 1
-        got_ack = False
-        self.sequence_number = (self.sequence_number + 1) & 0xFF
-        while not got_ack and retries_remaining:
-            self.identifier = self.sequence_number
-            self.send(data, keep_listening=True)
-            # Don't look for ACK from Broadcast message
-            if self.destination == _RH_BROADCAST_ADDRESS:
-                got_ack = True
-            else:
-                # wait for a packet from our destination
-                ack_packet = self.receive(timeout=self.ack_wait, with_header=True)
-                if ack_packet is not None:
-                    if ack_packet[3] & _RH_FLAGS_ACK:
-                        # check the ID
-                        if ack_packet[2] == self.identifier:
-                            got_ack = True
-                            break
-            # pause before next retry -- random delay
-            if not got_ack:
-                # delay by random amount before next try
-                time.sleep(self.ack_wait + self.ack_wait * random.random())
-            retries_remaining = retries_remaining - 1
-            # set retry flag in packet header
-            self.flags |= _RH_FLAGS_RETRY
-        self.flags = 0  # clear flags
-        return got_ack
 
     def receive(
         self,
@@ -830,14 +770,16 @@ class RFM69:
         timeout: Optional[float] = None,
         with_header: bool = False
     ) -> int:
-        """Wait to receive a packet from the receiver. If a packet is found the payload bytes
-        are returned, otherwise None is returned (which indicates the timeout elapsed with no
+        """
+        Listen for packets 
+        If a packet is recieved, it is returned, 
+        otherwise None is returned (which indicates the timeout elapsed with no
         reception).
         If keep_listening is True (the default) the chip will immediately enter listening mode
         after reception of a packet, otherwise it will fall back to idle mode and ignore any
         future reception.
-        All packets must have a 4 byte header for compatibilty with the
-        RadioHead library.
+        
+        
         The header consists of 4 bytes (To,From,ID,Flags). The default setting will  strip
         the header before returning the packet to the caller.
         If with_header is True then the 4 byte header will be returned with the packet.
@@ -865,7 +807,6 @@ class RFM69:
             # Read the length of the FIFO.
             fifo_length = self._read_u8(_REG_FIFO)
             # Handle if the received packet is too small to include the 4 byte
-            # RadioHead header and at least one byte of data --reject this packet and ignore it.
             if fifo_length > 0:  # read and clear the FIFO if anything in it
                 packet = bytearray(fifo_length)
                 self._read_into(_REG_FIFO, packet, fifo_length)

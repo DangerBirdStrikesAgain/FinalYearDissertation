@@ -1,8 +1,27 @@
-# Enum to enumerate packet types
+from micropython import const
+
+# Packet types - if we needed more room for sending perhaps make this
+# 4 bits and the address 4 bits?
+HELLO = const(0x00)
+
+# For broadcast
+BROADCAST = const(0xFF)
+
+# Address of node - this will need to be changed each time!
+ADDRESS = const(0x01)
 
 
 # Radio frequency
 FREQUENCY = 443
 
-# Hello timer - a new hello message is broadcast when this time elapses
-HELLOTIMER = 30
+# Hello timer - a new hello message is broadcast when this time elapses 
+# remember that is in ms
+HELLOTIMER = 30000
+
+
+# self.ack_retries = 5
+#         """The number of ACK retries before reporting a failure."""
+#         self.ack_delay = None
+#         """The delay time before attemting to send an ACK.
+#            If ACKs are being missed try setting this to .1 or .2.
+#         """
