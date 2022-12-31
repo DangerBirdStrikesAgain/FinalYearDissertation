@@ -10,13 +10,6 @@ cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
-def getGPS():
-    return ("10.284638, 89.473057")
-
-def sendHello():
-    gps = getGPS()
-    return rfm69.send(data = bytes(gps, "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
-    
 while True:
-    print(sendHello())
-    time.sleep(1)
+    packet = rfm69.receive()
+    print(packet)

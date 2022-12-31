@@ -10,13 +10,18 @@ BROADCAST = const(0xFF)
 # Address of node - this will need to be changed each time!
 ADDRESS = const(0x01)
 
-
 # Radio frequency
 FREQUENCY = 443
 
 # Hello timer - a new hello message is broadcast when this time elapses 
 # remember that is in ms
 HELLOTIMER = 30000
+
+# Quantity of time to wait for the board to transmit the packet
+TRANSMIT_TIMEOUT = 2.0
+
+# Quantitiy of time to wait for the board to receive a packet
+RECEIVE_TIMEOUT = 0.5
 
 
 # self.ack_retries = 5

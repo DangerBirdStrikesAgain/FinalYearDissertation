@@ -35,7 +35,6 @@ print("Frequency deviation: {0}hz".format(rfm69.frequency_deviation))
 
 
 while True:
-    print ("Got here!")
     message = "Hello world!\r\n"+str(count)
     rfm69.send(bytes(message, "utf-8"))
     print("Sent ", count, " hello world messages!")

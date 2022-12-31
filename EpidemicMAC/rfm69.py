@@ -21,7 +21,6 @@ HAS_SUPERVISOR = False
 
 try:
     import supervisor
-    print("Yes supervisor")
     HAS_SUPERVISOR = hasattr(supervisor, "ticks_ms")
 except ImportError:
     print("No supervisor")
@@ -310,10 +309,7 @@ class RFM69:
         """The amount of time to poll for a received packet.
            If no packet is received, the returned packet will be None
         """
-        self.xmit_timeout = 2.0
-        """The amount of time to wait for the HW to transmit the packet.
-           This is mainly used to prevent a hang due to a HW issue
-        """
+        
         
         # initialize sequence number counter for reliabe datagram mode
         self.sequence_number = 0
@@ -321,13 +317,13 @@ class RFM69:
         self.seen_ids = bytearray(256)
         # initialize packet header
         # node address - default is broadcast
-        self.node = _RH_BROADCAST_ADDRESS
+        #self.node = _RH_BROADCAST_ADDRESS
         """The default address of this Node. (0-255).
            If not 255 (0xff) then only packets address to this node will be accepted.
            First byte of the RadioHead header.
         """
         # destination address - default is broadcast
-        self.destination = _RH_BROADCAST_ADDRESS
+        #self.destination = _RH_BROADCAST_ADDRESS
         """The default destination address for packet transmissions. (0-255).
            If 255 (0xff) then any receiving node should accept the packet.
            Second byte of the RadioHead header.
@@ -338,7 +334,7 @@ class RFM69:
            Third byte of the RadioHead header.
         """
         # flags - identifies ack/reetry packet for reliable datagram mode
-        self.flags = 0
+        # self.flags = 0
         """Upper 4 bits reserved for use by Reliable Datagram Mode.
            Lower 4 bits may be used to pass information.
            Fourth byte of the RadioHead header.
@@ -698,160 +694,93 @@ class RFM69:
     def send(
         self,
         data: ReadableBuffer,
-        *,
-        destination: Optional[int] = None,
-        packetType
+        destination: int,
+        packetType: int
     ) -> bool:
         """
         Send a string of data using the transmitter
-        Can only send 60 bytes at a time
-        (limited by chip's FIFO size and appended headers).
-        This appends a 4 byte header to be compatible with the RadioHead library.
-        The header defaults to using the initialized attributes:
-        (destination,node,identifier,flags)
-        It may be temporarily overidden via the kwargs - destination,node,identifier,flags.
-        Values passed via kwargs do not alter the attribute settings.
-        The keep_listening argument should be set to True if you want to start listening
-        automatically after the packet is sent. The default setting is False.
+        Can only send 60 bytes at a time - limited by chip's FIFO size of 64 bytes and headers
         
         Args: 
             data (ReadableBuffer): The data to be transmitted
             destination (int): The destination address for the packet
             packetType (int): The type of the packet
 
-
         Returns: 
             bool: True if success and False if failure
         """
-        assert 0 < len(data) <= 60
-        self.idle()  # Stop receiving to clear FIFO and keep it clear.
-        # Fill the FIFO with a packet to send.
-        # Combine header and data to form payload
-        # CHANGE THESE!
-        payload = bytearray(5)
-        
 
+        assert 0 < len(data) <= 60
+        # Stop receiving to clear FIFO and keep it clear
+        self.idle()
+        
+        payload = bytearray(4)
         payload[0] = 4 + len(data)
-        if destination is None:  # use attribute
-            payload[1] = self.destination
-        else:  # use kwarg
-            payload[1] = destination
-        if node is None:  # use attribute
-            payload[2] = self.node
-        else:  # use kwarg
-            payload[2] = node
-        if identifier is None:  # use attribute
-            payload[3] = self.identifier
-        else:  # use kwarg
-            payload[3] = identifier
-        if flags is None:  # use attribute
-            payload[4] = self.flags
-        else:  # use kwarg
-            payload[4] = flags
-        payload = packetType + payload + data
+        payload[1] = packetType
+        payload[2] = config.ADDRESS
+        payload[3] = destination
+        payload = payload + data
+        
         # Write payload to transmit fifo
         self._write_from(_REG_FIFO, payload)
-        # Turn on transmit mode to send out the packet.
+        # Turn on transmit mode to send out the packet
         self.transmit()
-        # Wait for packet sent interrupt with explicit polling (not ideal but
-        # best that can be done right now without interrupts).
-        # TODO - what does this do? What is packet timeout?
-        timed_out = check_timeout(self.packet_sent, self.xmit_timeout)
-        # Enter idle mode to stop receiving other packets.
+        # Wait for packet sent interrupt with explicit polling
+        # (not ideal but best that can be done without interrupts)
+        timed_out = check_timeout(self.packet_sent, config.TRANSMIT_TIMEOUT)
+        # Enter idle mode to stop just kinda transmitting everything
         self.idle()
+        
         return not timed_out
 
-
-    def receive(
-        self,
-        *,
-        keep_listening: bool = True,
-        with_ack: bool = False,
-        timeout: Optional[float] = None,
-        with_header: bool = False
-    ) -> int:
+    def receive(self) -> int:
         """
         Listen for packets 
-        If a packet is recieved, it is returned, 
-        otherwise None is returned (which indicates the timeout elapsed with no
-        reception).
-        If keep_listening is True (the default) the chip will immediately enter listening mode
-        after reception of a packet, otherwise it will fall back to idle mode and ignore any
-        future reception.
-        
-        
-        The header consists of 4 bytes (To,From,ID,Flags). The default setting will  strip
-        the header before returning the packet to the caller.
-        If with_header is True then the 4 byte header will be returned with the packet.
-        The payload then begins at packet[4].
-        If with_ack is True, send an ACK after receipt (Reliable Datagram mode)
-        """
-        timed_out = False
-        if timeout is None:
-            timeout = self.receive_timeout
-        if timeout is not None:
-            # Wait for the payload_ready signal.  This is not ideal and will
-            # surely miss or overflow the FIFO when packets aren't read fast
-            # enough, however it's the best that can be done from Python without
-            # interrupt supports.
-            # Make sure we are listening for packets.
-            self.listen()
-            timed_out = check_timeout(self.payload_ready, timeout)
-        # Payload ready is set, a packet is in the FIFO.
-        packet = None
-        # save last RSSI reading
-        self.last_rssi = self.rssi
-        # Enter idle mode to stop receiving other packets.
-        self.idle()
-        if not timed_out:
-            # Read the length of the FIFO.
-            fifo_length = self._read_u8(_REG_FIFO)
-            # Handle if the received packet is too small to include the 4 byte
-            if fifo_length > 0:  # read and clear the FIFO if anything in it
-                packet = bytearray(fifo_length)
-                self._read_into(_REG_FIFO, packet, fifo_length)
+        If a packet is recieved, it is returned, otherwise None is returned
+        (which indicates the timeout elapsed with no reception)
 
-            if fifo_length < 5:
-                packet = None
-            else:
-                if (
-                    self.node != _RH_BROADCAST_ADDRESS
-                    and packet[0] != _RH_BROADCAST_ADDRESS
-                    and packet[0] != self.node
-                ):
-                    packet = None
-                # send ACK unless this was an ACK or a broadcast
-                elif (
-                    with_ack
-                    and ((packet[3] & _RH_FLAGS_ACK) == 0)
-                    and (packet[0] != _RH_BROADCAST_ADDRESS)
-                ):
-                    # delay before sending Ack to give receiver a chance to get ready
-                    if self.ack_delay is not None:
-                        time.sleep(self.ack_delay)
-                    # send ACK packet to sender (data is b'!')
-                    self.send(
-                        b"!",
-                        destination=packet[1],
-                        node=packet[0],
-                        identifier=packet[2],
-                        flags=(packet[3] | _RH_FLAGS_ACK),
-                    )
-                    # reject Retries if we have seen this idetifier from this source before
-                    if (self.seen_ids[packet[1]] == packet[2]) and (
-                        packet[3] & _RH_FLAGS_RETRY
-                    ):
-                        packet = None
-                    else:  # save the packet identifier for this source
-                        self.seen_ids[packet[1]] = packet[2]
-                if (
-                    not with_header and packet is not None
-                ):  # skip the header if not wanted
-                    packet = packet[4:]
-        # Listen again if necessary and return the result packet.
-        if keep_listening:
-            self.listen()
-        else:
-            # Enter idle mode to stop receiving other packets.
-            self.idle()
-        return packet
+        Args:
+
+        Returns:
+            int: The length of the packet in bytes (including 4 byte headers)
+            int: The type of the packet
+            int: The address of the sender
+            int: The destination address
+            int: The packet data
+        """
+        
+        packet = None
+        packetLength = None
+        packetType = None
+        sender = None
+        destination = None
+
+        timed_out = False
+        
+        # Listen for packets
+        self.listen()
+        
+        # Wait for the payload_ready signal.  This is not ideal and will
+        # surely miss or overflow the FIFO when packets aren't read fast
+        # enough, however it's the best that can be done from Python without
+        # interrupt supports
+        timed_out = check_timeout(self.payload_ready, config.RECEIVE_TIMEOUT)
+        # Enter idle mode to stop receiving other packets
+        self.idle()
+        
+        if not timed_out:
+            # Read the length of the FIFO - requires the first byte to be the length
+            # Fairly sure this is a destructive read so if you want the whole packet length you're gonna have to use this
+            packetLength = self._read_u8(_REG_FIFO)
+            # read and clear the FIFO if anything in 
+            if packetLength > 0:
+                packet = bytearray(packetLength)
+                self._read_into(_REG_FIFO, packet, (packetLength-1))
+                packetType = packet[0]
+                sender = packet[1]
+                destination = packet[2]
+
+        if packet is not None:
+            return (packetLength, packetType, sender, destination, packet[4:]) 
+        else: 
+            return packet
