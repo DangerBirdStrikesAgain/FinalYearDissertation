@@ -11,5 +11,15 @@ reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
 while True:
-    packet = rfm69.receive()
-    print(packet)
+    args = rfm69.receive()
+    if args is not None:
+        packetLength, packetType, sender, destination, packet = args
+        print("Packet Length: ", packetLength)
+        print("Packet Type: ", packetType)
+        if packetType == config.HELLO:
+            print("Yes, it is a hello packet")
+        print("Sender: ", sender)
+        print("Destination: ", destination)
+        if destination == config.BROADCAST:
+            print("Yes, it is a broadcast :)")
+        print("Packet: ", packet)
