@@ -5,10 +5,15 @@ LISTEN = 0
 SEND_HELLO = 1
 QUIET = 2
 RECEIVED_HELLO = 3
+RECEIVED_RTS = 4
 
 
-# Packet types - if we needed more room for sending perhaps make this
+# PACKET TYPES
+# if we needed more room for sending perhaps make this
 # 4 bits and the address 4 bits? (actually I think that would really limit the network size nvm)
+
+# HELLO 
+# TODO - put the packet structures in the comments here
 HELLO = const(0x00)
 RTS = const(0x01)
 CTS = const(0x02)
@@ -30,6 +35,7 @@ FREQUENCY = 443
 # remember that is in ms
 HELLO_TIMER = 30000
 
+# TIMERS
 # Quantity of time to wait for the board to transmit the packet
 TRANSMIT_TIMEOUT = 2.0
 # Quantitiy of time to wait for the board to receive a packet
