@@ -31,17 +31,16 @@ ADDRESS = const(0x01)
 # Radio frequency
 FREQUENCY = 443
 
-# Hello timer - a new hello message is broadcast when this time elapses 
-# remember that is in ms
-HELLO_TIMER = 30000
-
-# TIMERS
-# Quantity of time to wait for the board to transmit the packet
-TRANSMIT_TIMEOUT = 2.0
+# TIMERS in seconds 
+# Quantity of time in seconds to wait for the board to transmit the packet
+TRANSMIT_TIMEOUT = 0.2
 # Quantitiy of time to wait for the board to receive a packet
 RECEIVE_TIMEOUT = 0.5
-# How long to try to send RTS es 
+# How long to try to send RTS
 RTS_TIMEOUT = 3.0
+# How often to transmit a new hello message 
+HELLO_TIMER = 30
+
 
 # The number of attempts that should be made to send packets before giving up
 RTS_REENTRIES = 3

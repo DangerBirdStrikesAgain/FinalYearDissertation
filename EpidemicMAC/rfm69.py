@@ -17,14 +17,11 @@ import adafruit_bus_device.spi_device as spidev
 from micropython import const
 import config 
 
-HAS_SUPERVISOR = False
+#HAS_SUPERVISOR = False
 
-try:
-    import supervisor
-    HAS_SUPERVISOR = hasattr(supervisor, "ticks_ms")
-except ImportError:
-    print("No supervisor")
-    pass
+
+import supervisor
+HAS_SUPERVISOR = hasattr(supervisor, "ticks_ms")
 
 try:
     from typing import Callable, Optional, Type
@@ -103,7 +100,14 @@ _TICKS_HALFPERIOD = const(_TICKS_PERIOD // 2)
 def ticks_diff(ticks1: int, ticks2: int) -> int:
     """
     Compute the signed difference between two ticks values
-    assuming that they are within 2**28 ticks
+    Assumes that they are within 2**28 ticks
+
+    Args:
+        ticks1 (int): The first value
+        ticks2 (int): The second value
+
+    Returns:
+        int: The signed difference between ticks 1 and 2
     """
     diff = (ticks1 - ticks2) & _TICKS_MAX
     diff = ((diff + _TICKS_HALFPERIOD) & _TICKS_MAX) - _TICKS_HALFPERIOD
@@ -113,18 +117,21 @@ def ticks_diff(ticks1: int, ticks2: int) -> int:
 def check_timeout(flag: Callable, limit: float) -> bool:
     """
     Test for timeout waiting for specified flag
+
+    Args:
+        flag (Callable): The flag to be checked for timeout
+        limit (float): The 
+
+    Returns:
+        bool: True if timeout, otherwise False
     """
     timed_out = False
-    if HAS_SUPERVISOR:
-        start = supervisor.ticks_ms()
-        while not timed_out and not flag():
-            if ticks_diff(supervisor.ticks_ms(), start) >= limit * 1000:
-                timed_out = True
-    else:
-        start = time.monotonic()
-        while not timed_out and not flag():
-            if time.monotonic() - start >= limit:
-                timed_out = True
+    
+    start = supervisor.ticks_ms()
+    while not timed_out and not flag():
+        if ticks_diff(supervisor.ticks_ms(), start) >= limit * 1000:
+            timed_out = True
+    
     return timed_out
 
 
@@ -160,15 +167,6 @@ class RFM69:
     Remember this library makes a best effort at receiving packets with pure Python code.  Trying
     to receive packets too quickly will result in lost data so limit yourself to simple scenarios
     of sending and receiving single packets at a time.
-
-    Also note this library tries to be compatible with raw RadioHead Arduino library communication.
-    This means the library sets up the radio modulation to match RadioHead's default of GFSK
-    encoding, 250kbit/s bitrate, and 250khz frequency deviation. To change this requires explicitly
-    setting the radio's bitrate and encoding register bits. Read the datasheet and study the init
-    function to see an example of this--advanced users only! Advanced RadioHead features like
-    address/node specific packets or "reliable datagram" delivery are supported however due to the
-    limitations noted, "reliable datagram" is still subject to missed packets but with it, the
-    sender is notified if a packe has potentially been missed.
     """
 
     # Global buffer for SPI commands.
@@ -257,7 +255,7 @@ class RFM69:
         version = self._read_u8(_REG_VERSION)
         if version != 0x24:
             raise RuntimeError(
-                "Failed to find RFM69 with expected version, check wiring!"
+                "Failed to find RFM69 with expected version, check wiring, soldering, gremlins and if you're using Blinka with MicroPython"
             )
 
         # Enter idle state
@@ -732,6 +730,7 @@ class RFM69:
         self.idle()
         
         return not timed_out
+
 
     def receive(self) -> int:
         """

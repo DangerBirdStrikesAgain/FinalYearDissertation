@@ -25,6 +25,7 @@ import config
 import rfm69
 import board
 import time
+import timer
 import busio
 import digitalio
 from typing import Callable, Optional, Type
