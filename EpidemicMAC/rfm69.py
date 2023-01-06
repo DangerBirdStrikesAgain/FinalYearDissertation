@@ -11,25 +11,17 @@ Software and Dependencies:
     Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
 
-import random
 import time
 import adafruit_bus_device.spi_device as spidev
 from micropython import const
 import config 
+from digitalio import DigitalInOut
+from busio import SPI
 
-#HAS_SUPERVISOR = False
-
-
+# Supervisor for timing
 import supervisor
 HAS_SUPERVISOR = hasattr(supervisor, "ticks_ms")
 
-try:
-    from typing import Callable, Optional, Type
-    from circuitpython_typing import WriteableBuffer, ReadableBuffer
-    from digitalio import DigitalInOut
-    from busio import SPI
-except ImportError:
-    pass
 
 # Internal constants:
 _REG_FIFO = const(0x00)

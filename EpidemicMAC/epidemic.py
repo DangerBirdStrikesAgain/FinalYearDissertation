@@ -5,7 +5,7 @@ TODO - put the paper it is based on here
 Uses Raspberry Pi Pico with the Adafruit Ultimate GPS Breakout V3 and RFM69HCW Radio breakout
 Requires rfm69 library and config files
  
-Wiring:
+Wiring: TODO
 Radio   GPS   Pico
 ------------------
 GND            GND
@@ -18,17 +18,94 @@ RST            GP4
 """
 
 # TODO - Error handling
-# Also perhaps use some form of typing
+# TODO - Random backoff for the timers
 
-
+from micropython import const
 import config
 import rfm69
 import board
 import time
-import timer
+import random
+# from busio import SPI
 import busio
 import digitalio
-from typing import Callable, Optional, Type
+
+import supervisor
+
+class Timers:
+    def __init__(self):
+        # supervisor.ticks_ms() contants
+        self._TICKS_PERIOD = const(1 << 29)
+        self._TICKS_MAX = const(self._TICKS_PERIOD - 1)
+        self._TICKS_HALFPERIOD = const(self._TICKS_PERIOD // 2)
+
+        # Initialise timers
+        self._nextHello = self._ticksAdd(supervisor.ticks_ms(), config.HELLO_TIMER)
+
+
+    def hello(self):
+        if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
+            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), config.HELLO_TIMER)
+            return True
+        else: 
+            return False
+
+    def _ticksAdd(self, ticks: int, delta: float) -> int:
+        """
+        Add delta multiplied by 1000 to a base number of ticks,
+        performing wraparound at 2**29ms
+        (i.e. ticks + delta*1000)
+        Multiplying by 1000 allows for delta to be passed in as seconds and handled as milliseconds 
+        
+        Args:
+            ticks (int): The base value of ticks 
+            delta (float): The increment for ticks
+        
+        Returns:
+            int: The new value for ticks
+        """
+        return (ticks + (delta*1000)) % self._TICKS_PERIOD
+
+
+    def _ticksDiff(self, ticks1: int, ticks2: int) -> int:
+        """
+        Compute the signed difference between two ticks values
+        Assumes that they are within 2**28 ticks
+        (i.e. tick1-tick2)
+
+        Args:
+            ticks1 (int): The first value
+            ticks2 (int): The second value
+
+        Returns:
+            int: The signed difference between ticks 1 and 2
+        """
+        diff = (ticks1 - ticks2) & self._TICKS_MAX
+        diff = ((diff + self._TICKS_HALFPERIOD) & self._TICKS_MAX) - self._TICKS_HALFPERIOD
+        return diff
+
+
+    def _checkTimeout(self, flag: Callable, limit: float) -> bool:
+        """
+        Test for timeout waiting for specified flag
+
+        Args:
+            flag (Callable): The flag to be checked for timeout
+            limit (float): The number of seconds to wait for the timeout
+
+        Returns:
+            bool: True if timeout, otherwise False
+        """
+        timed_out = False
+        
+        start = supervisor.ticks_ms()
+        while not timed_out and not flag():
+            if self.ticks_diff(supervisor.ticks_ms(), start) >= limit * 1000:
+                timed_out = True
+        
+        return timed_out
+
+
 
 
 def log(message: str):
@@ -55,7 +132,7 @@ def getGPS():
     return ("10.284638, 89.473057")
 
 
-def sendHello():
+def sendHello() -> bool:
     """
     Sends a packet of type HELLO
     
@@ -69,7 +146,7 @@ def sendHello():
     return rfm69.send(data = bytes(gps, "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
 
 
-def sendRTS(dest):
+def sendRTS(dest: int) -> bool:
     """
     Sends a packet of type RTS to the given sender
 
@@ -109,7 +186,10 @@ def sendToAppLayer(item):
     return True
 
 
-def handleReceive(args, quietState = False):
+def handleReceive(args, quietState: Optional[bool] = False):
+    """
+    TODO explain this
+    """
     global quietNode
     # Quietmode ensures that we don't accidentally break out of the quiet state
     # TODO Actually should we be taking the state as input? 
@@ -165,9 +245,12 @@ quietNode: int
 # Set the state to the starting state 
 state = 0
 
-# Set this to true or false if we want to log errors
-logging = True
+# Logging turned on if we have a USB connections
+logging = supervisor.runtime.serial_connected
+if logging:
+    print("Logging on")
 
+timers = Timers()
 
 while True:
     if state == config.LISTEN:
@@ -198,5 +281,7 @@ while True:
         state = handleReceive(args, quietState=True)
 
 
-    # Ok we're going to put our timers down here because I'm like 90% sure we can't generate interrupts in CircuitPython (TODO check this)
-    # Check the timers
+    # Poll timers (is best we can do due to lack of interrupt support in CircuitPython)
+    if timers.hello():
+        sendHello()
+        print("Sent hello as hello timer went")
