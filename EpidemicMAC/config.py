@@ -40,7 +40,8 @@ RECEIVE_TIMEOUT = 0.5
 RTS_TIMEOUT = 3.0
 # How often to transmit a new hello message 
 HELLO_TIMER = 30
-
+# How long to remain in quiet mode when waiting for an ACK 
+QUIET_STATE_TIMER = 20
 
 # The number of attempts that should be made to send packets before giving up
 RTS_REENTRIES = 3

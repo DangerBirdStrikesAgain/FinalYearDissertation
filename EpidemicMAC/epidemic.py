@@ -41,14 +41,8 @@ class Timers:
 
         # Initialise timers
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), config.HELLO_TIMER)
+        self._ACKTimeout: int
 
-
-    def hello(self):
-        if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
-            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), config.HELLO_TIMER)
-            return True
-        else: 
-            return False
 
     def _ticksAdd(self, ticks: int, delta: float) -> int:
         """
@@ -105,6 +99,53 @@ class Timers:
         
         return timed_out
 
+    
+    def hello(self) -> bool:
+        """
+        Checks if the timer for sending a hello has elapsed
+
+        Args:
+            None
+
+        Returns:
+            bool: True if the timer has elapsed, otherwise False
+        """
+
+        if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
+            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), config.HELLO_TIMER)
+            return True
+        else: 
+            return False
+
+
+    def startQuietState(self):
+        """
+        Generates the timer to wait for an ACK
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self._ACKTimeout = self._ticksAdd(supervisor.ticks_ms(), config.QUIET_STATE_TIMER)
+
+    def quiet(self) -> bool:
+        """
+        Checks if the timer for waiting for an ACK has elapsed
+
+        Args:
+            None
+
+        Returns:
+            bool: True if the timer has elapsed, otherwise False
+        """
+
+        if self._ticksDiff(self._ACKTimeout, supervisor.ticks_ms()) < 0:
+            return True
+        else:
+            return False
+
 
 
 
@@ -119,10 +160,8 @@ def log(message: str):
         None
     """
     global logging
-
     if logging:
         print(message)
-
 
 def getGPS():
     """
@@ -142,7 +181,6 @@ def sendHello() -> bool:
     Returns:
         bool: True if success, False if error
     """
-    log("Send hello started")
     gps = getGPS()
     return rfm69.send(data = bytes(gps, "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
 
@@ -187,11 +225,12 @@ def sendToAppLayer(item):
     return True
 
 
-def handleReceive(args, quietState: Optional[bool] = False):
+def handleReceive(args: Tuple[Any], quietState: Optional[bool] = False):
     """
     TODO explain this
     """
     global quietNode
+    global timers 
     # Quietmode ensures that we don't accidentally break out of the quiet state
     # TODO Actually should we be taking the state as input? 
     if not quietState:
@@ -200,9 +239,10 @@ def handleReceive(args, quietState: Optional[bool] = False):
         elif args[1] == config.HELLO:
             return config.RECEIVED_HELLO
         elif args[1] == config.CTS: # and args[2]!=config.ADDRESS:
-            # TODO - implment a timer so we don't just zone out forever if there's an error
             # Record the sender so we know when the correct ACK comes along
             quietNode = args[3]
+            # Start the timer to ensure if an ACK is not heard, we do not remain in quiet mode forever
+            timers.startQuietState()
             return config.QUIET
         elif args[1] == config.RTS:
             if args[3] == config.ADDRESS:
@@ -220,7 +260,7 @@ def handleReceive(args, quietState: Optional[bool] = False):
             # TODO - should we actually be doing something about this? 
             # Currently we just assume that we won't see two CTSs from different nodes
             return config.QUIET
-        elif args[1] == config.ACK and args[2] == quietNode:
+        elif timers.quiet() or (args[1] == config.ACK and args[2] == quietNode):
             # Note that the exit from quiet is listen
             return config.LISTEN
         else:
@@ -244,16 +284,18 @@ contacted = []
 quietNode: int
 
 # Set the state to the starting state 
-state = 0
+state = config.QUIET
 
 # Logging turned on if we have a USB connections
 logging = supervisor.runtime.serial_connected
 if logging:
     print("Logging")
 
+# TODO is this bad programming practice? It's a global variable that is called from in handle recieve
 timers = Timers()
 
 while True:
+    log(state)
     if state == config.LISTEN:
         args = rfm69.receive()
         state = handleReceive(args)
@@ -277,11 +319,10 @@ while True:
                 """
 
     elif state == config.QUIET:
-        
         args = rfm69.receive()
         state = handleReceive(args, quietState=True)
 
 
-    # Poll timers (is best we can do due to lack of interrupt support in CircuitPython)
+    # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
     if timers.hello():
         state=config.SEND_HELLO

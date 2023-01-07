@@ -724,7 +724,7 @@ class RFM69:
         return not timed_out
 
 
-    def receive(self) -> list[int]:
+    def receive(self) -> tuple[Any]:
         """
         Listen for packets 
         If a packet is recieved, it is returned, otherwise None is returned
@@ -738,7 +738,7 @@ class RFM69:
             int: The type of the packet
             int: The address of the sender
             int: The destination address
-            int: The packet data
+            bytearray: The packet data
         """
         
         packet = None
