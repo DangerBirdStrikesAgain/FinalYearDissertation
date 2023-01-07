@@ -142,6 +142,7 @@ def sendHello() -> bool:
     Returns:
         bool: True if success, False if error
     """
+    log("Send hello started")
     gps = getGPS()
     return rfm69.send(data = bytes(gps, "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
 
@@ -248,7 +249,7 @@ state = 0
 # Logging turned on if we have a USB connections
 logging = supervisor.runtime.serial_connected
 if logging:
-    print("Logging on")
+    print("Logging")
 
 timers = Timers()
 
@@ -283,5 +284,4 @@ while True:
 
     # Poll timers (is best we can do due to lack of interrupt support in CircuitPython)
     if timers.hello():
-        sendHello()
-        print("Sent hello as hello timer went")
+        state=config.SEND_HELLO

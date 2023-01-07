@@ -724,13 +724,14 @@ class RFM69:
         return not timed_out
 
 
-    def receive(self) -> int:
+    def receive(self) -> list[int]:
         """
         Listen for packets 
         If a packet is recieved, it is returned, otherwise None is returned
         (which indicates the timeout elapsed with no reception)
 
         Args:
+            None
 
         Returns:
             int: The length of the packet in bytes (including 4 byte headers)
@@ -761,11 +762,11 @@ class RFM69:
         
         if not timed_out:
             # Read the length of the FIFO - requires the first byte to be the length
-            # Fairly sure this is a destructive read so if you want the whole packet length you're gonna have to use this
+            # Fairly sure this is a destructive read 
             packetLength = self._read_u8(_REG_FIFO)
             # read and clear the FIFO if anything in 
             if packetLength > 0:
-                packet = bytearray(packetLength)
+                packet = bytearray(packetLength-1)
                 self._read_into(_REG_FIFO, packet, (packetLength-1))
                 packetType = packet[0]
                 sender = packet[1]
