@@ -773,6 +773,6 @@ class RFM69:
                 destination = packet[2]
 
         if packet is not None:
-            return (packetLength, packetType, sender, destination, packet[4:]) 
+            return (packetLength, packetType, sender, destination, packet[3:]) 
         else: 
             return packet
