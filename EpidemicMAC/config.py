@@ -42,6 +42,10 @@ RTS_TIMEOUT = 3.0
 HELLO_TIMER = 30
 # How long to remain in quiet mode when waiting for an ACK 
 QUIET_STATE_TIMER = 20
+# How often to decrement the contacted / do not contact list
+CONTACTED_TIMER  = 20
+# How many times an entry in contacted / do not contact should be decremented 
+CONTACTED_LIVES = 3 
 
 # The number of attempts that should be made to send packets before giving up
 RTS_REENTRIES = 3

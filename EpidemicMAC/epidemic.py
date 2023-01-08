@@ -19,6 +19,7 @@ RST            GP4
 
 # TODO - Error handling
 # TODO - Random backoff for the timers
+# You have a bunch of global variables and I feel like they're bad practice
 
 from micropython import const
 import config
@@ -41,6 +42,7 @@ class Timers:
 
         # Initialise timers
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), config.HELLO_TIMER)
+        self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
         self._ACKTimeout: int
 
 
@@ -144,6 +146,24 @@ class Timers:
         if self._ticksDiff(self._ACKTimeout, supervisor.ticks_ms()) < 0:
             return True
         else:
+            return False
+
+    
+    def contacted(self) -> bool:
+        """
+        Checks if the timer for decrementing the contacted list has elapsed
+
+        Args:
+            None
+
+        Returns:
+            bool: True if the timer has elapsed, otherwise False
+        """
+
+        if self._ticksDiff(self._contacted, supervisor.ticks_ms()) < 0:
+            self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
+            return True
+        else: 
             return False
 
 
@@ -268,6 +288,24 @@ def handleReceive(args: Tuple[Any], quietState: Optional[bool] = False):
             log(message)
 
 
+def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
+    """"
+    Decrements the TTL for each key in contacted, removing anything with a TTL of 0
+
+    Args:
+        contacted (dict[int, int]): The dictionary of contacted nodes, key is node address, value is TTL
+
+    Returns:
+        dict[int, int]: The modified dictionary
+    """
+
+    for key in contacted:
+        contacted[key]+=-1
+        if contacted[key]==0:
+            del(contacted[key])
+    
+    return contacted
+
 
 # Initialise the radio
 spi = busio.SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
@@ -278,13 +316,14 @@ rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 # TODO - Initialise GPS? 
 
 # List of nodes we have contacted recently
-contacted = []
+contacted: dict[int, int]
+contacted = {}
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
 quietNode: int
 
 # Set the state to the starting state 
-state = config.QUIET
+state = config.LISTEN
 
 # Logging turned on if we have a USB connections
 logging = supervisor.runtime.serial_connected
@@ -324,5 +363,7 @@ while True:
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
+    if timers.contacted():
+        contacted = decrementContacted(contacted)
     if timers.hello():
         state=config.SEND_HELLO
