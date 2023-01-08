@@ -179,6 +179,7 @@ def log(message: str):
     Returns:
         None
     """
+    
     global logging
     if logging:
         print(message)
@@ -201,40 +202,57 @@ def sendHello() -> bool:
     Returns:
         bool: True if success, False if error
     """
+
     gps = getGPS()
     return rfm69.send(data = bytes(gps, "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
 
 
-def sendRTS(dest: int) -> bool:
+def sendRTS(dest: int, messages: dict) -> bool:
     """
     Sends a packet of type RTS to the given sender
 
     Args:
         sender (int): The address of the node the RTS should be sent to
+        messages (dict): The messages that the node holds
 
     Returns:
         bool: True if success, False if error
     """
-    # TODO - Something about a dict of the messages that we have and how to deal with them - key could be first 4 bytes as the node then the time - we can get this from the GPS? 
-    data = "hello!! This is an RTS"
-    return rfm69.send(data = bytes(data, "utf-8"), destination = dest, packetType = config.RTS)
+
+    data = 0
+
+    # Iterate through the keys to generate byte array of the keys to send to the 
+    for key in messages:
+        data = data << 16 | key
+    
+    data = data.to_bytes(len(messages)*2, "utf_8")
+
+    return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
-def antiEntropy(dest):
+def antiEntropy(dest: int, messages: dict) -> dict:
     """
     Starts the transfer of messages from one node to another
     
     Args:
         dest (int): The second node anti-entropy should be initiated with
+        messages (dict): The dictionary of messages the node holds
 
     Returns:
-        TODO
+        dict: The updated messages 
     """
+
+    # Sends an RTS up to 3 times
     RTSCount = 0 
-    #something about the RTS timeout and checking it for interrupt
     while RTSCount<config.RTS_REENTRIES:
-        sendRTS(dest)
+        sendRTS(dest, messages)
         RTSCount+=1
+    
+    # Indicates failure to receive a CTS
+    if RTSCount>=config.RTS_REENTRIES:
+        log("No CTS received, RTS timeout!!")
+        return messages
+
 
 
 def sendToAppLayer(item):
@@ -245,47 +263,57 @@ def sendToAppLayer(item):
     return True
 
 
-def handleReceive(args: Tuple[Any], quietState: Optional[bool] = False):
+def handleReceive(params: tuple[any], quietState: Optional[bool] = False) -> int:
     """
-    TODO explain this
+    Takes the return value of the receive function (rfm69) and updates the state accordingly
+
+    Args:
+        params (tuple[Any]): The value(s) returned from reveive
+        quietState (Optional[bool]): Indicator of if the current state is QUIET, default False
+
+    Returns:
+        int: The new state
     """
+    
     global quietNode
     global timers 
     # Quietmode ensures that we don't accidentally break out of the quiet state
     # TODO Actually should we be taking the state as input? 
     if not quietState:
-        if args == None or args[1] == config.DS or args[1] == config.DATA or args[1] == config.ACK:
+        if params == None or params[1] == config.DS or params[1] == config.DATA or params[1] == config.ACK:
             return config.LISTEN
-        elif args[1] == config.HELLO:
+        elif params[1] == config.HELLO:
             return config.RECEIVED_HELLO
-        elif args[1] == config.CTS: # and args[2]!=config.ADDRESS:
+        elif params[1] == config.CTS: # and args[2]!=config.ADDRESS:
             # Record the sender so we know when the correct ACK comes along
-            quietNode = args[3]
+            quietNode = params[3]
             # Start the timer to ensure if an ACK is not heard, we do not remain in quiet mode forever
             timers.startQuietState()
             return config.QUIET
-        elif args[1] == config.RTS:
-            if args[3] == config.ADDRESS:
+        elif params[1] == config.RTS:
+            if params[3] == config.ADDRESS:
                 return config.RECEIVED_RTS
             else:
                 return config.LISTEN
         else:
-            message = "Saw an unknown packet type: ", args[1]
+            message = "Saw an unknown packet type: ", params[1]
             log(message)
+            return config.LISTEN
             
     else: 
-        if args == None or args[1] == config.DS or args[1] == config.DATA or args[1]==config.HELLO or args[1]==config.RTS:
+        if params == None or params[1] == config.DS or params[1] == config.DATA or params[1]==config.HELLO or params[1]==config.RTS:
             return config.QUIET
-        elif args[1] == config.CTS: # and args[2]!=config.ADDRESS: 
+        elif params[1] == config.CTS: # and args[2]!=config.ADDRESS: 
             # TODO - should we actually be doing something about this? 
             # Currently we just assume that we won't see two CTSs from different nodes
             return config.QUIET
-        elif timers.quiet() or (args[1] == config.ACK and args[2] == quietNode):
+        elif timers.quiet() or (params[1] == config.ACK and params[2] == quietNode):
             # Note that the exit from quiet is listen
             return config.LISTEN
         else:
-            message = "Saw an unknown packet type: ", args[1]
+            message = "Saw an unknown packet type: ", params[1]
             log(message)
+            return config.QUIET
 
 
 def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
@@ -316,8 +344,20 @@ rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 # TODO - Initialise GPS? 
 
 # List of nodes we have contacted recently
-contacted: dict[int, int]
+contacted: dict[int, str]
 contacted = {}
+
+# Dictionary of messages that we have - similar to the list of obstacles in the app. layer
+# Welcome to possibly the worst fucking data structure on earth
+messages: dict[int, list[str, int]]
+# so the key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
+# TODO gotta decremetn the TTL to kill some of them
+# Perhaps take ony 30 messages and if any are longer than that we MURDER the one with the lowest TTL?
+messages = {
+            0x0183 : ["11.11111, -22.22222", 5], 
+            0x0393 : ["-33.33333, 44.44444", 1]
+            }
+
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
 quietNode: int
@@ -328,13 +368,13 @@ state = config.LISTEN
 # Logging turned on if we have a USB connections
 logging = supervisor.runtime.serial_connected
 if logging:
-    print("Logging")
+    log("Logging")
 
-# TODO is this bad programming practice? It's a global variable that is called from in handle recieve
+# TODO this bad programming practice? It's a global variable that is called from in handle recieve
 timers = Timers()
 
 while True:
-    log(state)
+    #log(message = "State: " + str(state))
     if state == config.LISTEN:
         args = rfm69.receive()
         state = handleReceive(args)
@@ -351,11 +391,9 @@ while True:
         sendToAppLayer(packet)
         if sender not in contacted:
             if sender>config.ADDRESS:
-                antiEntropy(sender) # This returns true or false let's use it for logging
-                # TODO - move on the state
-                """
-                You're implementing the antiEntropy stuff here :)
-                """
+                antiEntropy(sender, messages)
+                contacted.update({sender : config.CONTACTED_LIVES})
+                state = config.LISTEN
 
     elif state == config.QUIET:
         args = rfm69.receive()
@@ -363,7 +401,10 @@ while True:
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
+    
     if timers.contacted():
-        contacted = decrementContacted(contacted)
-    if timers.hello():
-        state=config.SEND_HELLO
+            contacted = decrementContacted(contacted)
+            print(contacted)
+    # TODO is this fully executed all the time - i.e. is it lazy and timers.hello is not called if state != LISTEN?
+    if state == config.LISTEN and timers.hello():
+            state=config.SEND_HELLO

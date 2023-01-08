@@ -1,6 +1,17 @@
 from micropython import const
 
-# States we can be in
+# ADDRESSES
+# Address of node - this will need to be changed each time!
+ADDRESS = const(0x01)
+# Broadcast
+BROADCAST = const(0xFF)
+
+
+# RADIO FREQUENCY 
+FREQUENCY = 443
+
+
+# STATES WE CAN BE IN 
 LISTEN = 0
 SEND_HELLO = 1
 QUIET = 2
@@ -9,10 +20,6 @@ RECEIVED_RTS = 4
 
 
 # PACKET TYPES
-# if we needed more room for sending perhaps make this
-# 4 bits and the address 4 bits? (actually I think that would really limit the network size nvm)
-
-# HELLO 
 # TODO - put the packet structures in the comments here
 HELLO = const(0x00)
 RTS = const(0x01)
@@ -22,19 +29,11 @@ DS = const(0x03)
 DATA = const(0x04)
 ACK = const(0x05)
 
-# For broadcast
-BROADCAST = const(0xFF)
 
-# Address of node - this will need to be changed each time!
-ADDRESS = const(0x01)
-
-# Radio frequency
-FREQUENCY = 443
-
-# TIMERS in seconds 
-# Quantity of time in seconds to wait for the board to transmit the packet
+# TIMERS (in seconds) 
+# Seconds to wait for the board to transmit the packet
 TRANSMIT_TIMEOUT = 0.2
-# Quantitiy of time to wait for the board to receive a packet
+# Seconds to wait for the board to receive a packet
 RECEIVE_TIMEOUT = 0.5
 # How long to try to send RTS
 RTS_TIMEOUT = 3.0
@@ -47,9 +46,13 @@ CONTACTED_TIMER  = 20
 # How many times an entry in contacted / do not contact should be decremented 
 CONTACTED_LIVES = 3 
 
-# The number of attempts that should be made to send packets before giving up
+
+# REENTRIES (The number of attempts that should be made to send packets)
 RTS_REENTRIES = 3
 DATA_REENTRIES = 3
+
+
+
 
 # self.ack_retries = 5
 #         """The number of ACK retries before reporting a failure."""
