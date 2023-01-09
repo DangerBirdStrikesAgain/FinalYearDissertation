@@ -244,16 +244,26 @@ def antiEntropy(dest: int, messages: dict) -> dict:
 
     # Sends an RTS up to 3 times
     RTSCount = 0 
-    while RTSCount<config.RTS_REENTRIES:
+    CTS = False
+
+    while RTSCount<config.RTS_REENTRIES and not CTS:
         sendRTS(dest, messages)
         RTSCount+=1
-        # listen for the time given in config, if ACK not recieved then try again
-        # Perhaps an ACK recieved flag then we move onto the next antientropy step
+        args = rfm69.receive()
+        print("args: ", args)
+        if args is not None and args[1] == config.CTS and args[2] == dest:
+            CTS = True
+
     
     # Indicates failure to receive a CTS
-    if RTSCount>=config.RTS_REENTRIES:
+    if RTSCount>=config.RTS_REENTRIES and not CTS:
         log("No CTS received, RTS timeout!!")
         return messages
+    
+    # We do receive a CTS from the desired node
+    else:
+        log("RTS recieved")
+
 
 
 
@@ -270,7 +280,7 @@ def handleReceive(params: tuple[any], quietState: Optional[bool] = False) -> int
     Takes the return value of the receive function (rfm69) and updates the state accordingly
 
     Args:
-        params (tuple[Any]): The value(s) returned from reveive
+        params (tuple[Any]): The value(s) returned from receive
         quietState (Optional[bool]): Indicator of if the current state is QUIET, default False
 
     Returns:

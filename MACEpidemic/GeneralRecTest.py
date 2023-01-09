@@ -52,11 +52,13 @@ while True:
 
 # We send a hello then print everything we receive out so we can test anti-entropy
 sendHello()
-
+print("Sent hello")
 while True:
     args = rfm69.receive()
     if args is not None:
         packetLength, packetType, sender, destination, packet = args
+        if packetType == config.RTS:
+            print(rfm69.send(data = bytes("well, shit", "utf_8"), destination=sender, packetType=config.CTS))
         print("Packet Length: ", packetLength)
         print("Packet Type: ", packetType)
         print("Sender: ", sender)

@@ -32,11 +32,9 @@ ACK = const(0x05)
 
 # TIMERS (in seconds) 
 # Seconds to wait for the board to transmit the packet
-TRANSMIT_TIMEOUT = 0.2
+TRANSMIT_TIMEOUT = 0.1
 # Seconds to wait for the board to receive a packet
-RECEIVE_TIMEOUT = 0.5
-# How long to try to send RTS
-RTS_TIMEOUT = 3.0
+RECEIVE_TIMEOUT = 1
 # How often to transmit a new hello message 
 HELLO_TIMER = 30
 # How long to remain in quiet mode when waiting for an ACK 
