@@ -247,6 +247,8 @@ def antiEntropy(dest: int, messages: dict) -> dict:
     while RTSCount<config.RTS_REENTRIES:
         sendRTS(dest, messages)
         RTSCount+=1
+        # listen for the time given in config, if ACK not recieved then try again
+        # Perhaps an ACK recieved flag then we move onto the next antientropy step
     
     # Indicates failure to receive a CTS
     if RTSCount>=config.RTS_REENTRIES:
