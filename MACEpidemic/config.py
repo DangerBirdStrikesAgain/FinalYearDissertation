@@ -10,6 +10,9 @@ BROADCAST = const(0xFF)
 # RADIO FREQUENCY 
 FREQUENCY = 443
 
+# TRANSMIT POWER (max safely supported)
+TX_POWER = 20
+
 
 # STATES WE CAN BE IN 
 LISTEN = 0
@@ -32,9 +35,9 @@ ACK = const(0x05)
 
 # TIMERS (in seconds) 
 # Seconds to wait for the board to transmit the packet
-TRANSMIT_TIMEOUT = 0.1
+TRANSMIT_TIMEOUT = 2.0
 # Seconds to wait for the board to receive a packet
-RECEIVE_TIMEOUT = 1
+RECEIVE_TIMEOUT = 0.5
 # How often to transmit a new hello message 
 HELLO_TIMER = 30
 # How long to remain in quiet mode when waiting for an ACK 

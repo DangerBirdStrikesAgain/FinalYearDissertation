@@ -2,7 +2,7 @@
 A Circuit Python implmentation of the epidemic routing protocol with media access control
 TODO - put the paper it is based on here
  
-Uses Raspberry Pi Pico with the Adafruit Ultimate GPS Breakout V3 and RFM69HCW Radio breakout
+Uses Raspberry Pi Pico with the Adafruit Ultimate GPS Breakout V3 and rfm69HCW Radio breakout
 Requires rfm69 library and config files
  
 Wiring: TODO
@@ -394,6 +394,7 @@ while True:
     elif state == config.SEND_HELLO:
         if sendHello():
             state = config.LISTEN
+            print("Sent hello")
         else:
             log("Failed to send hello")
 
@@ -409,11 +410,12 @@ while True:
 
     elif state == config.QUIET:
         args = rfm69.receive()
+        if args is not None:
+            print(args)
         state = handleReceive(args, quietState=True)
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
-    
     if timers.contacted():
             contacted = decrementContacted(contacted)
             print(contacted)
