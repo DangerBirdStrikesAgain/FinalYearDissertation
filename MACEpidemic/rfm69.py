@@ -731,7 +731,7 @@ class RFM69:
         return not timed_out
 
 
-    def receive(self) -> tuple[Any]:
+    def receive(self, timeout: Optional[int] = config.RECEIVE_TIMEOUT) -> tuple[Any]:
         """
         Listen for packets 
         If a packet is recieved, it is returned, otherwise None is returned
@@ -764,7 +764,7 @@ class RFM69:
         # surely miss or overflow the FIFO when packets aren't read fast
         # enough, however it's the best that can be done from Python without
         # interrupt supports
-        timed_out = check_timeout(self.payload_ready, config.RECEIVE_TIMEOUT)
+        timed_out = check_timeout(self.payload_ready, timeout)
         
         if not timed_out:
             # Read the length of the FIFO - requires the first byte to be the length
