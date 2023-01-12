@@ -40,7 +40,7 @@ class Timers:
         self._TICKS_HALFPERIOD = const(self._TICKS_PERIOD // 2)
 
         # Initialise timers
-        self._nextHello = self._ticksAdd(supervisor.ticks_ms(), config.HELLO_TIMER)
+        self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER+random.uniform(0.0, 5.0)))
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
         self._ACKTimeout: int
 
@@ -75,7 +75,7 @@ class Timers:
         Returns:
             int: The signed difference between ticks 1 and 2
         """
-        diff = (ticks1 - ticks2) & self._TICKS_MAX
+        diff = int(ticks1 - ticks2) & self._TICKS_MAX
         diff = ((diff + self._TICKS_HALFPERIOD) & self._TICKS_MAX) - self._TICKS_HALFPERIOD
         return diff
 
@@ -113,7 +113,7 @@ class Timers:
         """
 
         if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
-            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), config.HELLO_TIMER)
+            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER + random.uniform(0.0, 5.0)))
             return True
         else: 
             return False
@@ -129,7 +129,7 @@ class Timers:
         Returns:
             None
         """
-        self._ACKTimeout = self._ticksAdd(supervisor.ticks_ms(), config.QUIET_STATE_TIMER)
+        self._ACKTimeout = self._ticksAdd(supervisor.ticks_ms(), (config.QUIET_STATE_TIMER + random.uniform(0.0, 5.0)))
 
     def quiet(self) -> bool:
         """
@@ -211,7 +211,7 @@ def sendRTS(dest: int, messages: dict) -> bool:
     Sends a packet of type RTS to the given sender
 
     Args:
-        sender (int): The address of the node the RTS should be sent to
+        dest (int): The address of the node the RTS should be sent to
         messages (dict): The messages that the node holds
 
     Returns:
@@ -244,31 +244,55 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
     RTSCount = 0 
     CTS = False
 
-    while RTSCount<config.RTS_REENTRIES and not CTS:
+    while RTSCount<config.TS_REENTRIES and not CTS:
         sendRTS(dest, messages)
         RTSCount+=1
-        args = rfm69.receive()
-        print("args: ", args)
+        args = rfm69.receive(timeout=1.3)
+        log(("args: " + str(args)))
         if args is not None and args[1] == config.CTS and args[2] == dest:
             CTS = True
 
     
     # Indicates failure to receive a CTS
-    if RTSCount>=config.RTS_REENTRIES and not CTS:
+    if RTSCount>=config.TS_REENTRIES and not CTS:
         log("No CTS received, RTS timeout!!")
         return messages
     
     # We receive a CTS from the desired node
     else:
+        log("RTS recieved")
         # Actually put antientropy here 
         # Get the messagees that the first node will want 
-        # Create a DS message
-        # Send the Data frames
+        # Generate and send the Data frames
         # Try not to time out and have a set number of retries
-        # Wait for the next DS frame 
+        # Wait for the next data frame, or reentry
         # Get all that juicy juicy data 
         # Send an ACK
-        log("RTS recieved")
+        # Send to app layer
+
+
+def sendCTS(sender: int, messages: dict):
+    """
+    Sends a packet of type CTS to the given sender
+
+    Args:
+        sender (int): The address of the node the RTS should be sent to
+        messages (dict): The messages that the node holds
+
+    Returns:
+        bool: True if success, False if error
+    """
+
+    data = 0
+
+    # Iterate through the keys to generate byte array of the keys to send to the 
+    for key in messages:
+        data = data << 16 | key
+    
+    data = data.to_bytes(len(messages)*2, "utf_8")
+
+    return rfm69.send(data, destination = sender, packetType = config.CTS)
+
 
 
 def CTSAntiEntropy(sender: int, messages: dict) -> dict:
@@ -283,9 +307,35 @@ def CTSAntiEntropy(sender: int, messages: dict) -> dict:
         dict: The updated messages 
     """
 
-    sendCTS(sender)
+    CTSCount = 0 
+    data = False
 
+    while CTSCount<config.TS_REENTRIES and not data:
+        sendCTS(sender, messages)
+        CTSCount+=1
+        args = rfm69.receive(timeout=0.7)
+        log(("args: " + str(args)))
+        if args is not None and args[1] == config.DATA and args[2] == sender:
+            data = True
 
+    # Indicates failure to receive a data frame
+    if CTSCount>=config.TS_REENTRIES and not data:
+        log("No data frames received, CTS timeout!!")
+        return messages
+    
+    # We receive a data frame from the desired node
+    else:
+        log("DATA recieved")
+        # Get the data frames and look for the numbering 
+        # If the numbering is 0 then work out how many we want
+        # Chonky data structure to add all the messages to
+        # List or something to show that we have got all the messages
+        # When we have all the messages
+        # Generate the data frames
+        # Send the Data frames
+        # Try not to time out and have a set number of retries
+        # Wait for an ack
+        # Send to app layer
 
 
 
@@ -312,7 +362,7 @@ def handleReceive(params: tuple[any]) -> int:
     global timers 
     global state
     if state==config.LISTEN:
-        if params == None or params[1] == config.DS or params[1] == config.DATA or params[1] == config.ACK:
+        if params == None or params[1] == config.DATA or params[1] == config.ACK:
             return config.LISTEN
         elif params[1] == config.HELLO:
             return config.RECEIVED_HELLO
@@ -333,7 +383,7 @@ def handleReceive(params: tuple[any]) -> int:
             return config.LISTEN
             
     elif state==config.QUIET: 
-        if params == None or params[1] == config.DS or params[1] == config.DATA or params[1]==config.HELLO or params[1]==config.RTS:
+        if params == None or params[1] == config.DATA or params[1]==config.HELLO or params[1]==config.RTS:
             return config.QUIET
         elif params[1] == config.CTS: # and args[2]!=config.ADDRESS: 
             # TODO - should we actually be doing something about this? 
@@ -409,13 +459,14 @@ if logging:
 timers = Timers()
 
 while True:
-    #log(message = "State: " + str(state))
+    # log(message = "State: " + str(state))
     if state == config.LISTEN:
         args = rfm69.receive()
         state = handleReceive(args)
 
     elif state == config.SEND_HELLO:
         if sendHello():
+            log("Sent hello")
             state = config.LISTEN
         else:
             log("Failed to send hello")
@@ -426,9 +477,9 @@ while True:
         sendToAppLayer(packet)
         if sender not in contacted:
             if sender>config.ADDRESS:
-                RTSAntiEntropy(sender, messages)
+                RTSAntiEntropy(dest = sender, messages = messages)
                 contacted.update({sender : config.CONTACTED_LIVES})
-                state = config.LISTEN
+        state = config.LISTEN
 
     elif state == config.QUIET:
         args = rfm69.receive()
@@ -440,11 +491,12 @@ while True:
         # Form the CTS from the messages
         # Send the CTS
         # Wait for the DS frame
-        
+        CTSAntiEntropy(sender = args[2], messages = messages)
+        state = config.LISTEN
 
     else:
         log(("Saw an unknown state: " + str(state)))
-        state == config.LISTEN
+        state = config.LISTEN
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
@@ -452,4 +504,4 @@ while True:
             contacted = decrementContacted(contacted)
     # TODO is this fully executed? i.e. is it lazy and timers.hello is not called if state != LISTEN? timers.hello ahs side effects on the state of the hello timer
     if state == config.LISTEN and timers.hello():
-            state=config.SEND_HELLO
+            state = config.SEND_HELLO
