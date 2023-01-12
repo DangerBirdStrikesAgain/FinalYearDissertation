@@ -19,7 +19,6 @@ RST            GP4
 
 # TODO - Error handling
 # TODO - Random backoff for the timers
-# You have a bunch of global variables and I feel like they're bad practice
 
 from micropython import const
 import config
@@ -230,7 +229,7 @@ def sendRTS(dest: int, messages: dict) -> bool:
     return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
-def antiEntropy(dest: int, messages: dict) -> dict:
+def RTSAntiEntropy(dest: int, messages: dict) -> dict:
     """
     Starts the transfer of messages from one node to another
     
@@ -242,7 +241,6 @@ def antiEntropy(dest: int, messages: dict) -> dict:
         dict: The updated messages 
     """
 
-    # Sends an RTS up to 3 times
     RTSCount = 0 
     CTS = False
 
@@ -260,9 +258,33 @@ def antiEntropy(dest: int, messages: dict) -> dict:
         log("No CTS received, RTS timeout!!")
         return messages
     
-    # We do receive a CTS from the desired node
+    # We receive a CTS from the desired node
     else:
+        # Actually put antientropy here 
+        # Get the messagees that the first node will want 
+        # Create a DS message
+        # Send the Data frames
+        # Try not to time out and have a set number of retries
+        # Wait for the next DS frame 
+        # Get all that juicy juicy data 
+        # Send an ACK
         log("RTS recieved")
+
+
+def CTSAntiEntropy(sender: int, messages: dict) -> dict:
+    """
+    Allows and continues the transfer of messages from one node to another
+    
+    Args:
+        dest (int): The node that is initiating anti-entropy 
+        messages (dict): The dictionary of messages the node holds
+
+    Returns:
+        dict: The updated messages 
+    """
+
+    sendCTS(sender)
+
 
 
 
@@ -271,17 +293,16 @@ def sendToAppLayer(item):
     """
     TODO
     """
-    # TODO - implement this using global variable
+    # TODO - implement this using global variable(s)
     return True
 
 
-def handleReceive(params: tuple[any], quietState: Optional[bool] = False) -> int:
+def handleReceive(params: tuple[any]) -> int:
     """
     Takes the return value of the receive function (rfm69) and updates the state accordingly
 
     Args:
         params (tuple[Any]): The value(s) returned from receive
-        quietState (Optional[bool]): Indicator of if the current state is QUIET, default False
 
     Returns:
         int: The new state
@@ -289,9 +310,8 @@ def handleReceive(params: tuple[any], quietState: Optional[bool] = False) -> int
     
     global quietNode
     global timers 
-    # Quietmode ensures that we don't accidentally break out of the quiet state
-    # TODO Actually should we be taking the state as input? 
-    if not quietState:
+    global state
+    if state==config.LISTEN:
         if params == None or params[1] == config.DS or params[1] == config.DATA or params[1] == config.ACK:
             return config.LISTEN
         elif params[1] == config.HELLO:
@@ -312,7 +332,7 @@ def handleReceive(params: tuple[any], quietState: Optional[bool] = False) -> int
             log(message)
             return config.LISTEN
             
-    else: 
+    elif state==config.QUIET: 
         if params == None or params[1] == config.DS or params[1] == config.DATA or params[1]==config.HELLO or params[1]==config.RTS:
             return config.QUIET
         elif params[1] == config.CTS: # and args[2]!=config.ADDRESS: 
@@ -326,6 +346,10 @@ def handleReceive(params: tuple[any], quietState: Optional[bool] = False) -> int
             message = "Saw an unknown packet type: ", params[1]
             log(message)
             return config.QUIET
+    
+    else:
+        log(("handleReceive was called in state: " + str(state)))
+        return config.LISTEN
 
 
 def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
@@ -353,18 +377,18 @@ cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
-# TODO - Initialise GPS? 
+# TODO - Initialise GPS
 
 # List of nodes we have contacted recently
 contacted: dict[int, str]
 contacted = {}
 
-# Dictionary of messages that we have - similar to the list of obstacles in the app. layer
+# Dictionary of messages that we have - similar to the list of obstacles in the application layer
+# The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
 # Welcome to possibly the worst fucking data structure on earth
 messages: dict[int, list[str, int]]
-# so the key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
 # TODO gotta decremetn the TTL to kill some of them
-# Perhaps take ony 30 messages and if any are longer than that we MURDER the one with the lowest TTL?
+# TODO Perhaps take ony 30 messages and if any are longer than that we MURDER the one with the lowest TTL?
 messages = {
             0x0183 : ["11.11111, -22.22222", 5], 
             0x0393 : ["-33.33333, 44.44444", 1]
@@ -374,7 +398,7 @@ messages = {
 # Node we waiting to overhear an ACK from before we can exit QUIET state
 quietNode: int
 
-# Set the state to the starting state 
+# Initialise state to the starting state 
 state = config.LISTEN
 
 # Logging turned on if we have a USB connections
@@ -382,7 +406,6 @@ logging = supervisor.runtime.serial_connected
 if logging:
     log("Logging")
 
-# TODO this bad programming practice? It's a global variable that is called from in handle recieve
 timers = Timers()
 
 while True:
@@ -394,7 +417,6 @@ while True:
     elif state == config.SEND_HELLO:
         if sendHello():
             state = config.LISTEN
-            print("Sent hello")
         else:
             log("Failed to send hello")
 
@@ -404,7 +426,7 @@ while True:
         sendToAppLayer(packet)
         if sender not in contacted:
             if sender>config.ADDRESS:
-                antiEntropy(sender, messages)
+                RTSAntiEntropy(sender, messages)
                 contacted.update({sender : config.CONTACTED_LIVES})
                 state = config.LISTEN
 
@@ -412,13 +434,22 @@ while True:
         args = rfm69.receive()
         if args is not None:
             print(args)
-        state = handleReceive(args, quietState=True)
+        state = handleReceive(args)
+
+    elif state == config.RECEIVED_RTS:
+        # Form the CTS from the messages
+        # Send the CTS
+        # Wait for the DS frame
+        
+
+    else:
+        log(("Saw an unknown state: " + str(state)))
+        state == config.LISTEN
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
     if timers.contacted():
             contacted = decrementContacted(contacted)
-            print(contacted)
-    # TODO is this fully executed all the time - i.e. is it lazy and timers.hello is not called if state != LISTEN?
+    # TODO is this fully executed? i.e. is it lazy and timers.hello is not called if state != LISTEN? timers.hello ahs side effects on the state of the hello timer
     if state == config.LISTEN and timers.hello():
             state=config.SEND_HELLO
