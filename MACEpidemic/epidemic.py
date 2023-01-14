@@ -5,7 +5,7 @@ TODO - put the paper it is based on here
 Uses Raspberry Pi Pico with the Adafruit Ultimate GPS Breakout V3 and rfm69HCW Radio breakout
 Requires rfm69 library and config files
  
-Wiring: TODO
+Wiring: TODO GPS
 Radio   GPS   Pico
 ------------------
 GND            GND
@@ -17,8 +17,7 @@ CS             GP1
 RST            GP4
 """
 
-# TODO - Error handling
-# TODO - Random backoff for the timers
+# TODO - Restructure the messages data structure to be {int : [int int int]}
 
 from micropython import const
 import config
@@ -166,8 +165,6 @@ class Timers:
             return False
 
 
-
-
 def log(message: str):
     """ 
     If global variable logging is true, prints message
@@ -182,6 +179,7 @@ def log(message: str):
     global logging
     if logging:
         print(message)
+
 
 def getGPS():
     """
@@ -229,10 +227,35 @@ def sendRTS(dest: int, messages: dict) -> bool:
     return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
-def getData(sender: int, packet: Optional[str] = None):
+def decodeMessages(receivedMessages: str) -> dict:
+    """
+    Takes a series of strings that came through data packets and turns them into a dictionary 
+    Assumes the data arrives comes in the form
+    key,gpsA,gpsB,TTL\n
+
+    Args:
+        receivedMessages (str): The string of received messages
+
+    Returns: 
+        dict: The dictionary of messages, ready to be integrated
+    """
+
+    messages={}
+
+    lines = receivedMessages.split("\n")
+    for line in lines:
+        if line != "":
+            temp = line.split(",")
+            messages.update({temp[0] : [str(temp[1]+","+temp[2]), temp[3]]})
+    
+    return messages
+
+
+def getData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
     """
     Listens for data packets and extracts the messages from them
     Assumes the data arrives comes in the form
+    total, number
     key,gpsA,gpsB,TTL\n
 
     Args:
@@ -240,6 +263,7 @@ def getData(sender: int, packet: Optional[str] = None):
         packet (Optional[str]): A previously received DATA packet, if exists
 
     Returns:
+        bool: True if all expected packets seen, otherwise false
         dict: The dictionary of new values
     """
 
@@ -247,17 +271,43 @@ def getData(sender: int, packet: Optional[str] = None):
     receivedMessages = ""
 
     if packet is None:
-        args = None
-        while args is None and dataCount<config.DATA_REENTRIES:
+        while packet is None and dataCount<config.DATA_REENTRIES:
             args = rfm69.receive()
             if args[1] == config.DATA and args[2] == sender: 
                 packet = args[4]
-
-    # Construct a list or something from the packet
+            dataCount+=1
     
+    if packet is None:
+        log("No DATA packets received")
+        return {}
 
-    # Get all that juicy juicy data 
-    # Send an ACK
+    dataCount=0
+
+    # Construct a list of zeros from the packet, if more than one packet will be sent
+    totalLen = packet[0]
+    if totalLen != 0:
+        seen = [0]*(totalLen-1)
+        receivedMessages.append(packet[2:])
+        seen[packet[1]]=1
+    else: 
+        seen = [0]
+        receivedMessages=str(packet[2:], "utf_8")
+
+    while sum(seen) != totalLen and dataCount<config.DATA_REENTRIES:
+        args = rfm69.receive()
+        if args[1] == config.DATA and args[2] == sender: 
+            packet = args[4]
+            if seen[packet[1]] != 1:
+                receivedMessages.append(str(packet[2:], "utf_8"))
+                seen[packet[1]]=1
+        dataCount+=1
+
+    messages = decodeMessages(receivedMessages)
+
+    if sum(seen) == totalLen:
+        return(True, messages)
+    else:
+        return (False, messages)
 
 
 def sendDataFrames(dest: int, messages: dict):
@@ -330,7 +380,6 @@ def sendDataFrames(dest: int, messages: dict):
             return (False, None)
 
 
-
 def RTSAntiEntropy(dest: int, messages: dict) -> dict:
     """
     Starts the transfer of messages from one node to another
@@ -340,7 +389,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
         messages (dict): The dictionary of messages the node holds
 
     Returns:
-        dict: The new messages 
+        dict: The updated messages dictionary 
     """
 
     RTSCount = 0 
@@ -376,10 +425,13 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
         if not success:
             return {}
         else: 
-            getData(args[4])
-            # return all the new messages
-            # Send the new messages to the ack layer 
-        
+            success, newMessages = getData(args[4])
+            if success:
+                rfm69.send(data = b'', destination = dest, packetType = config.ACK)
+            if newMessages != {}:
+                sendToAppLayer(newMessages)
+                messages.update(newMessages)
+            return messages        
 
 
 def sendCTS(sender: int, messages: dict):
@@ -405,17 +457,17 @@ def sendCTS(sender: int, messages: dict):
     return rfm69.send(data, destination = sender, packetType = config.CTS)
 
 
-
-def CTSAntiEntropy(sender: int, messages: dict) -> dict:
+def CTSAntiEntropy(sender: int, messages: dict, packet: bytearray) -> dict:
     """
     Allows and continues the transfer of messages from one node to another
     
     Args:
         dest (int): The node that is initiating anti-entropy 
         messages (dict): The dictionary of messages the node holds
+        packet (bytearray): The payload of the RTS packet, containing the keys the other node has
 
     Returns:
-        dict: The updated messages 
+        dict: The updated messages dictionary
     """
 
     CTSCount = 0 
@@ -430,24 +482,29 @@ def CTSAntiEntropy(sender: int, messages: dict) -> dict:
             data = True
 
     # Indicates failure to receive a data frame
-    if CTSCount>=config.TS_REENTRIES and not data:
+    if not data:
         log("No data frames received, CTS timeout!!")
         return messages
     
     # We receive a data frame from the desired node
     else:
-        log("DATA recieved")
-        # Get the data frames and look for the numbering 
-        # If the numbering is 0 then work out how many we want
-        # Chonky data structure to add all the messages to
-        # List or something to show that we have got all the messages
-        # When we have all the messages
-        # Generate the data frames
-        # Send the Data frames
-        # Try not to time out and have a set number of retries
-        # Wait for an ack
-        # Send to app layer
+        log("At least one DATA recieved")
+        success, newMessages = getData(sender = sender, packet = args[4])
+        if success:
+            # Generate keys the other node wants
+            destKeys = []
+            for x in range (0, len(packet), 2):
+                destKeys.append(int.from_bytes(packet[x:(x+2)], "utf_8"))
+            messagesToSend = {}
+            for key in messages:
+                if key not in destKeys:
+                    messagesToSend.update({key : messages[key]})
+            success, args = sendDataFrames(sender, messagesToSend)
 
+        if newMessages != {}:
+            sendToAppLayer(newMessages)
+            messages.update(newMessages)
+        return messages
 
 
 def sendToAppLayer(item):
@@ -589,7 +646,7 @@ while True:
         sendToAppLayer(packet)
         if sender not in contacted:
             if sender>config.ADDRESS:
-                RTSAntiEntropy(dest = sender, messages = messages)
+                messages = RTSAntiEntropy(dest = sender, messages = messages)
                 contacted.update({sender : config.CONTACTED_LIVES})
         state = config.LISTEN
 
@@ -600,8 +657,9 @@ while True:
         state = handleReceive(args)
 
     elif state == config.RECEIVED_RTS:
-        CTSAntiEntropy(sender = args[2], messages = messages)
+        messages = CTSAntiEntropy(sender = args[2], messages = messages, packet = args[4])
         state = config.LISTEN
+        # No point updating contacted as will not attempt to contact a node with larger address
 
     else:
         log(("Saw an unknown state: " + str(state)))
