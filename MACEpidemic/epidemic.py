@@ -40,7 +40,7 @@ class Timers:
         self._TICKS_HALFPERIOD = const(self._TICKS_PERIOD // 2)
 
         # Initialise timers
-        self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER+random.uniform(0.0, 5.0)))
+        self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER+random.uniform(0.0, 10.0)))
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
         self._ACKTimeout: int
 
@@ -113,7 +113,7 @@ class Timers:
         """
 
         if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
-            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER + random.uniform(0.0, 5.0)))
+            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER + random.uniform(0.0, 10.0)))
             return True
         else: 
             return False
@@ -188,7 +188,7 @@ def getGPS():
     TODO
     """
     # TODO - should this be a string? Is there a better way of doing this?
-    return ("10.284638, 89.473057")
+    return ("10.284638,89.473057")
 
 
 def sendHello() -> bool:
@@ -229,6 +229,108 @@ def sendRTS(dest: int, messages: dict) -> bool:
     return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
+def getData(sender: int, packet: Optional[str] = None):
+    """
+    Listens for data packets and extracts the messages from them
+    Assumes the data arrives comes in the form
+    key,gpsA,gpsB,TTL\n
+
+    Args:
+        sender (int): The sender of the DATA packets
+        packet (Optional[str]): A previously received DATA packet, if exists
+
+    Returns:
+        dict: The dictionary of new values
+    """
+
+    dataCount = 0
+    receivedMessages = ""
+
+    if packet is None:
+        args = None
+        while args is None and dataCount<config.DATA_REENTRIES:
+            args = rfm69.receive()
+            if args[1] == config.DATA and args[2] == sender: 
+                packet = args[4]
+
+    # Construct a list or something from the packet
+    
+
+    # Get all that juicy juicy data 
+    # Send an ACK
+
+
+def sendDataFrames(dest: int, messages: dict):
+    """
+    Sends data frames until an ACK or another data frame (indicating receipt) is received from the destination
+    
+    Args:
+        dest (int): The destination of the data frames
+        messages (dict): The dictionary of messages to be sent
+
+    Returns:
+        bool: True if success, False otherwise
+    """
+
+    dataCount = 0
+    ACK = False
+
+    # If there are no messages to send
+    if len(messages) == 0:
+        while dataCount<=config.DATA_REENTRIES and not ACK:
+            prefix = bytearray(2)
+            prefix[0] = 0
+            prefix[1] = 0
+            rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
+
+            args = rfm69.receive(timeout = 3)
+            if args is not None and args[2] == dest and (args[1] == config.DATA or args[1] == config.ACK):
+                ACK = True
+        
+        if ACK:
+            return True
+        else:
+            log("ACK or data frame not received")
+            return False
+
+    else:
+        # Generate the data frames to be sent and put them into a list
+        toSend = []
+        string=""
+        for key in messages:
+            msg = str(key)+","+messages[key][0]+","+str(messages[key][1])+"\n"
+            if len(string) + len(msg) > 58:
+                toSend.append(string)
+                string = msg
+            else: 
+                string = string + msg
+
+        total = len(toSend)
+        while dataCount<=config.DATA_REENTRIES and not ACK:
+            # Send all the data frames
+            number = 0
+            for packet in toSend:
+                prefix = bytearray(2)
+                prefix[0] = total
+                prefix[1] = number
+                number+=1
+                prefix = prefix + bytes(packet, "utf_8")
+                rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
+                time.sleep(0.5)
+
+            dataCount+=1
+            args = rfm69.receive(timeout = 3)
+            if args is not None and args[2] == dest and (args[1] == config.DATA or args[1] == config.ACK):
+                ACK = True
+    
+        if ACK:
+            return (True, args)
+        else:
+            log("ACK or data frame not received")
+            return (False, None)
+
+
+
 def RTSAntiEntropy(dest: int, messages: dict) -> dict:
     """
     Starts the transfer of messages from one node to another
@@ -238,7 +340,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
         messages (dict): The dictionary of messages the node holds
 
     Returns:
-        dict: The updated messages 
+        dict: The new messages 
     """
 
     RTSCount = 0 
@@ -261,14 +363,23 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
     # We receive a CTS from the desired node
     else:
         log("RTS recieved")
-        # Actually put antientropy here 
-        # Get the messagees that the first node will want 
-        # Generate and send the Data frames
-        # Try not to time out and have a set number of retries
-        # Wait for the next data frame, or reentry
-        # Get all that juicy juicy data 
-        # Send an ACK
-        # Send to app layer
+        log("Sending data frames")
+        packet = args[4]
+        destKeys = []
+        for x in range (0, len(packet), 2):
+            destKeys.append(int.from_bytes(packet[x:(x+2)], "utf_8"))
+        messagesToSend = {}
+        for key in messages:
+            if key not in destKeys:
+                messagesToSend.update({key : messages[key]})
+        success, args = sendDataFrames(dest, messagesToSend)
+        if not success:
+            return {}
+        else: 
+            getData(args[4])
+            # return all the new messages
+            # Send the new messages to the ack layer 
+        
 
 
 def sendCTS(sender: int, messages: dict):
@@ -440,8 +551,8 @@ messages: dict[int, list[str, int]]
 # TODO gotta decremetn the TTL to kill some of them
 # TODO Perhaps take ony 30 messages and if any are longer than that we MURDER the one with the lowest TTL?
 messages = {
-            0x0183 : ["11.11111, -22.22222", 5], 
-            0x0393 : ["-33.33333, 44.44444", 1]
+            0x0183 : ["11.11111,-22.22222", 5], 
+            0x0393 : ["-33.33333,44.44444", 1]
             }
 
 
@@ -472,6 +583,7 @@ while True:
             log("Failed to send hello")
 
     elif state == config.RECEIVED_HELLO:
+        log("Received hello")
         sender = args[2]
         packet = args[4]
         sendToAppLayer(packet)
@@ -488,9 +600,6 @@ while True:
         state = handleReceive(args)
 
     elif state == config.RECEIVED_RTS:
-        # Form the CTS from the messages
-        # Send the CTS
-        # Wait for the DS frame
         CTSAntiEntropy(sender = args[2], messages = messages)
         state = config.LISTEN
 
