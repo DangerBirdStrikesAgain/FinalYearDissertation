@@ -1,6 +1,5 @@
 from micropython import const
 
-
 # ADDRESSES
 # Address of node - this will need to be changed each time!
 ADDRESS = const(0x01)
@@ -48,17 +47,6 @@ CONTACTED_TIMER  = 20.0
 # How many times an entry in contacted / do not contact should be decremented 
 CONTACTED_LIVES = 3 
 
-
 # REENTRIES (The number of attempts that should be made to send packets)
-TS_REENTRIES = 5
-DATA_REENTRIES = 5
-
-
-
-
-# self.ack_retries = 5
-#         """The number of ACK retries before reporting a failure."""
-#         self.ack_delay = None
-#         """The delay time before attemting to send an ACK.
-#            If ACKs are being missed try setting this to .1 or .2.
-#         """
+TS_REENTRIES = 10
+DATA_REENTRIES = 10

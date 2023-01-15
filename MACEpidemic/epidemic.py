@@ -25,8 +25,8 @@ import rfm69
 import board
 import time
 import random
-# from busio import SPI
-import busio
+from busio import SPI
+#import busio
 import digitalio
 
 import supervisor
@@ -590,7 +590,7 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
 
 
 # Initialise the radio
-spi = busio.SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
+spi = SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)

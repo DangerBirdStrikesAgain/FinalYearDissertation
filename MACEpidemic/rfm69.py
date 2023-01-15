@@ -1,4 +1,5 @@
 """
+By Alex Riddell-Webster
 Modified from adafruit_rmf69 by Tony DiCola, Jerry Needell
 
 Designed to send and recieve packets with Adafruit's RFM69HCW transceiver radio breakout, to support an implementation of Epidemic routing
@@ -8,6 +9,9 @@ Software and Dependencies:
     Adafruit CircuitPython firmware for the ESP8622 and M0-based boards: https://github.com/adafruit/circuitpython/releases
     Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
+
+# TODO - remove unncessary items
+# TODO - make function strings consistent 
 
 import time
 import adafruit_bus_device.spi_device as spidev
@@ -65,15 +69,6 @@ _TEST_PA2_BOOST = const(0x7C)
 _FXOSC = 32000000.0
 _FSTEP = _FXOSC / 524288
 
-"""
-# RadioHead specific compatibility constants.
-_RH_BROADCAST_ADDRESS = const(0xFF)
-# The acknowledgement bit in the FLAGS
-# The top 4 bits of the flags are reserved for RadioHead. The lower 4 bits are reserved
-# for application layer use.
-_RH_FLAGS_ACK = const(0x80)
-_RH_FLAGS_RETRY = const(0x40)
-"""
 
 # User facing constants:
 SLEEP_MODE = 0b000
@@ -279,45 +274,12 @@ class RFM69:
            The RSSI of the last received packet. Stored when the packet was received.
            This instantaneous RSSI value may not be accurate once the
            operating mode has been changed.
-        """
-        
-        # initialize timeouts and delays delays
-        #self.ack_wait = 0.5
-        """The delay time before attempting a retry after not receiving an ACK"""
-        #self.receive_timeout = 0.5
-        """The amount of time to poll for a received packet.
-           If no packet is received, the returned packet will be None
-        """
-        
+        """     
         
         # initialize sequence number counter for reliabe datagram mode
         self.sequence_number = 0
         # create seen Ids list
         self.seen_ids = bytearray(256)
-        # initialize packet header
-        # node address - default is broadcast
-        #self.node = _RH_BROADCAST_ADDRESS
-        """The default address of this Node. (0-255).
-           If not 255 (0xff) then only packets address to this node will be accepted.
-           First byte of the RadioHead header.
-        """
-        # destination address - default is broadcast
-        #self.destination = _RH_BROADCAST_ADDRESS
-        """The default destination address for packet transmissions. (0-255).
-           If 255 (0xff) then any receiving node should accept the packet.
-           Second byte of the RadioHead header.
-        """
-        # ID - contains seq count for reliable datagram mode
-        #self.identifier = 0
-        """Automatically set to the sequence number when send_with_ack() used.
-           Third byte of the RadioHead header.
-        """
-        # flags - identifies ack/reetry packet for reliable datagram mode
-        # self.flags = 0
-        """Upper 4 bits reserved for use by Reliable Datagram Mode.
-           Lower 4 bits may be used to pass information.
-           Fourth byte of the RadioHead header.
-        """
 
     
     def _read_into(
@@ -393,12 +355,13 @@ class RFM69:
 
     def sleep(self) -> None:
         """
-        Enters sleep mode
+        Enter sleep mode
         """
         self.operation_mode = SLEEP_MODE
 
     def listen(self) -> None:
         """
+        TODO - remove? 
         Listen for packets to be received by the chip.  Use :py:func:`receive` to listen, wait
         and retrieve packets as they're available.
         """
@@ -412,9 +375,10 @@ class RFM69:
         self.operation_mode = RX_MODE
 
     def transmit(self) -> None:
-        """Transmit a packet which is queued in the FIFO.  This is a low level function for
-        entering transmit mode and more.  For generating and transmitting a packet of data use
-        :py:func:`send` instead.
+        """
+        Transmit a packet which is queued in the FIFO
+        This is a low level function for
+        entering transmit mode and more
         """
         # Turn on high power boost if enabled
         if self._tx_power >= 18:
@@ -474,7 +438,9 @@ class RFM69:
 
     @property
     def sync_word(self) -> bytearray:
-        """The synchronization word value.  This is a byte string up to 8 bytes long (64 bits)
+        """
+        TODO - remove? 
+        The synchronization word value.  This is a byte string up to 8 bytes long (64 bits)
         which indicates the synchronization word for transmitted and received packets. Any
         received packet which does not include this sync word will be ignored. The default value
         is 0x2D, 0xD4 which matches the RadioHead RFM69 library. Setting a value of None will
@@ -506,7 +472,9 @@ class RFM69:
 
     @property
     def preamble_length(self) -> int:
-        """The length of the preamble for sent and received packets, an unsigned 16-bit value.
+        """
+        TODO - try to remove?
+        The length of the preamble for sent and received packets, an unsigned 16-bit value
         Received packets must match this length or they are ignored! Set to 4 to match the
         RadioHead RFM69 library.
         """
@@ -522,8 +490,9 @@ class RFM69:
 
     @property
     def frequency_mhz(self) -> float:
-        """The frequency of the radio in Megahertz. Only the allowed values for your radio must be
-        specified (i.e. 433 vs. 915 mhz)!
+        """
+        The frequency of the radio in Megahertz
+        Only the allowed values for your radio must be specified (i.e. 433 vs. 915 mhz)
         """
         # FRF register is computed from the frequency following the datasheet.
         # See section 6.2 and FRF register description.
@@ -550,10 +519,11 @@ class RFM69:
 
     @property
     def encryption_key(self) -> bytearray:
-        """The AES encryption key used to encrypt and decrypt packets by the chip. This can be set
+        """
+        The AES encryption key used to encrypt and decrypt packets by the chip. This can be set
         to None to disable encryption (the default), otherwise it must be a 16 byte long byte
         string which defines the key (both the transmitter and receiver must use the same key
-        value).
+        value)
         """
         # Handle if encryption is disabled.
         if self.aes_on == 0:
@@ -576,9 +546,10 @@ class RFM69:
 
     @property
     def tx_power(self) -> int:
-        """The transmit power in dBm. Can be set to a value from -2 to 20 for high power devices
-        (RFM69HCW, high_power=True) or -18 to 13 for low power devices. Only integer power
-        levels are actually set (i.e. 12.5 will result in a value of 12 dBm).
+        """
+        The transmit power in dBm. Can be set to a value from -2 to 20 for high power devices
+        (RFM69HCW, high_power=True) or -18 to 13 for low power devices
+        Only integer power levels are actually set (i.e. 12.5 will result in a value of 12 dBm)
         """
         # Follow table 10 truth table from the datasheet for determining power
         # level from the individual PA level bits and output power register.
@@ -638,18 +609,20 @@ class RFM69:
 
     @property
     def rssi(self) -> float:
-        """The received strength indicator (in dBm).
+        """
+        The received strength indicator (in dBm).
         May be inaccuate if not read immediatey. last_rssi contains the value read immediately
-        receipt of the last packet.
+        receipt of the last packet
         """
         # Read RSSI register and convert to value using formula in datasheet.
         return -self._read_u8(_REG_RSSI_VALUE) / 2.0
 
     @property
     def bitrate(self) -> float:
-        """The modulation bitrate in bits/second (or chip rate if Manchester encoding is enabled).
+        """
+        The modulation bitrate in bits/second (or chip rate if Manchester encoding is enabled).
         Can be a value from ~489 to 32mbit/s, but see the datasheet for the exact supported
-        values.
+        values
         """
         msb = self._read_u8(_REG_BITRATE_MSB)
         lsb = self._read_u8(_REG_BITRATE_LSB)
@@ -665,7 +638,9 @@ class RFM69:
 
     @property
     def frequency_deviation(self) -> float:
-        """The frequency deviation in Hertz."""
+        """
+        The frequency deviation in Hertz
+        """
         msb = self._read_u8(_REG_FDEV_MSB)
         lsb = self._read_u8(_REG_FDEV_LSB)
         return _FSTEP * ((msb << 8) | lsb)
