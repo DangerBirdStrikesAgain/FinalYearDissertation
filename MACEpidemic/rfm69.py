@@ -204,7 +204,6 @@ class RFM69:
         frequency: int,
         *,
         sync_word: bytes = b"\x2D\xD4",
-        preamble_length: int = 4,
         baudrate: int = 2000000
     ) -> None:
         """
@@ -251,7 +250,6 @@ class RFM69:
         self._write_u8(_REG_TEST_PA2, _TEST_PA2_NORMAL)
         # Set the syncronization word TODO - is this needed?
         self.sync_word = sync_word
-        #self.preamble_length = preamble_length  # Set the preamble length
         self.frequency_mhz = frequency  # Set frequency
         self.encryption_key = None  # Set encryption key
         self.modulation_shaping = 0b01  # Gaussian filter, BT=1.0
@@ -337,9 +335,9 @@ class RFM69:
         """
 
         self._reset.value = True
-        time.sleep(0.0001)  # 100 us
+        time.sleep(0.1)
         self._reset.value = False
-        time.sleep(0.005)   # 5 ms
+        time.sleep(0.1)
 
 
     def idle(self) -> None:
@@ -347,11 +345,11 @@ class RFM69:
         Entera idle standby mode 
         (switching off high power amplifiers / high power mode if on)
         """
-        #self.reset()
         if self._tx_power >= 18:
             self._write_u8(_REG_TEST_PA1, _TEST_PA1_NORMAL)
             self._write_u8(_REG_TEST_PA2, _TEST_PA2_NORMAL)
         self.operation_mode = STANDBY_MODE
+        time.sleep(0.1)
 
     def sleep(self) -> None:
         """
@@ -361,15 +359,14 @@ class RFM69:
 
     def listen(self) -> None:
         """
-        TODO - remove? 
-        Listen for packets to be received by the chip.  Use :py:func:`receive` to listen, wait
-        and retrieve packets as they're available.
+        Listen for packets to be received by the chip
+        Used by receive()
         """
         # Turn off high power boost if enabled.
         if self._tx_power >= 18:
             self._write_u8(_REG_TEST_PA1, _TEST_PA1_NORMAL)
             self._write_u8(_REG_TEST_PA2, _TEST_PA2_NORMAL)
-        # Enable payload ready interrupt for D0 line.
+        # Enable payload ready interrupt for D0 line
         self.dio_0_mapping = 0b01
         # Enter RX mode (will clear FIFO!)
         self.operation_mode = RX_MODE
@@ -397,11 +394,11 @@ class RFM69:
 
         Reading this will STOP any receiving/sending that might be happening!
         """
-        # Start a measurement then poll the measurement finished bit.
+        # Start a measurement then poll the measurement finished bit
         self.temp_start = 1
         while self.temp_running > 0:
             pass
-        # Grab the temperature value and convert it to Celsius.
+        # Grab the temperature value and convert it to Celsius
         temp = self._read_u8(_REG_TEMP2)
         return 166.0 - temp
 
@@ -681,13 +678,9 @@ class RFM69:
         """
 
         if len(data) > 60:
-            # TODO - remove this debugging line
-            print("tried to send something too long")
-            print(data)
             return False
         # Stop receiving to clear FIFO and keep it clear
         self.idle()
-        time.sleep(0.05)
         
         payload = bytearray(4)
         payload[0] = 4 + len(data)
@@ -703,9 +696,8 @@ class RFM69:
         # Wait for packet sent interrupt with explicit polling
         # (not ideal but best that can be done without interrupts)
         timed_out = check_timeout(self.packet_sent, config.TRANSMIT_TIMEOUT)
-        # Enter idle mode to stop just kinda transmitting everything
+        # Enter idle mode to stop transmitting everything
         self.idle()
-        time.sleep(0.05)
         
         return not timed_out
 
@@ -735,7 +727,6 @@ class RFM69:
 
         timed_out = False
         self.idle()
-        time.sleep(0.05)
         # Listen for packets
         self.listen()
         
@@ -759,7 +750,6 @@ class RFM69:
 
         # Enter idle mode to stop receiving other packets
         self.idle()
-        time.sleep(0.1)
 
         if packet is not None:
             return (packetLength, packetType, sender, destination, packet[3:]) 

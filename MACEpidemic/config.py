@@ -63,7 +63,7 @@ TRANSMIT_TIMEOUT = 2.0
 # Seconds to wait for the board to receive a packet
 RECEIVE_TIMEOUT = 0.5
 # How often to transmit a new hello message 
-HELLO_TIMER = 5.0
+HELLO_TIMER = 20.0
 # How long to remain in quiet mode when waiting for an ACK 
 QUIET_STATE_TIMER = 20.0
 # How often to decrement the contacted / do not contact list
@@ -82,3 +82,4 @@ The number of attempts that should be made to send packets
 """
 TS_REENTRIES = 10
 DATA_REENTRIES = 20
+ACK_REENTRIES = 3
