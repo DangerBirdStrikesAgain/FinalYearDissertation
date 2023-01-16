@@ -31,6 +31,19 @@ import digitalio
 import supervisor
 
 
+def sendToAppLayer(item):
+    """
+    TODO - implement this using global variable(s)
+    """
+    return True
+
+
+def getFromAppLayer(item):
+    """
+    TODO - make this work and poll it every so often (no interupts) to make sure we don't miss anything
+    """
+
+
 class Timers:
     def __init__(self):
         # supervisor.ticks_ms() contants
@@ -243,6 +256,30 @@ def sendRTS(dest: int, messages: dict) -> bool:
     return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
+def removeLowestMessage(messages: dict) -> dict:
+    """
+    Removes the item in the messages dict with the lowest TTL 
+
+    Args: 
+        messages (dict): The dictionary of messages
+
+    Returns:
+        dict: The dictionary of messages, with the message with the lowest TTL removed
+    """
+
+    messagesList = messages.items()
+    lowest = messagesList[0][0]
+    lowestTTL = messagesList[0][1][1]
+
+    for item in messagesList:
+        if item[1][1] < lowestTTL:
+            lowestTTL = item[1][1]
+            lowest = item[0]
+
+    del(messages[lowest])
+    return messages
+
+
 def decodeMessages(receivedMessages: str) -> dict:
     """
     Takes a series of strings that came through data packets and turns them into a dictionary 
@@ -450,6 +487,9 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
             if newMessages != {}:
                 sendToAppLayer(newMessages)
                 messages.update(newMessages)
+                while len(messages)>30:
+                    messages = removeLowestMessage(messages = messages)
+
             return messages        
 
 
@@ -524,14 +564,10 @@ def CTSAntiEntropy(sender: int, messages: dict, packet: bytearray) -> dict:
         if newMessages != {}:
             sendToAppLayer(newMessages)
             messages.update(newMessages)
+            while len(messages)>30:
+                messages = removeLowestMessage(messages = messages)
+
         return messages
-
-
-def sendToAppLayer(item):
-    """
-    TODO - implement this using global variable(s)
-    """
-    return True
 
 
 def handleReceive(params: tuple[any]) -> int:
@@ -643,8 +679,6 @@ contacted = {}
 # Dictionary of messages that we have - similar to the list of obstacles in the application layer
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
 messages: dict[int, list[str, int]]
-# TODO gotta decremetn the TTL to kill some of them
-# TODO Perhaps take ony 30 messages and if any are longer than that we MURDER the one with the lowest TTL?
 messages = {
             0x0393 : ["-33.33333,44.44444", 1]
             }
