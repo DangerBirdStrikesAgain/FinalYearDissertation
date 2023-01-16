@@ -1,7 +1,7 @@
 """
 A Circuit Python implmentation of the epidemic routing protocol with media access control
-TODO - put the paper it is based on here
- 
+Based on the paper by Amin Vahdat and David Becker: https://issg.cs.duke.edu/epidemic/epidemic.pdf
+
 Uses Raspberry Pi Pico with the Adafruit Ultimate GPS Breakout V3 and rfm69HCW Radio breakout
 Requires rfm69 library and config files
  
@@ -18,6 +18,7 @@ RST            GP4
 """
 
 # TODO - Restructure the messages data structure to be {int : [int int int]}
+# TODO - get from app layer function to add to messages
 
 from micropython import const
 import config
@@ -26,10 +27,9 @@ import board
 import time
 import random
 from busio import SPI
-#import busio
 import digitalio
-
 import supervisor
+
 
 class Timers:
     def __init__(self):
@@ -39,8 +39,9 @@ class Timers:
         self._TICKS_HALFPERIOD = const(self._TICKS_PERIOD // 2)
 
         # Initialise timers
-        self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER+random.uniform(0.0, 10.0)))
+        self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER+random.uniform(0.0, config.HELLO_TIMER)))
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
+        self._messages = self._ticksAdd(supervisor.ticks_ms(), config.MESSAGES_TIMER)
         self._ACKTimeout: int
 
 
@@ -112,11 +113,10 @@ class Timers:
         """
 
         if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
-            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER + random.uniform(0.0, 10.0)))
+            self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER + random.uniform(0.0, config.HELLO_TIMER)))
             return True
         else: 
             return False
-
 
     def startQuietState(self):
         """
@@ -128,7 +128,7 @@ class Timers:
         Returns:
             None
         """
-        self._ACKTimeout = self._ticksAdd(supervisor.ticks_ms(), (config.QUIET_STATE_TIMER + random.uniform(0.0, 5.0)))
+        self._ACKTimeout = self._ticksAdd(supervisor.ticks_ms(), (config.QUIET_STATE_TIMER + random.uniform(0.0, 10.0)))
 
     def quiet(self) -> bool:
         """
@@ -146,7 +146,23 @@ class Timers:
         else:
             return False
 
-    
+    def messages(self) -> bool:
+        """
+        Checks if the timer for decrementing the messages TTL has elapsed
+
+        Args:
+            None
+
+        Returns:
+            bool: True if the timer has elapsed, otherwise False
+        """
+
+        if self._ticksDiff(self._messages, supervisor.ticks_ms()) < 0:
+            self._messages = self._ticksAdd(supervisor.ticks_ms(), config.MESSAGES_TIMER)
+            return True
+        else: 
+            return False
+
     def contacted(self) -> bool:
         """
         Checks if the timer for decrementing the contacted list has elapsed
@@ -336,6 +352,7 @@ def sendDataFrames(dest: int, messages: dict):
             args = rfm69.receive(timeout = 3)
             if args is not None and args[2] == dest and (args[1] == config.DATA or args[1] == config.ACK):
                 ACK = True
+            time.sleep(0.1)
         
         if ACK:
             return True
@@ -356,6 +373,7 @@ def sendDataFrames(dest: int, messages: dict):
                 string = string + msg
 
         total = len(toSend)
+        log("starting to send NOW")
         while dataCount<=config.DATA_REENTRIES and not ACK:
             # Send all the data frames
             number = 0
@@ -366,7 +384,7 @@ def sendDataFrames(dest: int, messages: dict):
                 number+=1
                 prefix = prefix + bytes(packet, "utf_8")
                 rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
-                time.sleep(0.5)
+                time.sleep(0.1)
 
             dataCount+=1
             args = rfm69.receive(timeout = 3)
@@ -402,6 +420,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
         log(("args: " + str(args)))
         if args is not None and args[1] == config.CTS and args[2] == dest:
             CTS = True
+        time.sleep(0.1)
 
     
     # Indicates failure to receive a CTS
@@ -411,7 +430,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
     
     # We receive a CTS from the desired node
     else:
-        log("RTS recieved")
+        log("CTS recieved")
         log("Sending data frames")
         packet = args[4]
         destKeys = []
@@ -476,10 +495,11 @@ def CTSAntiEntropy(sender: int, messages: dict, packet: bytearray) -> dict:
     while CTSCount<config.TS_REENTRIES and not data:
         sendCTS(sender, messages)
         CTSCount+=1
-        args = rfm69.receive(timeout=0.7)
+        args = rfm69.receive(timeout=2)
         log(("args: " + str(args)))
         if args is not None and args[1] == config.DATA and args[2] == sender:
             data = True
+        time.sleep(0.1)
 
     # Indicates failure to receive a data frame
     if not data:
@@ -488,7 +508,7 @@ def CTSAntiEntropy(sender: int, messages: dict, packet: bytearray) -> dict:
     
     # We receive a data frame from the desired node
     else:
-        log("At least one DATA recieved")
+        log("first DATA recieved, moving onto receving all data")
         success, newMessages = getData(sender = sender, packet = args[4])
         if success:
             # Generate keys the other node wants
@@ -509,9 +529,8 @@ def CTSAntiEntropy(sender: int, messages: dict, packet: bytearray) -> dict:
 
 def sendToAppLayer(item):
     """
-    TODO
+    TODO - implement this using global variable(s)
     """
-    # TODO - implement this using global variable(s)
     return True
 
 
@@ -589,6 +608,26 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
     return contacted
 
 
+def decrementMessages(messages: dict) -> dict:
+    """"
+    Decrements the TTL for each item in messages, removing anything with a TTL of 0
+
+    Args:
+        contacted (dict): The dictionary of messages, where the second item in the value is the TLL
+
+    Returns:
+        dict: The modified messages dictionary
+    """
+
+    for key in messages:
+        messages[key][1]+=-1
+        if messages[key][1]==0:
+            del(messages[key])
+    
+    return messages
+
+
+
 # Initialise the radio
 spi = SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
@@ -603,12 +642,10 @@ contacted = {}
 
 # Dictionary of messages that we have - similar to the list of obstacles in the application layer
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
-# Welcome to possibly the worst fucking data structure on earth
 messages: dict[int, list[str, int]]
 # TODO gotta decremetn the TTL to kill some of them
 # TODO Perhaps take ony 30 messages and if any are longer than that we MURDER the one with the lowest TTL?
 messages = {
-            0x0183 : ["11.11111,-22.22222", 5], 
             0x0393 : ["-33.33333,44.44444", 1]
             }
 
@@ -619,12 +656,14 @@ quietNode: int
 # Initialise state to the starting state 
 state = config.LISTEN
 
-# Logging turned on if we have a USB connections
+# Logging turned on if we have a USB connection
 logging = supervisor.runtime.serial_connected
-if logging:
-    log("Logging")
+log("Logging")
 
 timers = Timers()
+print(messages)
+
+
 
 while True:
     # log(message = "State: " + str(state))
@@ -648,18 +687,20 @@ while True:
             if sender>config.ADDRESS:
                 messages = RTSAntiEntropy(dest = sender, messages = messages)
                 contacted.update({sender : config.CONTACTED_LIVES})
+                print(messages)
         state = config.LISTEN
 
     elif state == config.QUIET:
         args = rfm69.receive()
         if args is not None:
-            print(args)
+            log(args)
         state = handleReceive(args)
 
     elif state == config.RECEIVED_RTS:
         messages = CTSAntiEntropy(sender = args[2], messages = messages, packet = args[4])
         state = config.LISTEN
         # No point updating contacted as will not attempt to contact a node with larger address
+        print(messages)
 
     else:
         log(("Saw an unknown state: " + str(state)))
@@ -668,7 +709,10 @@ while True:
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
     if timers.contacted():
-            contacted = decrementContacted(contacted)
+        contacted = decrementContacted(contacted)
+    if timers.messages():
+        messages = decrementMessages(messages)
+
     # TODO is this fully executed? i.e. is it lazy and timers.hello is not called if state != LISTEN? timers.hello ahs side effects on the state of the hello timer
     if state == config.LISTEN and timers.hello():
-            state = config.SEND_HELLO
+        state = config.SEND_HELLO

@@ -680,7 +680,11 @@ class RFM69:
             bool: True if success and False if failure
         """
 
-        assert 0 < len(data) <= 60
+        if len(data) > 60:
+            # TODO - remove this debugging line
+            print("tried to send something too long")
+            print(data)
+            return False
         # Stop receiving to clear FIFO and keep it clear
         self.idle()
         time.sleep(0.05)
@@ -755,6 +759,7 @@ class RFM69:
 
         # Enter idle mode to stop receiving other packets
         self.idle()
+        time.sleep(0.1)
 
         if packet is not None:
             return (packetLength, packetType, sender, destination, packet[3:]) 
