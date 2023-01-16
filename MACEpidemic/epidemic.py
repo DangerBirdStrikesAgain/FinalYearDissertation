@@ -125,6 +125,11 @@ class Timers:
             bool: True if the timer has elapsed, otherwise False
         """
 
+        global state
+
+        if state != config.LISTEN:
+            print("OMG timer.hello was called when the state was not listen")
+
         if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
             self._nextHello = self._ticksAdd(supervisor.ticks_ms(), (config.HELLO_TIMER + random.uniform(0.0, config.HELLO_TIMER)))
             return True
@@ -606,15 +611,15 @@ def handleReceive(params: tuple[any]) -> int:
             return config.LISTEN
             
     elif state==config.QUIET: 
-        if params == None or params[1] == config.DATA or params[1]==config.HELLO or params[1]==config.RTS:
-            return config.QUIET
-        elif params[1] == config.CTS: # and args[2]!=config.ADDRESS: 
-            # TODO - should we actually be doing something about this? 
-            # Currently we just assume that we won't see two CTSs from different nodes
-            return config.QUIET
-        elif timers.quiet() or (params[1] == config.ACK and params[2] == quietNode):
-            # Note that the exit from quiet is listen
+        if timers.quiet():
             return config.LISTEN
+        elif params == None or params[1] == config.DATA or params[1]==config.HELLO or params[1]==config.RTS:
+            return config.QUIET
+        elif (params[1] == config.ACK and params[2] == quietNode):
+            return config.LISTEN
+        elif params[1] == config.CTS: # and args[2]!=config.ADDRESS: 
+            # TODO - should we actually be doing something about this? Currently we just assume that we won't see two CTSs from different nodes
+            return config.QUIET
         else:
             message = "Saw an unknown packet type: ", params[1]
             log(message)
@@ -698,7 +703,6 @@ timers = Timers()
 print(messages)
 
 
-
 while True:
     # log(message = "State: " + str(state))
     if state == config.LISTEN:
@@ -747,6 +751,6 @@ while True:
     if timers.messages():
         messages = decrementMessages(messages)
 
-    # TODO is this fully executed? i.e. is it lazy and timers.hello is not called if state != LISTEN? timers.hello ahs side effects on the state of the hello timer
+    # This is lazy and timers.hello is not called if state!=LISTEN  (important timers.hello() as has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
