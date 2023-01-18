@@ -475,7 +475,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
     # Indicates failure to receive a CTS
     if RTSCount>=config.TS_REENTRIES and not CTS:
         log("No CTS received, RTS timeout!!")
-        return messages
+        return (False, messages)
     
     # We receive a CTS from the desired node
     else:
@@ -492,7 +492,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
                     messagesToSend.update({key : messages[key]})
         success, args = sendDataFrames(dest, messagesToSend)
         if not success:
-            return messages
+            return (False, messages)
         else: 
             success, newMessages = getData(args[4])
             if success:
@@ -509,7 +509,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
                 while len(messages)>30:
                     messages = removeLowestMessage(messages = messages)
 
-            return messages        
+            return (success, messages)        
 
 
 def sendCTS(sender: int, messages: dict):
