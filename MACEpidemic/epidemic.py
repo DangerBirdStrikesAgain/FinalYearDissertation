@@ -30,6 +30,9 @@ from busio import SPI
 import digitalio
 import supervisor
 
+#TODO make time to live the number of times the packet is forwarded 
+# ADd to contacted only if successful
+# Move to fixed length and have 64 bytes every time / padded
 
 def sendToAppLayer(item):
     """
@@ -52,11 +55,14 @@ class Timers:
         self._TICKS_HALFPERIOD = const(self._TICKS_PERIOD // 2)
 
         # Initialise timers
-        nextIncrement = config.HELLO_TIMER + random.uniform(0.0, config.HELLO_TIMER)
+        nextIncrement = config.HELLO_TIMER + random.uniform(-10.0, 10.0)
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
         self._messages = self._ticksAdd(supervisor.ticks_ms(), config.MESSAGES_TIMER)
         self._ACKTimeout: int
+
+        log(("Supervisor time at start: " + str(supervisor.ticks_ms())))
+        
 
 
     def _ticksAdd(self, ticks: int, delta: float) -> int:
@@ -127,7 +133,7 @@ class Timers:
         """
 
         if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
-            nextIncrement = config.HELLO_TIMER + random.uniform(0.0, config.HELLO_TIMER)
+            nextIncrement = config.HELLO_TIMER + random.uniform(-10.0, 10.0)
             self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
             return True
         else: 
@@ -144,7 +150,7 @@ class Timers:
             None
         """
         
-        nextIncrement = config.QUIET_STATE_TIMER + random.uniform(0.0, 10.0)
+        nextIncrement = config.QUIET_STATE_TIMER + random.uniform(-5.0, 5.0)
         self._ACKTimeout = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
 
     def quiet(self) -> bool:
@@ -441,7 +447,7 @@ def sendDataFrames(dest: int, messages: dict):
             return (False, None)
 
 
-def RTSAntiEntropy(dest: int, messages: dict) -> dict:
+def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
     """
     Starts the transfer of messages from one node to another
     
@@ -450,6 +456,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> dict:
         messages (dict): The dictionary of messages the node holds
 
     Returns:
+        bool: True if successful message transfer, otherwise false
         dict: The updated messages dictionary 
     """
 
@@ -686,7 +693,10 @@ cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
-# TODO - Initialise GPS
+# TODO - Initialise GPS (ah fuck this is gonna be a nightmare bc we're gonna have to put it in a seperate file with a lock so that both the app and networking layer can read from it)
+
+# Set to True if we want to use the contacted list
+useContacted = False
 
 # List of nodes we have contacted recently
 contacted: dict[int, str]
@@ -731,8 +741,9 @@ while True:
         sendToAppLayer(packet)
         if sender not in contacted:
             if sender>config.ADDRESS:
-                messages = RTSAntiEntropy(dest = sender, messages = messages)
-                contacted.update({sender : config.CONTACTED_LIVES})
+                success, messages = RTSAntiEntropy(dest = sender, messages = messages)
+                if useContacted and success:
+                    contacted.update({sender : config.CONTACTED_LIVES})
                 print(messages)
         state = config.LISTEN
 
@@ -756,7 +767,7 @@ while True:
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
-    if timers.contacted():
+    if useContacted and timers.contacted():
         contacted = decrementContacted(contacted)
     if timers.messages():
         messages = decrementMessages(messages)

@@ -63,17 +63,16 @@ TRANSMIT_TIMEOUT = 2.0
 # Seconds to wait for the board to receive a packet
 RECEIVE_TIMEOUT = 0.5
 # How often to transmit a new hello message 
-HELLO_TIMER = 20.0
+# TODO - 15 +- 10
+HELLO_TIMER = 15.0
 # How long to remain in quiet mode when waiting for an ACK 
 QUIET_STATE_TIMER = 20.0
 # How often to decrement the contacted / do not contact list
 CONTACTED_TIMER  = 20.0
 # How many times an entry in contacted / do not contact should be decremented 
 CONTACTED_LIVES = 3 
-# How often to decrement the TTL on messages
-MESSAGES_TIMER = 30.0
-# How many times a value in the messages dict should be decremented
-MESSAGES_LIVES = 12
+# How many times a message should be forwarded 
+MESSAGES_LIVES = 6
 
 
 """

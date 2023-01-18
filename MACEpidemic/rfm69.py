@@ -656,6 +656,7 @@ class RFM69:
 
     def payload_ready(self) -> bool:
         """Receive status"""
+        # todo CRC check 
         return (self._read_u8(_REG_IRQ_FLAGS2) & 0x4) >> 2
 
     def send(
@@ -748,6 +749,11 @@ class RFM69:
                 sender = packet[1]
                 destination = packet[2]
 
+        # TODO Clear fifo
+        # multimeter check continuity 
+        # print out the values of 'basically everython you're using'
+        # anything that looks like metadata in the registers then check it's actually the value you want
+        # look at the data sheet - see if is  
         # Enter idle mode to stop receiving other packets
         self.idle()
 
