@@ -58,7 +58,6 @@ class Timers:
         nextIncrement = config.HELLO_TIMER + random.uniform(-10.0, 10.0)
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
-        self._messages = self._ticksAdd(supervisor.ticks_ms(), config.MESSAGES_TIMER)
         self._ACKTimeout: int
 
         log(("Supervisor time at start: " + str(supervisor.ticks_ms())))
@@ -167,23 +166,6 @@ class Timers:
         if self._ticksDiff(self._ACKTimeout, supervisor.ticks_ms()) < 0:
             return True
         else:
-            return False
-
-    def messages(self) -> bool:
-        """
-        Checks if the timer for decrementing the messages TTL has elapsed
-
-        Args:
-            None
-
-        Returns:
-            bool: True if the timer has elapsed, otherwise False
-        """
-
-        if self._ticksDiff(self._messages, supervisor.ticks_ms()) < 0:
-            self._messages = self._ticksAdd(supervisor.ticks_ms(), config.MESSAGES_TIMER)
-            return True
-        else: 
             return False
 
     def contacted(self) -> bool:
@@ -309,7 +291,8 @@ def decodeMessages(receivedMessages: str) -> dict:
     for line in lines:
         if line != "":
             temp = line.split(",")
-            messages.update({temp[0] : [str(temp[1]+","+temp[2]), temp[3]]})
+            if temp[3]!=1:
+                messages.update({temp[0] : [str(temp[1]+","+temp[2]), (temp[3]-1)]})
     
     return messages
 
@@ -667,24 +650,6 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
     return contacted
 
 
-def decrementMessages(messages: dict) -> dict:
-    """"
-    Decrements the TTL for each item in messages, removing anything with a TTL of 0
-
-    Args:
-        contacted (dict): The dictionary of messages, where the second item in the value is the TLL
-
-    Returns:
-        dict: The modified messages dictionary
-    """
-
-    for key in messages:
-        messages[key][1]+=-1
-        if messages[key][1]==0:
-            del(messages[key])
-    
-    return messages
-
 
 
 # Initialise the radio
@@ -769,8 +734,6 @@ while True:
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
     if useContacted and timers.contacted():
         contacted = decrementContacted(contacted)
-    if timers.messages():
-        messages = decrementMessages(messages)
 
     # This is lazy and timers.hello is not called if state!=LISTEN  (important timers.hello() as has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
