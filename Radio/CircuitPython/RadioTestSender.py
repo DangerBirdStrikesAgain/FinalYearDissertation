@@ -24,7 +24,7 @@ FREQ = 433
 spi = busio.SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
-rfm69 = adafruit_rfm69.RFM69(spi, cs, reset, FREQ)
+rfm69 = adafruit_rfm69.RFM69(spi, cs, reset, FREQ, fixed_length = True)
 count = 1
 
 
@@ -39,4 +39,4 @@ while True:
     rfm69.send(bytes(message, "utf-8"))
     print("Sent ", count, " hello world messages!")
     count+=1
-    time.sleep(1)
+    #time.sleep(1)

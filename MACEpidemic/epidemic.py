@@ -17,8 +17,9 @@ CS             GP1
 RST            GP4
 """
 
-# TODO - Restructure the messages data structure to be {int : [int int int]}
 # TODO - get from app layer function to add to messages
+# TODO Move to fixed length and have 64 bytes every time / padded
+
 
 from micropython import const
 import config
@@ -30,9 +31,6 @@ from busio import SPI
 import digitalio
 import supervisor
 
-#TODO make time to live the number of times the packet is forwarded 
-# ADd to contacted only if successful
-# Move to fixed length and have 64 bytes every time / padded
 
 def sendToAppLayer(item):
     """
@@ -45,6 +43,11 @@ def getFromAppLayer(item):
     """
     TODO - make this work and poll it every so often (no interupts) to make sure we don't miss anything
     """
+    # This is called when a timer goes 
+    # Checks if something is empty and if so returns None or something
+    # If not empty, return a new dictionary entry to be added to the dictionary entries
+    # Perhaps if this returns something we should clear contacted sp will be forwarded to all neighbours who send a hello? Actually will only work for very small 
+    # numerical nodes
 
 
 class Timers:
@@ -60,8 +63,8 @@ class Timers:
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
         self._ACKTimeout: int
 
-        log(("Supervisor time at start: " + str(supervisor.ticks_ms())))
-        
+        # For time since start
+        self._start = supervisor.ticks_ms()        
 
 
     def _ticksAdd(self, ticks: int, delta: float) -> int:
@@ -78,6 +81,7 @@ class Timers:
         Returns:
             int: The new value for ticks
         """
+
         return (ticks + (delta*1000)) % self._TICKS_PERIOD
 
 
@@ -94,6 +98,7 @@ class Timers:
         Returns:
             int: The signed difference between ticks 1 and 2
         """
+
         diff = int(ticks1 - ticks2) & self._TICKS_MAX
         diff = ((diff + self._TICKS_HALFPERIOD) & self._TICKS_MAX) - self._TICKS_HALFPERIOD
         return diff
@@ -110,6 +115,7 @@ class Timers:
         Returns:
             bool: True if timeout, otherwise False
         """
+
         timed_out = False
         
         start = supervisor.ticks_ms()
@@ -119,7 +125,17 @@ class Timers:
         
         return timed_out
 
+
+    def timeSinceStart(self) -> float:
+        """
+        Approximate time in seconds elapsed since the program started running
+        Will only be accurate for the first 65 seconds as supervisor.ticks_ms() wraps around
+        """
+
+        msElapsed = self._ticksDiff(supervisor.ticks_ms(), self._start)
+        return (msElapsed / 1000)
     
+
     def hello(self) -> bool:
         """
         Checks if the timer for sending a hello has elapsed
@@ -206,8 +222,8 @@ def getGPS():
     """
     TODO
     """
-    # TODO - should this be a string? Is there a better way of doing this?
-    return ("10.284638,89.473057")
+    
+    return (10.284638, 89.473057)
 
 
 def sendHello() -> bool:
@@ -222,7 +238,7 @@ def sendHello() -> bool:
     """
 
     gps = getGPS()
-    return rfm69.send(data = bytes(gps, "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
+    return rfm69.send(data = bytes((str(gps[0])+"," + str(gps[1])), "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
 
 
 def sendRTS(dest: int, messages: dict) -> bool:
@@ -261,11 +277,11 @@ def removeLowestMessage(messages: dict) -> dict:
 
     messagesList = list(messages.items())
     lowest = messagesList[0][0]
-    lowestTTL = messagesList[0][1][1]
+    lowestTTL = messagesList[0][1][2]
 
     for item in messagesList:
         if item[1][1] < lowestTTL:
-            lowestTTL = item[1][1]
+            lowestTTL = item[1][2]
             lowest = item[0]
 
     del(messages[lowest])
@@ -291,8 +307,9 @@ def decodeMessages(receivedMessages: str) -> dict:
     for line in lines:
         if line != "":
             temp = line.split(",")
-            if temp[3]!=1:
-                messages.update({temp[0] : [str(temp[1]+","+temp[2]), (temp[3]-1)]})
+            # Drops any messages that have been forwarded too many times
+            if len(temp)!=0 and temp[3]!=0:
+                messages.update({temp[0] : [temp[1],temp[2],(temp[3]-1)]})
     
     return messages
 
@@ -381,7 +398,6 @@ def sendDataFrames(dest: int, messages: dict):
             prefix[0] = 0
             prefix[1] = 0
             rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
-            time.sleep(0.1)
             args = rfm69.receive(timeout = 3)
             if args is not None and args[2] == dest and (args[1] == config.DATA or args[1] == config.ACK):
                 ACK = True
@@ -397,7 +413,7 @@ def sendDataFrames(dest: int, messages: dict):
         toSend = []
         string=""
         for key in messages:
-            msg = str(key)+","+messages[key][0]+","+str(messages[key][1])+"\n"
+            msg = str(key)+","+str(messages[key][0])+","+str(messages[key][1])+","+str(messages[key][2])+"\n"
             if len(string) + len(msg) > 58:
                 toSend.append(string)
                 string = msg
@@ -518,7 +534,7 @@ def sendCTS(sender: int, messages: dict):
     return rfm69.send(data = data, destination = sender, packetType = config.CTS)
 
 
-def CTSAntiEntropy(sender: int, messages: dict, packet: bytearray) -> dict:
+def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
     """
     Allows and continues the transfer of messages from one node to another
     
@@ -541,7 +557,7 @@ def CTSAntiEntropy(sender: int, messages: dict, packet: bytearray) -> dict:
         log(("args: " + str(args)))
         if args is not None and args[1] == config.DATA and args[2] == sender:
             data = True
-        time.sleep(0.2)
+        time.sleep(0.1)
 
     # Indicates failure to receive a data frame
     if not data:
@@ -560,8 +576,8 @@ def CTSAntiEntropy(sender: int, messages: dict, packet: bytearray) -> dict:
             destKeys = []
             messagesToSend = {}
             if len(packet) != 0:
-                for x in range (0, len(packet), 2):
-                    destKeys.append(int.from_bytes(packet[x:(x+2)], "utf_8"))
+                for x in range (0, len(RTSpacket), 2):
+                    destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
                 for key in messages:
                     if key not in destKeys:
                         messagesToSend.update({key : messages[key]})
@@ -669,7 +685,8 @@ contacted = {}
 
 # Dictionary of messages that we have - similar to the list of obstacles in the application layer
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
-messages: dict[int, list[str, int]]
+# {key : [GPS1, GPS2, TTL]}
+messages: dict[int, list[int]]
 messages = {}
 
 
@@ -721,7 +738,7 @@ while True:
     elif state == config.RECEIVED_RTS:
         print("Received RTS")
         print(messages)
-        messages = CTSAntiEntropy(sender = args[2], messages = messages, packet = args[4])
+        messages = CTSAntiEntropy(sender = args[2], messages = messages, RTSpacket = args[4])
         state = config.LISTEN
         # No point updating contacted as will not attempt to contact a node with larger address
         print(messages)
