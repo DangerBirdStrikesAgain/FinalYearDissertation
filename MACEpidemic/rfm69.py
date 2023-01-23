@@ -120,6 +120,8 @@ def check_timeout(flag: Callable, limit: float) -> bool:
     while not timed_out and not flag():
         if ticks_diff(supervisor.ticks_ms(), start) >= limit * 1000:
             timed_out = True
+
+    
     
     return timed_out
 
@@ -724,6 +726,7 @@ class RFM69:
         # interrupt supports
         timed_out = check_timeout(self.payload_ready, timeout)
         
+
         if not timed_out:
             # Read the length of the FIFO - requires the first byte to be the length
             # Fairly sure this is a destructive read 
