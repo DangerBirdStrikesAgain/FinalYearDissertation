@@ -218,20 +218,24 @@ class Logging:
             print("Logging")
     
     def log(self, message: str):
+        global timers
         if self._logging:
-            print(f"{message}")
+            print(f"[{timers.timeSinceStart()}] {message}")
 
     def logFunction(self, function: str, message: str):
+        global timers
         if self._logging:
-            print(f"{self._green}[{function}] {message}{self._end}")
+            print(f"{self._green}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
 
     def logPacket(self, function: str, src: int, dst: int, pckType: int):
+        global timers
         if self._logging:
-            print(f"{self._blue}[{function}] Source: {src} Dest: {dst} Type: {pckType}{self._end}")
+            print(f"{self._blue}[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}{self._end}")
         
     def logError(self, function: str, message: str):
+        global timers
         if self._logging:
-            print (f"{self._red}[{function}] {message}{self._end}")
+            print (f"{self._red}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
 
 
 
@@ -873,13 +877,11 @@ while True:
 
     elif state == config.SEND_HELLO:
         if sendHello():
-            logging.logFunction("toplevel", "Sent hello")
             state = config.LISTEN
         else:
             logging.logError("toplevel", "Failed to send hello")
 
     elif state == config.RECEIVED_HELLO:
-        logging.logFunction("toplevel", "Received hello")
         sender = args[2]
         packet = args[4]
         sendToAppLayer(packet)
