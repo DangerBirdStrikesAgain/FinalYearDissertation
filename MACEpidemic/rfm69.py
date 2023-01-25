@@ -114,16 +114,17 @@ def check_timeout(flag: Callable, limit: float) -> bool:
     Returns:
         bool: True if timeout, otherwise False
     """
-    timed_out = False
-    
+    temp = 0
     start = supervisor.ticks_ms()
-    while not timed_out and not flag():
-        if ticks_diff(supervisor.ticks_ms(), start) >= limit * 1000:
-            timed_out = True
+    while not flag():
+        temp = ticks_diff(supervisor.ticks_ms(), start)
+        if temp >= limit * 1000:
+            # timeout
+            # print(f"[check_timeout: loop] Timed out after {temp}")
+            return True
 
-    
-    
-    return timed_out
+    # print(f"[check_timeout: loop] Didn't timeout after  {temp}")
+    return False
 
 
 class RFM69:
@@ -666,7 +667,6 @@ class RFM69:
             if len(data) < 60:
                 data = data + b'0'*(60-len(data))
             if len(data) != 60:
-                print("data data length went wrong somewhere...")
                 return False
         
         # Stop receiving to clear FIFO and keep it clear
@@ -675,6 +675,7 @@ class RFM69:
         payload = bytearray(4)
         payload[0] = 4 + len(data)
         payload[1] = packetType
+        print(f"[RFM69 - Send 680] packetType {packetType}")
         payload[2] = config.ADDRESS
         payload[3] = destination
         payload = payload + data
@@ -725,8 +726,8 @@ class RFM69:
         # enough, however it's the best that can be done from Python without
         # interrupt supports
         timed_out = check_timeout(self.payload_ready, timeout)
-        
 
+        
         if not timed_out:
             # Read the length of the FIFO - requires the first byte to be the length
             # Fairly sure this is a destructive read 
@@ -738,11 +739,7 @@ class RFM69:
                 packetType = packet[0]
                 sender = packet[1]
                 destination = packet[2]
-
-        # TODO Clear fifo
-        # print out the values of 'basically everython you're using'
-        # anything that looks like metadata in the registers then check it's actually the value you want
-        # and look at the data sheet - see if is  
+                print(f"[RFM69 - Receive] Packet type {packetType}  Sender {sender}  destination {destination}")
 
         # Enter idle mode to stop receiving other packets
         self.idle()

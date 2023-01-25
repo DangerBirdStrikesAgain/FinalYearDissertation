@@ -79,6 +79,6 @@ MESSAGES_LIVES = 6
 REENTRIES 
 The number of attempts that should be made to send packets
 """
-TS_REENTRIES = 10
-DATA_REENTRIES = 20
+TS_REENTRIES = 3
+DATA_REENTRIES = 5
 ACK_REENTRIES = 3

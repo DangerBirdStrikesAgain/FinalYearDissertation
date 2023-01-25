@@ -18,8 +18,6 @@ RST            GP4
 """
 
 # TODO - get from app layer function to add to messages
-# TODO Move to fixed length and have 64 bytes every time / padded
-
 
 from micropython import const
 import config
@@ -38,7 +36,6 @@ def sendToAppLayer(item):
     """
     return True
 
-
 def getFromAppLayer(item):
     """
     TODO - make this work and poll it every so often (no interupts) to make sure we don't miss anything
@@ -48,6 +45,7 @@ def getFromAppLayer(item):
     # If not empty, return a new dictionary entry to be added to the dictionary entries
     # Perhaps if this returns something we should clear contacted sp will be forwarded to all neighbours who send a hello? Actually will only work for very small 
     # numerical nodes
+
 
 
 class Timers:
@@ -202,20 +200,39 @@ class Timers:
             return False
 
 
-def log(message: str):
-    """ 
-    If global variable logging is true, prints message
-    
-    Args:
-        message (str): The string to be printed
-    
-    Returns:
-        None
+class Logging:
     """
+    Class with multiple functions to handle logging
+    """
+
+    def __init__(self):
+        # Logging turned on if we have a USB connection
+        self._logging = supervisor.runtime.serial_connected
+        
+        self._red = "\033[91m"
+        self._end = "\033[0m"
+        self._blue = "\033[94m"
+        self._green = "\033[92m"
+        
+        if self._logging:
+            print("Logging")
     
-    global logging
-    if logging:
-        print(message)
+    def log(self, message: str):
+        if self._logging:
+            print(f"{message}")
+
+    def logFunction(self, function: str, message: str):
+        if self._logging:
+            print(f"{self._green}[{function}] {message}{self._end}")
+
+    def logPacket(self, function: str, src: int, dst: int, pckType: int):
+        if self._logging:
+            print(f"{self._blue}[{function}] Source: {src} Dest: {dst} Type: {pckType}{self._end}")
+        
+    def logError(self, function: str, message: str):
+        if self._logging:
+            print (f"{self._red}[{function}] {message}{self._end}")
+
 
 
 def getGPS():
@@ -237,7 +254,9 @@ def sendHello() -> bool:
         bool: True if success, False if error
     """
 
+    global logging
     gps = getGPS()
+    logging.logPacket("sendHello", config.ADDRESS, "", config.HELLO)
     return rfm69.send(data = bytes((str(gps[0])+"," + str(gps[1])), "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
 
 
@@ -253,6 +272,7 @@ def sendRTS(dest: int, messages: dict) -> bool:
         bool: True if success, False if error
     """
 
+    global logging
     data = 0
 
     # Iterate through the keys to generate byte array of the keys to send to the 
@@ -261,6 +281,7 @@ def sendRTS(dest: int, messages: dict) -> bool:
     
     data = data.to_bytes(len(messages)*2, "utf_8")
 
+    logging.logPacket("sendRTS", config.ADDRESS, dest, config.RTS)
     return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
@@ -308,14 +329,15 @@ def decodeMessages(receivedMessages: str) -> dict:
         if line != "":
             temp = line.split(",")
             # Drops any messages that have been forwarded too many times
-            if len(temp)!=1 and temp[3]!=0:
-                messages.update({temp[0] : [temp[1],temp[2],(temp[3]-1)]})
+            if len(temp)!=1 and int(temp[3])!=0:
+                messages.update({int(temp[0]) : [float(temp[1]),float(temp[2]),(int(temp[3])-1)]})
     
     return messages
 
 
-def getData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
+def RTSGetData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
     """
+    Called from RTSAntiEntropy
     Listens for data packets and extracts the messages from them
     Assumes the data arrives comes in the form
     total, number
@@ -330,18 +352,19 @@ def getData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
         dict: The dictionary of new values
     """
 
+    global logging
     dataCount = 0
     receivedMessages = ""
 
     if packet is None:
         while packet is None and dataCount<config.DATA_REENTRIES:
             args = rfm69.receive(timeout = 3)
-            if args[1] == config.DATA and args[2] == sender: 
+            if args is not None and args[1] == config.DATA and args[2] == sender: 
                 packet = args[4]
             dataCount+=1
     
     if packet is None:
-        log("No DATA packets received")
+        logging.logError("RTSGetData", "No DATA packets received")
         return (False, {})
 
     dataCount = 0
@@ -349,32 +372,42 @@ def getData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
     # Construct a list of zeros from the packet, if more than one packet will be sent
     totalLen = packet[0]
     if totalLen != 0:
-        seen = [0]*(totalLen-1)
-        receivedMessages.append(packet[2:])
+        seen = [0]*(totalLen)
+        receivedMessages += packet[2:].decode("utf_8")
         seen[packet[1]]=1
     else: 
         seen = [0]
-        receivedMessages=str(packet[2:], "utf_8")
+        receivedMessages = packet[2:].decode("utf_8")
 
-    while sum(seen) != totalLen and dataCount<config.DATA_REENTRIES:
-        args = rfm69.receive()
-        if args[1] == config.DATA and args[2] == sender: 
+    while dataCount<config.DATA_REENTRIES and sum(seen) != totalLen:
+        args = rfm69.receive(timeout=2)
+        if args is not None and args[1] == config.DATA and args[2] == sender: 
             packet = args[4]
             if seen[packet[1]] == 0:
-                receivedMessages.append(str(packet[2:], "utf_8"))
+                receivedMessages += packet[2:].decode("utf_8")
                 seen[packet[1]]=1
         dataCount+=1
 
     messages = decodeMessages(receivedMessages)
 
+    # Indicates success so send an ACK
     if sum(seen) == totalLen:
+        flag = True
+        sendCount = 0
+        while flag and sendCount<config.ACK_REENTRIES:
+            rfm69.send(data = b'', destination = sender, packetType = config.ACK)
+            param = rfm69.receive(timeout = 2)
+            # If we are still receiving data then resend the ACK
+            if param is None or not param[1]==config.DATA:
+                flag = False 
         return(True, messages)
-    else:
-        return (False, messages)
+
+    return (False, messages)
 
 
-def sendDataFrames(dest: int, messages: dict):
+def RTSSendDataFrames(dest: int, messages: dict):
     """
+    Called from RTSAntiEntropy
     Sends data frames until an ACK or another data frame (indicating receipt) is received from the destination
     
     Args:
@@ -385,65 +418,66 @@ def sendDataFrames(dest: int, messages: dict):
         bool: True if success, False otherwise
     """
 
+    global logging
     dataCount = 0
-    ACK = False
-    
-    log("In send data frames function")
+    DATA = False
 
     # If there are no messages to send
     if len(messages) == 0:
-        log("starting to send now")
-        while dataCount<=config.DATA_REENTRIES and not ACK:
+        logging.logFunction("RTSSendDataFrames", "No new data - starting to send empty packets now")
+        while dataCount<=config.DATA_REENTRIES and not DATA:
             prefix = bytearray(2)
             prefix[0] = 0
             prefix[1] = 0
             rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
             args = rfm69.receive(timeout = 3)
-            if args is not None and args[2] == dest and (args[1] == config.DATA or args[1] == config.ACK):
-                ACK = True
+            dataCount += 1
+            if args is not None and args[2] == dest and args[1] == config.DATA:
+                DATA = True
         
-        if ACK:
+        if DATA:
             return (True, args)
         else:
-            log("ACK or data frame not received")
+            logging.logError("RTSSendDataFrames", "Data frame not received")
             return (False, None)
 
-    else:
-        # Generate the data frames to be sent and put them into a list
-        toSend = []
-        string=""
-        for key in messages:
-            msg = str(key)+","+str(messages[key][0])+","+str(messages[key][1])+","+str(messages[key][2])+"\n"
-            if len(string) + len(msg) > 58:
-                toSend.append(string)
-                string = msg
-            else: 
-                string = string + msg
+    # Generate the data frames to be sent and put them into a list
+    toSend = []
+    string=""
+    for key in messages:
+        msg = str(key)+","+str(messages[key][0])+","+str(messages[key][1])+","+str(messages[key][2])+"\n"
+        if len(string) + len(msg) > 58:
+            toSend.append(string)
+            string = msg
+        else: 
+            string = string + msg
+    toSend.append(string)
 
-        total = len(toSend)
-        log("starting to send NOW")
-        while dataCount<=config.DATA_REENTRIES and not ACK:
-            # Send all the data frames
-            number = 0
-            for packet in toSend:
-                prefix = bytearray(2)
-                prefix[0] = total
-                prefix[1] = number
-                number+=1
-                prefix = prefix + bytes(packet, "utf_8")
-                rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
-                time.sleep(0.2)
+    total = len(toSend)
+    logging.logFunction("RTSSendDataFrames", "Need to sync data! Starting to send")
+    while dataCount<=config.DATA_REENTRIES and not DATA:
+        # Send all the data frames
+        number = 0
+        for packet in toSend:
+            prefix = bytearray(2)
+            prefix[0] = total
+            prefix[1] = number
+            number+=1
+            prefix = prefix + bytes(packet, "utf_8")
+            rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
+            logging.logPacket("RTSSendDataFrames", config.ADDRESS, dest, config.DATA)
+            time.sleep(0.1)
 
-            dataCount+=1
-            args = rfm69.receive(timeout = 3)
-            if args is not None and args[2] == dest and (args[1] == config.DATA or args[1] == config.ACK):
-                ACK = True
-    
-        if ACK:
-            return (True, args)
-        else:
-            log("ACK or data frame not received")
-            return (False, None)
+        dataCount+=1
+        args = rfm69.receive(timeout = 3)
+        if args is not None and args[2] == dest and (args[1] == config.DATA or args[1] == config.ACK):
+            DATA = True
+
+    if DATA:
+        return (True, args)
+
+    logging.logError("RTSSendDataFrames", "Data frame not received")
+    return (False, None)
 
 
 def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
@@ -459,27 +493,28 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
         dict: The updated messages dictionary 
     """
 
+    global logging
     RTSCount = 0 
     CTS = False
+
+    logging.logFunction("RTSAntiEntropy", "Starting to send RTS...")
 
     while RTSCount<config.TS_REENTRIES and not CTS:
         sendRTS(dest, messages)
         time.sleep(0.2)
         RTSCount+=1
         args = rfm69.receive(timeout=2)
-        log(("args: " + str(args)))
         if args is not None and args[1] == config.CTS and args[2] == dest:
             CTS = True
     
     # Indicates failure to receive a CTS
     if RTSCount>=config.TS_REENTRIES and not CTS:
-        log("No CTS received, RTS timeout!!")
+        logging.logError("RTSAntiEntropy", "No CTS received, RTS timeout!!")
         return (False, messages)
     
     # We receive a CTS from the desired node
     else:
-        log("CTS recieved")
-        log("Sending data frames")
+        logging.logFunction("RTSAntiEntropy", "CTS recieved - sending data frames")
         packet = args[4]
         destKeys = []
         messagesToSend = {}
@@ -489,26 +524,154 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
             for key in messages:
                 if key not in destKeys:
                     messagesToSend.update({key : messages[key]})
-        success, args = sendDataFrames(dest, messagesToSend)
+        success, args = RTSSendDataFrames(dest, messagesToSend)
         if not success:
             return (False, messages)
-        else: 
-            success, newMessages = getData(args[4])
-            if success:
-                param = None
-                sendCount = 0
-                while param is None and sendCount<config.ACK_REENTRIES:
-                    time.sleep(0.1)
-                    rfm69.send(data = b'', destination = dest, packetType = config.ACK)
-                    param = rfm69.receive(timeout = 2)
-            
-            if newMessages != {}:
-                sendToAppLayer(newMessages)
-                messages.update(newMessages)
-                while len(messages)>30:
-                    messages = removeLowestMessage(messages = messages)
 
-            return (success, messages)        
+        success, newMessages = RTSGetData(sender=dest, packet = args[4])
+
+        if newMessages != {}:
+            sendToAppLayer(newMessages)
+            messages.update(newMessages)
+            while len(messages)>30:
+                messages = removeLowestMessage(messages = messages)
+
+        return (success, messages)        
+
+
+def CTSSendDataFrames(dest: int, messages: dict):
+    """
+    Called from CTSAntiEntropy
+    Sends data frames until an ACK or another data frame (indicating receipt) is received from the destination
+    
+    Args:
+        dest (int): The destination of the data frames
+        messages (dict): The dictionary of messages to be sent
+
+    Returns:
+        bool: True if success, False otherwise
+    """
+
+    global logging
+    dataCount = 0
+    ACK = False
+
+    # If there are no messages to send
+    if len(messages) == 0:
+        logging.logFunction("CTSSendDataFrames", "No new data - starting to send empty packets now")
+        while dataCount<=config.DATA_REENTRIES and not ACK:
+            prefix = bytearray(2)
+            prefix[0] = 0
+            prefix[1] = 0
+            rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
+            args = rfm69.receive(timeout = 3)
+            if args is not None and args[2] == dest and (args[1] == config.DATA or args[1] == config.ACK):
+                ACK = True
+        
+        if ACK:
+            return (True, args)
+        else:
+            logging.logError("CTSSendDataFrames", "ACK not received")
+            return (False, None)
+
+    # Generate the data frames to be sent and put them into a list
+    toSend = []
+    string=""
+    for key in messages:
+        msg = str(key)+","+str(messages[key][0])+","+str(messages[key][1])+","+str(messages[key][2])+"\n"
+        if len(string) + len(msg) > 58:
+            toSend.append(string)
+            string = msg
+        else: 
+            string = string + msg
+    toSend.append(string)
+
+    total = len(toSend)
+    logging.logFunction("CTSSendDataFrames", "Need to sync data! Starting to send")
+    while dataCount<=config.DATA_REENTRIES and not ACK:
+        # Send all the data frames
+        number = 0
+        for packet in toSend:
+            prefix = bytearray(2)
+            prefix[0] = total
+            prefix[1] = number
+            number+=1
+            prefix = prefix + bytes(packet, "utf_8")
+            rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
+            time.sleep(0.1)
+
+        dataCount+=1
+        args = rfm69.receive(timeout = 3)
+        if args is not None and args[2] == dest and args[1] == config.ACK:
+            ACK = True
+
+    if ACK:
+        return (True, args)
+
+    logging.logError("CTSSendDataFrames", "ACK not received")
+    return (False, None)
+
+
+def CTSGetData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
+    """
+    Called from CTSAntiEntropy
+    Listens for data packets and extracts the messages from them
+    Assumes the data arrives comes in the form
+    total, number
+    key,gpsA,gpsB,TTL\n
+
+    Args:
+        sender (int): The sender of the DATA packets
+        packet (Optional[str]): A previously received DATA packet, if exists
+
+    Returns:
+        bool: True if all expected packets seen, otherwise false
+        dict: The dictionary of new values
+    """
+
+    global logging
+    dataCount = 0
+    receivedMessages = ""
+
+    if packet is None:
+        while packet is None and dataCount<config.DATA_REENTRIES:
+            args = rfm69.receive(timeout = 3)
+            if args is not None and args[1] == config.DATA and args[2] == sender: 
+                packet = args[4]
+            dataCount+=1
+    
+    if packet is None:
+        logging.logError("getData", "No DATA packets received")
+        return (False, {})
+
+    dataCount = 0
+
+    # Construct a list of zeros from the packet, if more than one packet will be sent
+    totalLen = packet[0]
+    if totalLen != 0:
+        seen = [0]*(totalLen)
+        receivedMessages += packet[2:].decode("utf_8")
+        seen[packet[1]]=1
+    else: 
+        seen = [0]
+        receivedMessages = packet[2:].decode("utf_8")
+
+    while dataCount<config.DATA_REENTRIES and sum(seen) != totalLen:
+        args = rfm69.receive()
+        if args is not None and args[1] == config.DATA and args[2] == sender: 
+            packet = args[4]
+            if seen[packet[1]] == 0:
+                receivedMessages += packet[2:].decode("utf_8")
+                seen[packet[1]]=1
+        dataCount+=1
+
+    messages = decodeMessages(receivedMessages)
+
+    # Indicates success
+    if sum(seen) == totalLen:
+        return(True, messages)
+
+    return (False, messages)
 
 
 def sendCTS(sender: int, messages: dict):
@@ -523,6 +686,7 @@ def sendCTS(sender: int, messages: dict):
         bool: True if success, False if error
     """
 
+    global logging
     data = 0
 
     # Iterate through the keys to generate byte array of the keys to send to the 
@@ -531,6 +695,7 @@ def sendCTS(sender: int, messages: dict):
     
     data = data.to_bytes(len(messages)*2, "utf_8")
 
+    logging.logPacket("sendCTS", config.ADDRESS, sender, config.CTS)
     return rfm69.send(data = data, destination = sender, packetType = config.CTS)
 
 
@@ -547,49 +712,49 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
         dict: The updated messages dictionary
     """
 
+    global logging
     CTSCount = 0 
     data = False
+
+    logging.logFunction("CTSAntiEntropy", "Other node started a transfer - responding")
 
     while CTSCount<config.TS_REENTRIES and not data:
         sendCTS(sender, messages)
         CTSCount+=1
         args = rfm69.receive(timeout=2)
-        log(("args: " + str(args)))
         if args is not None and args[1] == config.DATA and args[2] == sender:
             data = True
         time.sleep(0.1)
 
     # Indicates failure to receive a data frame
     if not data:
-        log("No data frames received, CTS timeout!!")
-        return messages
+        logging.logError("CTSAntiEntropy", "No data frames received, CTS timeout!!")
+        return False, messages
     
     # We receive a data frame from the desired node
-    else:
-        log("first DATA recieved, moving onto receving all data")
-        success, newMessages = getData(sender = sender, packet = args[4])
+    #logging.logFunction("CTSAntiEntropy", "first DATA recieved, moving onto receving all data")
+    success, newMessages = CTSGetData(sender = sender, packet = args[4])
 
+    if success:
+        #logging.logFunction("CTSAntiEntropy", "All data frames received, now sending out data")
+        # Generate keys the other node wants
+        destKeys = []
+        messagesToSend = {}
+        if len(RTSpacket) != 0:
+            for x in range (0, len(RTSpacket), 2):
+                destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
+            for key in messages:
+                if key not in destKeys:
+                    messagesToSend.update({key : messages[key]})
+        success, args = CTSSendDataFrames(sender, messagesToSend)
 
-        if success:
-            log("All data frames received, now sending out data")
-            # Generate keys the other node wants
-            destKeys = []
-            messagesToSend = {}
-            if len(packet) != 0:
-                for x in range (0, len(RTSpacket), 2):
-                    destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
-                for key in messages:
-                    if key not in destKeys:
-                        messagesToSend.update({key : messages[key]})
-            success, args = sendDataFrames(sender, messagesToSend)
+    if newMessages != {}:
+        sendToAppLayer(newMessages)
+        messages.update(newMessages)
+        while len(messages)>30:
+            messages = removeLowestMessage(messages = messages)
 
-        if newMessages != {}:
-            sendToAppLayer(newMessages)
-            messages.update(newMessages)
-            while len(messages)>30:
-                messages = removeLowestMessage(messages = messages)
-
-        return messages
+    return success, messages
 
 
 def handleReceive(params: tuple[any]) -> int:
@@ -606,12 +771,14 @@ def handleReceive(params: tuple[any]) -> int:
     global quietNode
     global timers 
     global state
+    global logging
+
     if state==config.LISTEN:
         if params == None or params[1] == config.DATA or params[1] == config.ACK:
             return config.LISTEN
         elif params[1] == config.HELLO:
             return config.RECEIVED_HELLO
-        elif params[1] == config.CTS: # and args[2]!=config.ADDRESS:
+        elif params[1] == config.CTS: 
             # Record the sender so we know when the correct ACK comes along
             quietNode = params[3]
             # Start the timer to ensure if an ACK is not heard, we do not remain in quiet mode forever
@@ -623,8 +790,7 @@ def handleReceive(params: tuple[any]) -> int:
             else:
                 return config.LISTEN
         else:
-            message = "Saw an unknown packet type: ", params[1]
-            log(message)
+            logging.logError("handleReceive", f"Saw an unknown packet type: {params[1]}")
             return config.LISTEN
             
     elif state==config.QUIET: 
@@ -633,17 +799,17 @@ def handleReceive(params: tuple[any]) -> int:
         elif params == None or params[1] == config.DATA or params[1]==config.HELLO or params[1]==config.RTS:
             return config.QUIET
         elif (params[1] == config.ACK and params[2] == quietNode):
+            # All nodes after they recieve an ACK should not talk for 3 seconds
+            time.sleep(3)
             return config.LISTEN
-        elif params[1] == config.CTS: # and args[2]!=config.ADDRESS: 
-            # TODO - should we actually be doing something about this? Currently we just assume that we won't see two CTSs from different nodes
+        elif params[1] == config.CTS: 
             return config.QUIET
         else:
-            message = "Saw an unknown packet type: ", params[1]
-            log(message)
+            logging.logError("handleReceive", f"Saw an unknown packet type: {params[1]}")
             return config.QUIET
     
     else:
-        log(("handleReceive was called in state: " + str(state)))
+        logging.logError(("handleReceive" , f"handleReceive was called in state: {str(state)}"))
         return config.LISTEN
 
 
@@ -677,7 +843,7 @@ rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 # TODO - Initialise GPS (ah fuck this is gonna be a nightmare bc we're gonna have to put it in a seperate file with a lock so that both the app and networking layer can read from it)
 
 # Set to True if we want to use the contacted list
-useContacted = False
+useContacted = True
 
 # List of nodes we have contacted recently
 contacted: dict[int, str]
@@ -687,7 +853,7 @@ contacted = {}
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
 # {key : [GPS1, GPS2, TTL]}
 messages: dict[int, list[int]]
-messages = {}
+messages = {0x3609 : [11.111, 22.222, 6]}
 
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
@@ -696,28 +862,24 @@ quietNode: int
 # Initialise state to the starting state 
 state = config.LISTEN
 
-# Logging turned on if we have a USB connection
-logging = supervisor.runtime.serial_connected
-log("Logging")
+logging = Logging()
 
 timers = Timers()
-print(messages)
-
+logging.log(f"Messages at the start: {messages}")
 while True:
-    # log(message = "State: " + str(state))
     if state == config.LISTEN:
         args = rfm69.receive()
         state = handleReceive(args)
 
     elif state == config.SEND_HELLO:
         if sendHello():
-            log("Sent hello")
+            logging.logFunction("toplevel", "Sent hello")
             state = config.LISTEN
         else:
-            log("Failed to send hello")
+            logging.logError("toplevel", "Failed to send hello")
 
     elif state == config.RECEIVED_HELLO:
-        log("Received hello")
+        logging.logFunction("toplevel", "Received hello")
         sender = args[2]
         packet = args[4]
         sendToAppLayer(packet)
@@ -726,25 +888,23 @@ while True:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
                 if useContacted and success:
                     contacted.update({sender : config.CONTACTED_LIVES})
-                print(messages)
+                logging.log(f"Messages after {success} antientropy: {messages}")
         state = config.LISTEN
 
     elif state == config.QUIET:
         args = rfm69.receive()
         if args is not None:
-            log(args)
+            pass
         state = handleReceive(args)
 
     elif state == config.RECEIVED_RTS:
-        print("Received RTS")
-        print(messages)
-        messages = CTSAntiEntropy(sender = args[2], messages = messages, RTSpacket = args[4])
+        success, messages = CTSAntiEntropy(sender = args[2], messages = messages, RTSpacket = args[4])
         state = config.LISTEN
         # No point updating contacted as will not attempt to contact a node with larger address
-        print(messages)
+        logging.log(f"Messages after {success} anti entropy: {messages}")
 
     else:
-        log(("Saw an unknown state: " + str(state)))
+        logging.logError("topLevel", f"Saw an unknown state: {str(state)}")
         state = config.LISTEN
 
 
@@ -752,6 +912,6 @@ while True:
     if useContacted and timers.contacted():
         contacted = decrementContacted(contacted)
 
-    # This is lazy and timers.hello is not called if state!=LISTEN  (important timers.hello() as has side effects on the state of the hello timer)
+    # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
