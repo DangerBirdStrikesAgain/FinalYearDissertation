@@ -389,7 +389,7 @@ def RTSGetData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
         sendCount = 0
         while flag and sendCount<config.ACK_REENTRIES:
             rfm69.send(data = b'', destination = sender, packetType = config.ACK)
-            param = rfm69.receive(timeout = 2)
+            param = rfm69.receive(timeout = 3)
             # If we are still receiving data then resend the ACK
             if param is None or not param[1]==config.DATA:
                 flag = False 
@@ -884,8 +884,6 @@ while True:
 
     elif state == config.QUIET:
         args = rfm69.receive()
-        if args is not None:
-            pass
         state = handleReceive(args)
 
     elif state == config.RECEIVED_RTS:
