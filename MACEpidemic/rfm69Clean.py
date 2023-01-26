@@ -2,10 +2,10 @@
 By Alex Riddell-Webster
 Modified from adafruit_rmf69 by Tony DiCola, Jerry Needell
 
-RFM69 but without logging or print statements
-
 Designed to send and recieve packets with Adafruit's RFM69HCW transceiver radio breakout, to support an implementation of Epidemic routing
 with media access control
+
+RFM69 but without print statements
 
 Software and Dependencies:
     Adafruit CircuitPython firmware for the ESP8622 and M0-based boards: https://github.com/adafruit/circuitpython/releases

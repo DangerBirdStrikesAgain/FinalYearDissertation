@@ -23,7 +23,7 @@ RST            GP4
 
 from micropython import const
 import config
-import rfm69Clean as rfm69
+import rfm69
 import board
 import time
 import random
@@ -333,10 +333,11 @@ def RTSGetData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
         sendCount = 0
         while flag and sendCount<config.ACK_REENTRIES:
             rfm69.send(data = b'', destination = sender, packetType = config.ACK)
-            param = rfm69.receive(timeout = 2)
+            param = rfm69.receive(timeout = 3)
             # If we are still receiving data then resend the ACK
             if param is None or not param[1]==config.DATA:
-                flag = False 
+                flag = False
+            rfm69.send(data = b'', destination = sender, packetType = config.ACK)
         return(True, messages)
 
     return (False, messages)
@@ -751,7 +752,7 @@ contacted = {}
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
 # {key : [GPS1, GPS2, TTL]}
 messages: dict[int, list[int]]
-messages = {}
+messages = {0x3753 : [4, 5, 6]}
 
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
@@ -783,8 +784,6 @@ while True:
 
     elif state == config.QUIET:
         args = rfm69.receive()
-        if args is not None:
-            pass
         state = handleReceive(args)
 
     elif state == config.RECEIVED_RTS:
