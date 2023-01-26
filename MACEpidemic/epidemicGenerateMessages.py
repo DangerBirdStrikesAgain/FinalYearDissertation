@@ -925,7 +925,7 @@ while True:
         state = config.SEND_HELLO
         
     if state == config.LISTEN and timers.newMessage():
-        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(0, 6)]})
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(4, 10)]})
         logging.log(f"Updated messages: {messages}")
         logging.log(f"Contacted list: {contacted}")
         

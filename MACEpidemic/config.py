@@ -9,9 +9,9 @@ FREQUENCY = 443
 
 """
 TRANSMIT POWER 
-max safely supported
+20 is max safely supported
 """
-TX_POWER = 20
+TX_POWER = 13
 
 
 """
@@ -63,7 +63,6 @@ TRANSMIT_TIMEOUT = 2.0
 # Seconds to wait for the board to receive a packet
 RECEIVE_TIMEOUT = 0.5
 # How often to transmit a new hello message 
-# TODO - 15 +- 10
 HELLO_TIMER = 15.0
 # How long to remain in quiet mode when waiting for an ACK 
 QUIET_STATE_TIMER = 20.0
@@ -80,5 +79,5 @@ REENTRIES
 The number of attempts that should be made to send packets
 """
 TS_REENTRIES = 3
-DATA_REENTRIES = 5
+DATA_REENTRIES = 8
 ACK_REENTRIES = 3
