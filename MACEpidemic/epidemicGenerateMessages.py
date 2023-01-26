@@ -2,6 +2,8 @@
 A Circuit Python implmentation of the epidemic routing protocol with media access control
 Based on the paper by Amin Vahdat and David Becker: https://issg.cs.duke.edu/epidemic/epidemic.pdf
 
+This version randomly generates messages and passes them on - it is designed for testing
+
 Uses Raspberry Pi Pico with the Adafruit Ultimate GPS Breakout V3 and rfm69HCW Radio breakout
 Requires rfm69 library and config files
  
@@ -60,6 +62,7 @@ class Timers:
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
         self._ACKTimeout: int
+        self._message = self._ticksAdd(supervisor.ticks_ms(), (2*config.CONTACTED_TIMER))
 
         # For time since start
         self._start = supervisor.ticks_ms()        
@@ -188,6 +191,22 @@ class Timers:
             return True
         return False
         
+    def newMessage(self) -> bool:
+        """
+        A timer to indicate when a new message should be generated
+        
+        Args:
+            None
+            
+        Returns:
+            bool: True if the timer has elapsed, otherwise False
+        """
+        if self._ticksDiff(self._message, supervisor.ticks_ms()) < 0:
+            self._message = self._ticksAdd(supervisor.ticks_ms(), (2*config.CONTACTED_TIMER))
+            return True
+        return False
+        
+
 
 class Logging:
     """
@@ -906,3 +925,9 @@ while True:
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
+        
+    if state == config.LISTEN and timers.newMessage():
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(0, 6)]})
+        logging.log(f"Updated messages: {messages}")
+        logging.log(f"Contacted list: {contacted}")
+        
