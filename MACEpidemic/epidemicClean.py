@@ -23,7 +23,7 @@ RST            GP4
 
 from micropython import const
 import config
-import rfm69
+import rfm69Clean as rfm69
 import board
 import time
 import random
@@ -792,7 +792,8 @@ while True:
         state = config.LISTEN
         # No point updating contacted as will not attempt to contact a node with larger address
 
-    state = config.LISTEN
+    else:
+        state = config.LISTEN
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
