@@ -214,37 +214,51 @@ class Logging:
     """
 
     def __init__(self):
-        # Logging turned on if we have a USB connection
-        self._logging = supervisor.runtime.serial_connected
+        # Printing turned on if we have a USB connection
+        self._printing = supervisor.runtime.serial_connected
+        # self._printing = True
+
+        # Log into file if not connected to device
+        if not self._printing:
+            import storage
+            storage.remount("/", False)
+            self._fp = open("/logging.txt", "a")
         
         self._red = "\033[91m"
         self._end = "\033[0m"
         self._blue = "\033[94m"
         self._green = "\033[92m"
         
-        if self._logging:
+        if self._printing:
             print("Logging")
     
     def log(self, message: str):
         global timers
-        if self._logging:
+        if self._printing:
             print(f"[{timers.timeSinceStart()}] {message}")
+        else: 
+            self._fp.write(f"[{timers.timeSinceStart()}] {message}")
 
     def logFunction(self, function: str, message: str):
         global timers
-        if self._logging:
+        if self._printing:
             print(f"{self._green}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
+        else:
+            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
 
     def logPacket(self, function: str, src: int, dst: int, pckType: int):
         global timers
-        if self._logging:
+        if self._printing:
             print(f"{self._blue}[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}{self._end}")
+        else:
+            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}")
         
     def logError(self, function: str, message: str):
         global timers
-        if self._logging:
+        if self._printing:
             print (f"{self._red}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
-
+        else:
+            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
 
 
 def getGPS():
