@@ -1,5 +1,5 @@
 """
-The application layer for my part II project, designed to notify a user when they are approaching an obstacle
+The application layer for my part II project, designed to notify interact with the user
 
 Wiring: TODO GPS
 GPS    Pico
@@ -62,13 +62,6 @@ class Logging:
             print(f"{self._green}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
         else:
             self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
-
-    def logPacket(self, function: str, src: int, dst: int, pckType: int):
-        global timers
-        if self._printing:
-            print(f"{self._blue}[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}{self._end}")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}")
         
     def logError(self, function: str, message: str):
         global timers
