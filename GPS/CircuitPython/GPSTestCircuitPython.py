@@ -6,10 +6,12 @@ GPS    Pico
 -----------
 GND -> GND
 VIN -> 3V3
-RX  -> GP13
-TX  -> GP12
+RX  -> GP9
+TX  -> GP8
 
-scream - is the V3 in breaskout mode? https://forums.adafruit.com/viewtopic.php?t=41102
+TODO - connect VBAT for backup battery use
+
+Is the V3 in breaskout mode? https://forums.adafruit.com/viewtopic.php?t=41102
 """
 
 import time
@@ -18,46 +20,70 @@ import busio
 import digitalio
 import adafruit_gps
 
-# radio
-#spi = busio.SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
-#cs = digitalio.DigitalInOut(board.GP1)
-#reset = digitalio.DigitalInOut(board.GP4)
-#rfm69 = adafruit_rfm69.RFM69(spi, cs, reset, FREQ)
-
-#rx = digitalio.DigitalInOut(board.GP13)
-#tx = digitalio.DigitalInOut(board.GP12)
-
-
-uart = busio.UART(board.GP12, board.GP13, baudrate=9600, timeout=10)
+uart = busio.UART(board.GP0, board.GP1, baudrate=9600, timeout=2)
 gps = adafruit_gps.GPS(uart, debug=False)  # Use UART/pyserial
 
+
+# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
+# Simple GPS module demonstration.
+# Will wait for a fix and print a message every second with the current location
+# and other details.
+
+# If using I2C, we'll create an I2C interface to talk to using default pins
+#i2c = busio.I2C(scl=board.GP9, sda=board.GP8)
+
+# Create a GPS module instance.
+#gps = adafruit_gps.GPS_GtopI2C(i2c, debug=False)  # Use I2C interface
+
+# Initialize the GPS module by changing what data it sends and at what rate.
+# These are NMEA extensions for PMTK_314_SET_NMEA_OUTPUT and
+# PMTK_220_SET_NMEA_UPDATERATE but you can send anything from here to adjust
+# the GPS module behavior:
+#   https://cdn-shop.adafruit.com/datasheets/PMTK_A11.pdf
+
 # Turn on the basic GGA and RMC info (what you typically want)
-gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+#gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+# Turn on just minimum info (RMC only, location):
+# gps.send_command(b'PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+# Turn off everything:
+# gps.send_command(b'PMTK314,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+# Turn on everything (not all of it is parsed!)
+print(gps.send_command(b'PMTK314,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0'))
 
 # Set update rate to once a second (1hz) which is what you typically want.
-gps.send_command(b"PMTK220,1000")
+print(gps.send_command(b"PMTK220,1000"))
+# Or decrease to once every two seconds by doubling the millisecond value.
+# Be sure to also increase your UART timeout above!
+# gps.send_command(b'PMTK220,2000')
+# You can also speed up the rate, but don't go too fast or else you can lose
+# data during parsing.  This would be twice a second (2hz, 500ms delay):
+# gps.send_command(b'PMTK220,500')
 
-
-count=0
+# Main loop runs forever printing the location, etc. every second.
 last_print = time.monotonic()
 while True:
     # Make sure to call gps.update() every loop iteration and at least twice
     # as fast as data comes from the GPS unit (usually every second).
     # This returns a bool that's true if it parsed new data (you can ignore it
     # though if you don't care and instead look at the has_fix property).
-    gps.update()
+    #print("update:", gps.update())
+    
+    
     # Every second print out current location details if there's a fix.
     current = time.monotonic()
+    
     if current - last_print >= 1.0:
-        #print(gps.has_fix)
-        if not gps.has_fix:
+        last_print = current
+        print("fix", gps.has_fix[0])
+        print("fix quality", gps.has_fix[1])
+        if not gps.has_fix[0]:
             # Try again if we don't have a fix yet.
-            print("Waiting for fix... ", count)
-            count+=1
-            #time.sleep(0.1)
+            print("Waiting for fix...")
             continue
         # We have a fix! (gps.has_fix is true)
-        # Print out details about the fix like location, date, etc.
+       # Print out details about the fix like location, date, etc.
         print("=" * 40)  # Print a separator line.
         print(
             "Fix timestamp: {}/{}/{} {:02}:{:02}:{:02}".format(
@@ -96,4 +122,3 @@ while True:
             print("Horizontal dilution: {}".format(gps.horizontal_dilution))
         if gps.height_geoid is not None:
             print("Height geoid: {} meters".format(gps.height_geoid))
-            

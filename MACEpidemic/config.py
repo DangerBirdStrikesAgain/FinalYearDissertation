@@ -1,5 +1,14 @@
 from micropython import const
 
+"""
+CONSTANTS FOR TESTING CORRECTNESS
+"""
+# Does the node have access to GPS and therefore RTC?
+RTC = False
+# Is this node one that will generate messages?
+GENERATOR = False
+# Should the node use a contacted list?
+USECONTACTED = True
 
 """
 RADIO FREQUENCY
@@ -18,7 +27,7 @@ TX_POWER = 13
 ADDRESSES
 1 byte long
 """
-# Address of node - this will need to be changed each time!
+# Address of node - this is different for each node!
 ADDRESS = const(0x01)
 BROADCAST = const(0xFF)
 

@@ -868,9 +868,6 @@ rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
 # TODO - Initialise GPS (ah fuck this is gonna be a nightmare bc we're gonna have to put it in a seperate file with a lock so that both the app and networking layer can read from it)
 
-# Set to True if we want to use the contacted list
-useContacted = True
-
 # List of nodes we have contacted recently
 contacted: dict[int, str]
 contacted = {}
@@ -910,7 +907,7 @@ while True:
         if sender not in contacted:
             if sender>config.ADDRESS:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
-                if useContacted and success:
+                if config.USECONTACTED and success:
                     contacted.update({sender : config.CONTACTED_LIVES})
                 logging.log(f"Messages after {success} antientropy: {messages}")
         state = config.LISTEN
@@ -931,7 +928,7 @@ while True:
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
-    if useContacted and timers.contacted():
+    if config.USECONTACTED and timers.contacted():
         contacted = decrementContacted(contacted)
 
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
@@ -942,4 +939,3 @@ while True:
         messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(4, 10)]})
         logging.log(f"Updated messages: {messages}")
         logging.log(f"Contacted list: {contacted}")
-        

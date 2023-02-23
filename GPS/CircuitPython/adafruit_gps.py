@@ -213,11 +213,12 @@ def _parse_data(sentence_type: int, data: List[str]) -> Optional[List]:
 
 
 class GPS:
-    """GPS parsing module.  Can parse simple NMEA data sentences from serial
-    GPS modules to read latitude, longitude, and more.
+    """
+    GPS parsing module.  Can parse simple NMEA data sentences from serial
+    GPS modules to read latitude, longitude, and more
     """
 
-    def __init__(self, uart: UART, debug: bool = False) -> None:
+    def __init__(self, uart: UART, debug: bool = True) -> None:
         self._uart = uart
         # Initialize null starting values for GPS attributes.
         self.timestamp_utc = None
@@ -254,7 +255,8 @@ class GPS:
         self.debug = debug
 
     def update(self) -> bool:
-        """Check for updated data from the GPS module and process it
+        """
+        Check for updated data from the GPS module and process it
         accordingly.  Returns True if new data was processed, and False if
         nothing new was received.
         """
@@ -285,7 +287,7 @@ class GPS:
         # GN - GNSS / More than one of the above
         if talker not in (b"GA", b"GB", b"GI", b"GL", b"GP", b"GQ", b"GN"):
             # It's not a known GNSS source of data
-            # Assume it's a valid packet anyway
+            # Assume it's a valid packet anyway 
             return True
 
         result = True
@@ -318,11 +320,12 @@ class GPS:
             self.write(b"*")
             self.write(bytes("{:02x}".format(checksum).upper(), "ascii"))
         self.write(b"\r\n")
+        return True
 
     @property
-    def has_fix(self) -> bool:
+    def has_fix(self) -> list[Any]:
         """True if a current fix for location information is available."""
-        return self.fix_quality is not None and self.fix_quality >= 1
+        return [self.fix_quality is not None and self.fix_quality >= 1, self.fix_quality]
 
     @property
     def has_3d_fix(self) -> bool:

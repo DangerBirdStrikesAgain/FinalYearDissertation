@@ -20,7 +20,7 @@ import config
 import board
 import time
 import random
-from busio import SPI
+import busio
 import digitalio
 import supervisor
 
@@ -79,6 +79,7 @@ class Timers:
         self._TICKS_HALFPERIOD = const(self._TICKS_PERIOD // 2)
 
         # Initialise timers
+        self._gps = self._ticksAdd(supervisor.ticks_ms(), config.GPS_CHECK)
 
         # For time since start
         self._start = supervisor.ticks_ms()        
@@ -148,6 +149,21 @@ class Timers:
         msElapsed = self._ticksDiff(supervisor.ticks_ms(), self._start)
         return (msElapsed / 1000)
     
+    def GPS(self) -> bool:
+        """
+        Checks if the timer for checking the GPS has elapsed
+
+        Args:
+            None
+
+        Returns:
+            bool: True if the timer has elapsed, otherwise False
+        """
+        if self._ticksDiff(self._gps, supervisor.ticks_ms()) < 0:
+            self._gps = self._ticksAdd(supervisor.ticks_ms(), config.GPS_CHECK)
+            return True
+        return False
+    
 
 def getGPS():
     """
@@ -156,13 +172,33 @@ def getGPS():
     
     return (10.284638, 89.473057)
 
+def getVelocity(oldLocation: int, location: int):
 
+
+# Configure button 
+button = digitalio.DigitalInOut(board.GP13)
+button.switch_to_input(pull=digitalio.Pull.DOWN)
+
+# Get the LED ready
+led = digitalio.DigitalInOut(board.GP14)
+led.direction = digitalio.Direction.OUTPUT
+
+timers = Timers()
+
+location = getGPS()
+
+veloity = 0
 
 while True: 
-    location = getGPS()
+    if timers.GPS():
+        oldLocation = location
+        location = getGPS()
+        veloity = getVelocity(oldLocation, location)
+        # Check if GPS location is near an obstacle (if yes, flash light or beep / notify user)
 
-    # Check if GPS location is near an obstacle (if yes, flash light or beep / notify user)
+    if button.value:
+        # Let the user add an obstacle by using outgoing buffers
+        location = getGPS()
+
 
     # Talk to epidemic - ingoing and outgoing buffers
-
-    # Let the user add an obstacle
