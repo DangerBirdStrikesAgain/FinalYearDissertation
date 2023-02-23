@@ -1,5 +1,13 @@
 """
 Turns LED on and off as a button is pressed
+
+WIRING:
+
+Led:
+GP14, GND 
+
+Button:
+3V3, GP13 (diagonally opposite legs)
 """
 
 import time
@@ -20,6 +28,7 @@ led.direction = digitalio.Direction.OUTPUT
 while True:
     if button.value:
         led.value = toggle(led.value)
+        # To debounce we sleep
         time.sleep(0.5)
 
 """

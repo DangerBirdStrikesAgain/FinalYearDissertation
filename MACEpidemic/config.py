@@ -1,5 +1,13 @@
 from micropython import const
 
+"""
+SETUP VALUES
+"""
+# Should the node use the contacted list? 
+USECONTACTED = True
+# Should the node generate and send random messages?
+GENERATOR = False
+
 
 """
 RADIO FREQUENCY
