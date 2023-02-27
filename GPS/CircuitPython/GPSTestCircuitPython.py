@@ -1,15 +1,13 @@
 """
-Trying to get the adafruit ultimate GPS breakout V3 working
+Check that the adafruit ultimate GPS breakout V3 working
 
 Wiring:
 GPS    Pico
 -----------
 GND -> GND
 VIN -> 3V3
-RX  -> GP13
-TX  -> GP12
-
-scream - is the V3 in breaskout mode? https://forums.adafruit.com/viewtopic.php?t=41102
+RX  -> GP4
+TX  -> GP5
 """
 
 import time
@@ -18,44 +16,30 @@ import busio
 import digitalio
 import adafruit_gps
 
-# radio
-#spi = busio.SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
-#cs = digitalio.DigitalInOut(board.GP1)
-#reset = digitalio.DigitalInOut(board.GP4)
-#rfm69 = adafruit_rfm69.RFM69(spi, cs, reset, FREQ)
-
-#rx = digitalio.DigitalInOut(board.GP13)
-#tx = digitalio.DigitalInOut(board.GP12)
-
-
-uart = busio.UART(board.GP12, board.GP13, baudrate=9600, timeout=10)
+uart = busio.UART(board.GP4, board.GP5, baudrate=9600, timeout=10)
 gps = adafruit_gps.GPS(uart, debug=False)  # Use UART/pyserial
 
 # Turn on the basic GGA and RMC info (what you typically want)
-gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+# gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+# Turn on everything
+gps.send_command(b'PMTK314,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0')
+
 
 # Set update rate to once a second (1hz) which is what you typically want.
 gps.send_command(b"PMTK220,1000")
 
 
-count=0
-last_print = time.monotonic()
 while True:
     # Make sure to call gps.update() every loop iteration and at least twice
     # as fast as data comes from the GPS unit (usually every second).
     # This returns a bool that's true if it parsed new data (you can ignore it
     # though if you don't care and instead look at the has_fix property).
-    gps.update()
+    if gps.update():
     # Every second print out current location details if there's a fix.
-    current = time.monotonic()
-    if current - last_print >= 1.0:
-        #print(gps.has_fix)
-        if not gps.has_fix:
-            # Try again if we don't have a fix yet.
-            print("Waiting for fix... ", count)
-            count+=1
-            #time.sleep(0.1)
+        if not gps.has_fix or gps.timestamp_utc is None:
+            print("Waiting for fix... ")
             continue
+        
         # We have a fix! (gps.has_fix is true)
         # Print out details about the fix like location, date, etc.
         print("=" * 40)  # Print a separator line.
