@@ -49,7 +49,6 @@ def getFromAppLayer(item):
     # numerical nodes
 
 
-
 class Timers:
     def __init__(self):
         # supervisor.ticks_ms() contants
@@ -206,7 +205,6 @@ class Timers:
             return True
         return False
         
-
 
 class Logging:
     """
@@ -866,7 +864,7 @@ cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
-# TODO - Initialise GPS (ah fuck this is gonna be a nightmare bc we're gonna have to put it in a seperate file with a lock so that both the app and networking layer can read from it)
+# TODO - Initialise GPS (this is gonna be a nightmare bc we're gonna have to put it in a seperate file with a lock so that both the app and networking layer can read from it)
 
 # List of nodes we have contacted recently
 contacted: dict[int, str]
@@ -927,7 +925,7 @@ while True:
         state = config.LISTEN
 
 
-    # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
+    # Poll timers (no interrupt support in CircuitPython)
     if config.USECONTACTED and timers.contacted():
         contacted = decrementContacted(contacted)
 
@@ -935,7 +933,7 @@ while True:
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
         
-    if state == config.LISTEN and timers.newMessage():
+    if state == config.LISTEN and config.GENERATOR and timers.newMessage():
         messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(4, 10)]})
         logging.log(f"Updated messages: {messages}")
         logging.log(f"Contacted list: {contacted}")

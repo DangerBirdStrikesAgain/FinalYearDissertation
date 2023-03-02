@@ -1,17 +1,13 @@
 """
-Trying to get the adafruit ultimate GPS breakout V3 working
+Check that the adafruit ultimate GPS breakout V3 working
 
 Wiring:
 GPS    Pico
 -----------
 GND -> GND
 VIN -> 3V3
-RX  -> GP9
-TX  -> GP8
-
-TODO - connect VBAT for backup battery use
-
-Is the V3 in breaskout mode? https://forums.adafruit.com/viewtopic.php?t=41102
+RX  -> GP4
+TX  -> GP5
 """
 
 import time
@@ -20,16 +16,8 @@ import busio
 import digitalio
 import adafruit_gps
 
-uart = busio.UART(board.GP0, board.GP1, baudrate=9600, timeout=2)
+uart = busio.UART(board.GP4, board.GP5, baudrate=9600, timeout=10)
 gps = adafruit_gps.GPS(uart, debug=False)  # Use UART/pyserial
-
-
-# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
-# SPDX-License-Identifier: MIT
-
-# Simple GPS module demonstration.
-# Will wait for a fix and print a message every second with the current location
-# and other details.
 
 # If using I2C, we'll create an I2C interface to talk to using default pins
 #i2c = busio.I2C(scl=board.GP9, sda=board.GP8)
@@ -44,13 +32,10 @@ gps = adafruit_gps.GPS(uart, debug=False)  # Use UART/pyserial
 #   https://cdn-shop.adafruit.com/datasheets/PMTK_A11.pdf
 
 # Turn on the basic GGA and RMC info (what you typically want)
-#gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
-# Turn on just minimum info (RMC only, location):
-# gps.send_command(b'PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
-# Turn off everything:
-# gps.send_command(b'PMTK314,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
-# Turn on everything (not all of it is parsed!)
-print(gps.send_command(b'PMTK314,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0'))
+# gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+# Turn on everything
+gps.send_command(b'PMTK314,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0')
+
 
 # Set update rate to once a second (1hz) which is what you typically want.
 print(gps.send_command(b"PMTK220,1000"))
@@ -61,27 +46,18 @@ print(gps.send_command(b"PMTK220,1000"))
 # data during parsing.  This would be twice a second (2hz, 500ms delay):
 # gps.send_command(b'PMTK220,500')
 
-# Main loop runs forever printing the location, etc. every second.
-last_print = time.monotonic()
+
 while True:
     # Make sure to call gps.update() every loop iteration and at least twice
     # as fast as data comes from the GPS unit (usually every second).
     # This returns a bool that's true if it parsed new data (you can ignore it
     # though if you don't care and instead look at the has_fix property).
-    #print("update:", gps.update())
-    
-    
+    if gps.update():
     # Every second print out current location details if there's a fix.
-    current = time.monotonic()
-    
-    if current - last_print >= 1.0:
-        last_print = current
-        print("fix", gps.has_fix[0])
-        print("fix quality", gps.has_fix[1])
-        if not gps.has_fix[0]:
-            # Try again if we don't have a fix yet.
-            print("Waiting for fix...")
+        if not gps.has_fix or gps.timestamp_utc is None:
+            print("Waiting for fix... ")
             continue
+        
         # We have a fix! (gps.has_fix is true)
        # Print out details about the fix like location, date, etc.
         print("=" * 40)  # Print a separator line.

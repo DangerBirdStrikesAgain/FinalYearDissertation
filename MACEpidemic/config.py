@@ -10,6 +10,7 @@ GENERATOR = False
 # Should the node use a contacted list?
 USECONTACTED = True
 
+
 """
 RADIO FREQUENCY
 """ 

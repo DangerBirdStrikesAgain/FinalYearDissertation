@@ -848,9 +848,6 @@ cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
-# Set to True if we want to use the contacted list
-config.USECONTACTED = True
-
 # List of nodes we have contacted recently
 contacted: dict[int, str]
 contacted = {}
