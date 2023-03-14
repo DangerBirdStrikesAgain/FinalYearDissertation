@@ -19,20 +19,8 @@ import adafruit_gps
 uart = busio.UART(board.GP4, board.GP5, baudrate=9600, timeout=10)
 gps = adafruit_gps.GPS(uart, debug=False)  # Use UART/pyserial
 
-# If using I2C, we'll create an I2C interface to talk to using default pins
-#i2c = busio.I2C(scl=board.GP9, sda=board.GP8)
-
-# Create a GPS module instance.
-#gps = adafruit_gps.GPS_GtopI2C(i2c, debug=False)  # Use I2C interface
-
-# Initialize the GPS module by changing what data it sends and at what rate.
-# These are NMEA extensions for PMTK_314_SET_NMEA_OUTPUT and
-# PMTK_220_SET_NMEA_UPDATERATE but you can send anything from here to adjust
-# the GPS module behavior:
-#   https://cdn-shop.adafruit.com/datasheets/PMTK_A11.pdf
-
 # Turn on the basic GGA and RMC info (what you typically want)
-# gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+#gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
 # Turn on everything
 gps.send_command(b'PMTK314,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0')
 
@@ -41,17 +29,8 @@ gps.send_command(b'PMTK314,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0')
 print(gps.send_command(b"PMTK220,1000"))
 # Or decrease to once every two seconds by doubling the millisecond value.
 # Be sure to also increase your UART timeout above!
-# gps.send_command(b'PMTK220,2000')
-# You can also speed up the rate, but don't go too fast or else you can lose
-# data during parsing.  This would be twice a second (2hz, 500ms delay):
-# gps.send_command(b'PMTK220,500')
-
 
 while True:
-    # Make sure to call gps.update() every loop iteration and at least twice
-    # as fast as data comes from the GPS unit (usually every second).
-    # This returns a bool that's true if it parsed new data (you can ignore it
-    # though if you don't care and instead look at the has_fix property).
     if gps.update():
     # Every second print out current location details if there's a fix.
         if not gps.has_fix or gps.timestamp_utc is None:
@@ -59,7 +38,6 @@ while True:
             continue
         
         # We have a fix! (gps.has_fix is true)
-       # Print out details about the fix like location, date, etc.
         print("=" * 40)  # Print a separator line.
         print(
             "Fix timestamp: {}/{}/{} {:02}:{:02}:{:02}".format(

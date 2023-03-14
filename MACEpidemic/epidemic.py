@@ -14,7 +14,7 @@ SCK            GP2
 MISO           GP0
 MOSI           GP3
 CS             GP1
-RST            GP4
+RST            GP6
 """
 
 # TODO - get from app layer function to add to messages
@@ -845,7 +845,7 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
 # Initialise the radio
 spi = SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
-reset = digitalio.DigitalInOut(board.GP4)
+reset = digitalio.DigitalInOut(board.GP6)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
 # List of nodes we have contacted recently

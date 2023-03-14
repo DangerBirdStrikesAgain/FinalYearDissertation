@@ -2,27 +2,33 @@
 Large MicroPython wrapper for my Part II Project `A MANET to Facilitate Collision Avoidance in Rowing Boats'
 Uses Adafruit Blinka and CircuitPython with the chips
 
-The LED should light up when the program is running
+The LED will light up when there is power to the Pico
 
 WIRING:
 GPS   RFM69   Button   Pico
 ------------------------------
-                       GND
-                       3V3
+              - , L    GND
+                +      3V3
                        GP0
                        GP1
                        GP2
                        GP3
                        GP4
+                       GP14
+                R      GP15
 """
 
 # MicroPython imports
-from time import sleep
+import time
 import _thread
+import machine
+
+button = machine.Pin(13, machine.Pin.IN)
 
 
-# Light up LED on button
-
+while True:
+    print(button.value())
+    
 # Start the GPS
 # def getGPS():
 
