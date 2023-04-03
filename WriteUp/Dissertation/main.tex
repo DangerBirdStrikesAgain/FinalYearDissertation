@@ -21,7 +21,7 @@
 \usepackage[top=0cm, foot=1.5em, bottom=2.5cm, left=2cm, right=2cm]{geometry} 	% Set margins to .5 inches 
 \addtolength{\topmargin}{0.5in}		% Set top margin to 1 inch
 \usepackage{hyperref}				% Hyperlinks package
-\hypersetup{colorlinks=true, linkcolor=black, citecolor = blue, filecolor=black, urlcolor=blue} 	% Make types of hyperlinks
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor = blue, filecolor=black, urlcolor=blue} 	% Make types of hyperlinks
 \urlstyle{same} 
 \usepackage{pdfpages}				% Lets you add pdfs
 \usepackage{caption}				% Captions
@@ -80,7 +80,7 @@ University. \\
 
 %%% ACKNOWLEDGEMENTS %%%
 \chapter*{Acknowledgements}
-TODO -- Matthew Ireland, Jon Crowcroft, CUBC (Paddy Ryan).
+TODO -- Matthew Ireland, Jon Crowcroft, CUBC (Paddy Ryan), that guy from the BBC who talked to me about GPS for hours.
 
 
 
@@ -118,47 +118,67 @@ None.
 
 %%% CONTENTS %%%
 \newpage
+{
+\hypersetup{linkcolor=black}
 \tableofcontents
-
+}
 
 %%% INTRODUCTION %%%
 \newchapter{1}{Introduction}
-First paragraph -- what the project is about and how you've done it. Clear statement of the project The conclusion and evaluation elaborates on how well you've done this. 
-``Start the story''. The output of the project is a two page document for what people need to do to build this thing. 
+This project built a mobile ad-hoc network (MANET) to facilitate collision avoidance amongst rowing boats. This MANET uses the geographic coordinates of boats and obstacles to determine if a boat is too close to an obstacle, and warns the user by buzzing or flashing an LED. A modified version of the Epidemic routing protocol has been implemented and nodes built to use it. The Evaluation chapter quantifies this implementation of Epidemic, then assess the MANET as a system. The Conclusion details further work that could be undertaken on the project. The project is open source, with a `how to' guide [\hyperref[appendixA]{Appendix A}] and the code for a node available on the internet (TODO CITE) so any rowing club can use this as a collision avoidance tool.    
 
 \section{Motivation}	
-Collisions are bad
-Often coxes have items in their blind spots or coxless boats do not seen an obstacle as the rowers are facing the wrong way.
-Good friend's concussion from collision between single and eight and resulting two years of intermission (can I name Kate?)
-Other collisions -- see photos
-Why have you done this in the technical way that you have?
-Open source (add how to doc in appendix?) as previous solutions to this problem (see rowcus in related work) have proven to not be financially viable
+It is obvious that collisions between rowing boats and obstacles or other boats is sub optimal, injuring rowers and causing equipment damage. While coxswains are responsible for steering a boat, they are fallible and may need extra assistance, particularly when steering in adverse conditions, such as fog. Coxless boats are at greater risk of collision, where rowers, facing away from the direction of travel, are responsible for steering boats. \\
+This project has a very personal motivation, as a friend was hit by an eight while in a single three years ago, causing a severe concussion that resulted in two years of intermission from her studies. \\ \\
+This project is solution to reduce the number and severity of collisions, warning users before they crash. While researching this project, I found a previous attempt to solve this problem, ROWCUS (TODO cite Rowcus). This company produced a device with radar to detect potential collisions. ROWCUS seems to have proven commercially inviable, as the company states they ``have decided to not pursue the commercial deployment of ROWCUS'' (TODO cite). It therefore appears that a commercial solution to this problem is not viable. Additionally, I am a proponent of open source, so the project available entirely online. This includes a guide to building a node to attach to a boat [\hyperref[appendixA]{Appendix A}], so others can build the solution at the cost of components. \\ \\
+(TODO - I have many photos of boats hitting things -- should i include these?)
 
-\section{Related Work}	
-Frame the project here - rowcus 
-Epidemic and similar papers (reference the phrase `anti-entropy' from here and that you will use it
-Rowcus 
+\section{Related Work}
+As mentioned above, ROWCUS (TODO cite) has attempted to solve this problem with a different technical solution -- using radar rather than GPS to detect obstacles, and without networking. While this product has similar goals to my project, the technical methodologies are different. The main difference is networking -- my project connects nodes together while ROWCUS has individual nodes. \\ \\
+The nodes in my project communicate obstacles to each other. Vahdat and Becker's paper `Epidemic Routing for Partially-Connected Ad Hoc Networks' is the key paper used to implement routing within the MANET. The term `anti-entropy', as used in my dissertation, comes from this paper. An anti-entropy session occurs when two nodes come into communication range and exchange messages. While the implementation in my project differs from this paper in some areas, including medium access control (detailed in the Preparation and Implementation chapters), this paper forms the foundation for the project. 
 
-\section{Starting Point}	
-My work with hardware is pretty minimal, with some tinkering outside of class
-Previous experience using Raspberry Pi single-board computers with AdaFruit boards
-No previous experience with microcontrollers. 
-I attempted get to know the microcontroller in the summer holiday, completing basic tasks such as flashing the onboard and offboard LED. I learnt more about MicroPython 
-In hindsight, should have worked in CircuitPython
+
+
+%%% PREPARATION %%%
+\newchapter{2}{Preparation}
+This chapter is laid out in chronological order. It first details the work done before the start of term, then the analysis that lead me to decide on the Epidemic routing protocol, particularly analysis of the structure of the networks rowing boats generate. This chapter finishes with the state machines designed after the project was accepted.
+
+\section{Starting Point} 
+Previous to this project, I had no hands-on experience with microcontrollers, although I had worked with Raspberry Pi single board computers. I had previously worked with AdaFruit components, although not with the radio and GPS boards used in this project. I therefore dedicated a small amount of time to learning about microprocessors and MicroPython, completing basic tasks such as flashing an onboard LED. In hindsight, while this was useful, my project is implemented in CircuitPython, so it would have been more beneficial to have explored this. \\ 
+Before term started I felt it was important to verify I was in possession of the hardware for this project, particularly as there were chip shortages at the time. I therefore ordered and tested to ensure they worked the Raspberry Pi Picos and AdaFruit RFM69 radio and GPS boards. I chose to use AdaFruit and Raspberry Pi boards as there is a strong community surrounding the hardware, and the AdaFruit boards are supported by open source libraries that allow basic use of the boards. 
+
+Mention all the things you needed before you started your implementation - tools, databases, hardware, libraries, algorithms all the resources you have had to collect
+
 In networking, I have a little experience with networking and routing protocols. My experience is limited to the Part IB networking module (throughout the course of this project I took the Part II principles of communications course
 The adafruit chips have open source CircuitPython libraries associated with them. While the GPS library was very much plug and play, I found deficiencies in the RFM69 library, which I fixed along the way, and have since submitted this as a pull request to the github repos
+Decided on epidemic rather than another manet protocol I really really wanted to do BATMAN because of the topology of the rowing boats.  
+I read a bunch about manet protocols 
 
-\section{Structure of the Project}	
-Agile? Software methodology
-Largely followed timetable laid out in October (see appendix)
-Research -- which protocol to choose
-How to use the microcontroller and boards
-Implemented the technical core of the project (routing) 
-Tested this layer
-Application layer
-Evaluation
-Write up
+\section{Networking}
+Why was epidemic chosen over other MANET protocols -- is delay tolerant
 
+\section{Project Structure} 
+This project was structured using the waterfall model for software development. The project proposal [\hyperref[appendixD]{Appendix D}] lays out the phases of the project and the output from each stage in a plan of work. The waterfall model of software development was used as it lends itself to the structure of a dissertation, with the five stages: \\
+\centerline{Requirements $\rightarrow$ System Design $\rightarrow$ Implementation $\rightarrow$ Testing $\rightarrow$ Maintenance} \\ \\
+GitHub was used to perform version control on the code and dissertation for this project. This also allowed the project to be available  Version control with Git repository -- also allowed me to submit fork and pull requests to AdaFruit.
+
+
+
+\section{Requirements}
+Evidence of requirements analysis
+
+\section{State Machines and Data Structures}
+Should definately rename this section how about structure of the code? Idk
+Wow look at these state machines and data structures I built It is notable that these change during the implementation phase. Show how the Epidemic one changes from the Epidemic proposed in the initial paper.
+
+%%% IMPLEMENTATION %%%
+\newchapter{3}{Implementation}
+
+%%% EVALUATION %%%
+\newchapter{4}{Evaluation}
+
+%%% CONCLUSION %%%
+\newchapter{5}{Conclusion}
 
 
 
@@ -171,25 +191,29 @@ Write up
 \chapter*{Appendices}
 \addcontentsline{toc}{chapter}{Appendices}  
 
-\section*{A -- Guide To Making A Node}
-\addcontentsline{toc}{section}{A -- Guide To Making A Node}  
-\setcounter{section}{0}
+\section*{A -- Guide to Building a Node}
+\label{appendixA}
+\addcontentsline{toc}{section}{A -- Guide to Building a Node}  
+\setcounter{chapter}{0}
 \setcounter{figure}{0}
 
 \newpage
 \section*{B -- Evaluation}
+\label{appendixB}
 \addcontentsline{toc}{section}{B -- Evaluation}  
 \setcounter{figure}{0}
 \input{evaluationPlan}
 
 \newpage
 \section*{C -- Progress Report}
+\label{appendixC}
 \addcontentsline{toc}{section}{C -- Progress Report}  
 \setcounter{figure}{0}
 \input{progressReport}
 
 \newpage
 \section*{D -- Project Proposal}
+\label{appendixD}
 \addcontentsline{toc}{section}{D -- Project Proposal}  
 \setcounter{figure}{0}
 \input{phase3}

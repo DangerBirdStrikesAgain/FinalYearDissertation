@@ -15,19 +15,16 @@ The evaluation for the mobile ad-hoc network (MANET) will be split into two part
 All data will be logged on the node in a CSV file with columns \\ \verb'Node Address, Time, Time Since Node Startup, Event Type, Event Information' \\ where the Event Information varies with the event being logged and may contain the GPS location and message keys. This data will then be analysed on my device using Python code.
 
 \section*{Evaluating the MANET}
-These tests be conducted in a field, as this will give an outdoor environment similar to the use case, but I will be able to better control the conditions the node is in. They will use four nodes, as this is the maximum number of nodes we can accurately calculate time for. Two nodes will use GPS to find the current time and two will use the serial connection to laptops to calculate the time. These tests will be conducted first on a small scale, with short tests using a small number of nodes, to ensure the tests can be run. After this has been confirmed, the tests will be run for a longer time with the maximum number of nodes. \\ 
-The tests can then be compared to the evaluation in the initial epidemic paper \hyperref[epidemic]{[3]}, which simulated the nodes with 50 mobile nodes in a 1500 x 300 m space using the Monarch extensions to the ns-2 packet-level simulator rather than hardware as I am doing. Evaluation metrics examined included message delivery latency, delivery rate, the average and maximum number of hops a message took to get to a node.\\ 
-The first test will be the percentage of packets delivered in the four node network. This will be time limited (i.e. if a message is not received in x minutes, it is considered undelivered). Nodes will randomly generate a new message every second, for a total of 25 messages, mirroring the structure of testing used in Vahdat and Becker's paper \hyperref[epidemic]{[3]}. The nodes will be in a box of area $20m^2$ with the range of the radios reduced to approximately $5m$ to simulate the environment in which the system will be used. The nodes will move constantly. \\ 
-Next, the transfer delay will be measured. This will be the average time taken for each message to be delivered, and will use the same setup as percentage of packets delivered testing.
-
+These tests be conducted in a field, as this will give an outdoor environment similar to the use case, but I will be able to better control the conditions the node is in. They will use four nodes, as this is the maximum number of nodes we can accurately calculate time for. Two nodes will use GPS to find the current time and two will use the serial connection to laptops to calculate the time. These tests will be conducted first on a small scale, with short tests using a small number of nodes, to ensure the tests can be run. After this has been confirmed, the tests will be run for a longer time with the maximum number of nodes. \\  \\
+The tests can then be compared to the evaluation in the initial epidemic paper \hyperref[epidemic]{[3]}, which simulated the nodes with 50 mobile nodes in a 1500 x 300 m space using the Monarch extensions to the ns-2 packet-level simulator rather than hardware as I am doing. Evaluation metrics examined included message delivery latency, delivery rate, the average and maximum number of hops a message took to get to a node.\\ \\
+The first test will be the percentage of packets delivered in the four node network. This will be time limited (i.e. if a message is not received in x minutes, it is considered undelivered). Nodes will randomly generate a new message every second, for a total of 25 messages, mirroring the structure of testing used in Vahdat and Becker's paper \hyperref[epidemic]{[3]}. The nodes will be in a box of area $20m^2$ with the range of the radios reduced to approximately $5m$ to simulate the environment in which the system will be used. The nodes will move constantly. \\  \\ 
+Next, the transfer delay will be measured. This will be the average time taken for each message to be delivered, and will use the same setup as percentage of packets delivered testing. \\
 \begin{figure}[h]
 \caption{The setup and axes for delivery rate and transfer delay}
 \begin{center}
 \includegraphics[scale=0.5]{transfer.jpg}
 \end{center}
 \end{figure}
-
-
 Finally, the time taken to propagate messages after partition will be measured. This will include one-sided, asymmetric partitions, where only one set of nodes has messages the other set has not seen. It will also include symmetric partitions, where both sets of nodes have messages the other set has not seen. The number of unseen messages will be increased and each test will be run five times.
 
 \begin{figure}[h]
@@ -65,7 +62,6 @@ Additionally, this will allow me to look at the behaviour of users when adding a
 \end{figure}
 \FloatBarrier
 
-
 \section*{Extensions}
 If there is sufficient time, further evaluation can be performed on the MANET. This will be structured in a similar way to the tests in the `Evaluating the MANET'. Bandwidth will be tested in a fully connected network, where the number of messages per second transferred between two nodes may be found by generating random packets at set intervals at one node (node A shown below), and seeing how many are passed to another node (node B below). 
 This test could then be performed with both nodes generating and receiving messages, to examine bandwidth on a two way connection.\\
@@ -75,7 +71,6 @@ This test could then be performed with both nodes generating and receiving messa
 \includegraphics[scale=0.3]{bandwidth.jpg}
 \end{center}
 \end{figure}
-
 Further extensions to the system evaluation will include a questionnaire for those who use the device, covering a range of users, including both coxes in coxed boats and rowers in coxless boats. \\ 
 
 \FloatBarrier
