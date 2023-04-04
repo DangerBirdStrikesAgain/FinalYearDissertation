@@ -10,7 +10,7 @@ This is a list of what I used in my project, and therefore what the software I w
 - Raspberry Pi Pico
 - Adafruit RFM69HCW Transceiver Radio Breakout
 - Adafruit Ultimate GPS Breakout
-- Non-latching Button (mine have an LED ring around it that I use to tell if the node is on)
+- Non-latching Button (mine has an LED ring around it used to tell if the node is on)
 - Buzzer and resistor (resistor moderates the pitch of the buzzer, I use 10k) 
 - Waterproof box
 - Power pack (to power the device)
