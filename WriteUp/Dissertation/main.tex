@@ -162,7 +162,7 @@ This project was structured using the waterfall model for software development. 
 This project used CircuitPython, as it is compatible with the existing AdaFruit libraries I used and extended in the project, and can easily be run on the Raspberry Pi Pico. \\ \\
 GitHub was used to perform version control on the code and dissertation for this project. This also allowed me to fork repositories and submit a pull request to AdaFruit.
 
-\section{Requirements}% Now talk about the topology of the network that rowing boats are likely to have with that graph also mention that this is in your project proposal
+\section{Requirements}
 My requirements were based around the use case for the project -- as devices attached to rowing boats. This factored into my hardware decisions, as I wanted to use small and relatively lightweight items. Additionally, I chose to use the 433 MHz band as it is free to use without licencing, allowing me and other rowing clubs to use it without additional bureaucracy. \\ \\ 
 The potential topology of the network was then analysed. This was done by looking at example distributions of rowing boats on lakes and rivers. One potential use case for this network that I am familiar with is the river Thames. Below I have analysed Google Maps and Earth's satellite view of the Thames along a 5.5km stretch of the Championship Course, pinpointing rowing boats and coaching launches, then adding them to a map with potential connections between nodes, assuming the radios have a range of 500m, alongside obstacles. This process is shown in Figures 2.1 and 2.2. I then abstracted this to the network topology of these rowing boats, shown in Figure 2.3.
 \begin{figure}[h]
@@ -192,21 +192,54 @@ The potential topology of the network was then analysed. This was done by lookin
 All of these requirements have been implemented during this project. The finer details of this are in the Implementation chapter. \\ \\ I laid out several extension tasks. Some of them were drawn from my research into networking protocols other than Epidemic. For instance, I wanted to use a metric for transmission quality -- received strength signal indicator (RSSI) in radio communication -- to influence whether an anti-entropy session was initiated. Additionally, the GPS location could be used, either by only contacting nearby nodes to increase the probability that an anti-entropy session is successful, or prioritising sending messages about new obstacles to nodes that are near these obstacles. While time constraints have not allowed me to implement these extensions, I have implemented an extension allowing messages to have two priorities -- normal and urgent. This is also detailed in the Implementation chapter. 
 
 \section{System Design}
-Having decided on the Epidemic routing protocol, I planned the structure of the software that would run on each node. I knew that the Raspberry Pi Pico uses the R TODO chip, containing two cores. To make best use of the hardware, I therefore decided to design an application and networking state threads that would run on each core, with global data structures and concurrency control to pass messages between the two layers. \\ \\
-The application thread is responsible for notifying the user when they are too close to an obstacle. TODO state machine. \\ \\
+Having decided on the Epidemic routing protocol, I planned the structure of the software that would run on each node. I knew that the Raspberry Pi Pico uses the RP2040 chip, containing two cores. To make best use of the hardware, I decided to design application and networking threads that would run on each core, with global data structures and concurrency control to pass messages between the two layers and allow both of them to access the GPS board. \\ \\
+The application thread is responsible for notifying the user when they are too close to an obstacle. It also takes input from the user, generating new obstacles when a button is pressed. The initial state machine is shown in Figure 2.4. The a time to live (TTL) TTL for each obstacle. If the object is permanent, the TTL is set to $-1$, indicating that it should never be removed. \\ \\
 The networking thread contains the implementation of Epidemic with medium access control. how the Epidemic one changes from the Epidemic proposed in the initial paper. Layering considered harmful and such here\\ \\
 The data structures designed to communicate messages between one thread and the other are  \\ \\
-While these state machines were broadly implemented, the overall structure of the project changed, with only one thread running due to the limitations of CircuitPython. This decision and the reasoning behind it is detailed in the Implementation chapter. 
+While these state machines were broadly implemented, the overall structure of the software changed, with only one thread running due to the limitations of CircuitPython. This decision and the reasoning behind it is detailed in the Implementation chapter. 
 
 %%% IMPLEMENTATION %%%
 \newchapter{3}{Implementation}
 
+
 %%% EVALUATION %%%
 \newchapter{4}{Evaluation}
+Evaluation was done according to the plan in appendix. It was split into evaluation of the MANET and the whole system.
+
+\section{Evaluating the MANET}
+
+\section{Evaluating the System}
+% We can def call this something better than the system? Idk the whole project, a more holistic evaluation?
 
 %%% CONCLUSION %%%
 \newchapter{5}{Conclusion}
+What did this project do? The project met and exceeded the success criteria.
 
+\section{Achievements}
+What have you done?
+In this project I have 
+
+The evaluation shows that. This project is weak in. 
+
+\section{Learning}
+Aka lessons learnt / what I would do differently last time
+Probably spent too much time researching BATMAN when it didn't really fit the parameters
+Hardware is hard Just a stupid amount about radios and microprocessors
+
+\section{Future Work}
+I laid out several extension tasks. Some of them were drawn from my research into networking protocols other than Epidemic. For instance, I wanted to use a metric for transmission quality -- received strength signal indicator (RSSI) in radio communication -- to influence whether an anti-entropy session was initiated. Additionally, the GPS location could be used, either by only contacting nearby nodes to increase the probability that an anti-entropy session is successful, or prioritising sending messages about new obstacles to nodes that are near these obstacles. 
+Encryption 
+The success of my project will be defined by completion of the core criteria listed above. If there is
+time, I have set further challenges:
+1. Case studies on the path and timing of individual packets are performed
+2. The network is further evaluated by examining the power consumption of individual nodes as
+a proxy metric for traffic passing through a node
+3. The User Interface of the device is evaluated
+4. The application layer is further enhanced, using heuristics and extra data such as angle of
+attack from GPS and combining sensor data
+5. The routing layer is further enhanced by passing additional data, such as location awareness,
+to the routing protocol
+Okay so we never shut anything down in a safe ish way -- just kinda pull the plug and fuck off... ?
 
 
 %%% BIBLIOGRAPHY  %%%
