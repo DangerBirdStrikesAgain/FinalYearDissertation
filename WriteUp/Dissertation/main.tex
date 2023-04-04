@@ -125,17 +125,16 @@ None.
 
 %%% INTRODUCTION %%%
 \newchapter{1}{Introduction}
-This project built a mobile ad-hoc network (MANET) to facilitate collision avoidance amongst rowing boats. This MANET uses the geographic coordinates of boats and obstacles to determine if a boat is too close to an obstacle, and warns the user by buzzing or flashing an LED. A modified version of the Epidemic routing protocol has been implemented and nodes built to use it. The Evaluation chapter quantifies this implementation of Epidemic, then assess the MANET as a system. The Conclusion details further work that could be undertaken on the project. The project is open source, with a `how to' guide [\hyperref[appendixA]{Appendix A}] and the code for a node available on the internet (TODO CITE) so any rowing club can use this as a collision avoidance tool.    
+This project built a mobile ad-hoc network (MANET) to facilitate collision avoidance amongst rowing boats. This MANET uses the geographic coordinates of boats and obstacles to determine if a boat is too close to an obstacle, then warns the user by buzzing or flashing an LED. A modified version of the Epidemic routing protocol has been implemented and nodes built to use it. The Evaluation chapter quantifies this implementation of Epidemic, then assesses the entire system. The Conclusion details further work that could be undertaken on the project. The project is open source, with a `how to' guide [\hyperref[appendixA]{Appendix A}] for construction of a node and the code available on the internet (TODO CITE) so any rowing club can use this as a collision avoidance tool.    
 
 \section{Motivation}	
-It is obvious that collisions between rowing boats and obstacles or other boats is sub optimal, injuring rowers and causing equipment damage. While coxswains are responsible for steering a boat, they are fallible and may need extra assistance, particularly when steering in adverse conditions, such as fog. Coxless boats are at greater risk of collision, where rowers, facing away from the direction of travel, are responsible for steering boats. \\
+It is obvious that collisions between rowing boats and obstacles or other boats is unwanted, injuring rowers and causing equipment damage. While coxswains are responsible for steering a boat, they are fallible and may need extra assistance, particularly when steering in adverse conditions, such as fog. Coxless boats are at greater risk of collision, where rowers, facing away from the direction of travel, are responsible for steering boats. This project can be used in both coxed and coxless boats. \\
 This project has a very personal motivation, as a friend was hit by an eight while in a single three years ago, causing a severe concussion that resulted in two years of intermission from her studies. \\ \\
-This project is solution to reduce the number and severity of collisions, warning users before they crash. While researching this project, I found a previous attempt to solve this problem, ROWCUS (TODO cite Rowcus). This company produced a device with radar to detect potential collisions. ROWCUS seems to have proven commercially inviable, as the company states they ``have decided to not pursue the commercial deployment of ROWCUS'' (TODO cite). It therefore appears that a commercial solution to this problem is not viable. Additionally, I am a proponent of open source, so the project available entirely online. This includes a guide to building a node to attach to a boat [\hyperref[appendixA]{Appendix A}], so others can build the solution at the cost of components. \\ \\
-(TODO - I have many photos of boats hitting things -- should i include these?)
+This project produces devices designed to reduce the number and severity of collisions, warning users before they crash. While researching this project, I found a previous attempt to solve the problem, ROWCUS (TODO cite Rowcus). ROWCUS produced a device with radar to detect potential collisions. It seems to have proven commercially inviable, as the company states they ``have decided to not pursue the commercial deployment of ROWCUS'' (TODO cite). I am a proponent of open source, so the project is available entirely online. This includes a `how to' guide to building a node [\hyperref[appendixA]{Appendix A}], so others can build the solution.
 
 \section{Related Work}
-As mentioned above, ROWCUS (TODO cite) has attempted to solve this problem with a different technical solution -- using radar rather than GPS to detect obstacles, and without networking. While this product has similar goals to my project, the technical methodologies are different. The main difference is networking -- my project connects nodes together while ROWCUS has individual nodes. \\ \\
-The nodes in my project communicate obstacles to each other. Vahdat and Becker's paper `Epidemic Routing for Partially-Connected Ad Hoc Networks' is the key paper used to implement routing within the MANET. The term `anti-entropy', as used in my dissertation, comes from this paper. An anti-entropy session occurs when two nodes come into communication range and exchange messages. While the implementation in my project differs from this paper in some areas, including medium access control (detailed in the Preparation and Implementation chapters), this paper forms the foundation for the project. 
+As mentioned above, ROWCUS (TODO cite) has attempted to solve this problem with a different technical solution -- using radar rather than GPS to detect proximity to obstacles, and without networking. While ROWCUS has similar goals to my project, the technical methodologies are different. The main differences are use of GPS and networking -- my project connects nodes together while ROWCUS has individual nodes. \\ \\
+The nodes in my project communicate known obstacles to each other. Vahdat and Becker's paper `Epidemic Routing for Partially-Connected Ad Hoc Networks' is the key paper used to implement routing within the MANET. The term `anti-entropy' as used in my dissertation, comes from this paper. An anti-entropy session occurs when two nodes come into communication range and exchange messages. While the implementation in my project differs from this paper in some areas, including medium access control (detailed in the Preparation and Implementation chapters), this paper forms the foundation for the project. 
 
 
 
@@ -144,31 +143,36 @@ The nodes in my project communicate obstacles to each other. Vahdat and Becker's
 This chapter is laid out in chronological order. It first details the work done before the start of term, then the analysis that lead me to decide on the Epidemic routing protocol, particularly analysis of the structure of the networks rowing boats generate. This chapter finishes with the state machines designed after the project was accepted.
 
 \section{Starting Point} 
-Previous to this project, I had no hands-on experience with microcontrollers, although I had worked with Raspberry Pi single board computers. I had previously worked with AdaFruit components, although not with the radio and GPS boards used in this project. I therefore dedicated a small amount of time to learning about microprocessors and MicroPython, completing basic tasks such as flashing an onboard LED. In hindsight, while this was useful, my project is implemented in CircuitPython, so it would have been more beneficial to have explored this. \\ 
-Before term started I felt it was important to verify I was in possession of the hardware for this project, particularly as there were chip shortages at the time. I therefore ordered and tested to ensure they worked the Raspberry Pi Picos and AdaFruit RFM69 radio and GPS boards. I chose to use AdaFruit and Raspberry Pi boards as there is a strong community surrounding the hardware, and the AdaFruit boards are supported by open source libraries that allow basic use of the boards. 
+Previous to this project, I had no hands-on experience with microcontrollers, although I had worked with Raspberry Pi single board computers. I had previously worked with AdaFruit components, however not with the radio and GPS boards used in this project. I therefore dedicated a small amount of time over the summer to learning about microprocessors and MicroPython, completing basic tasks such as flashing an onboard LED. In hindsight, while this was useful, my project is implemented in CircuitPython, so it would have been more beneficial to have explored this. \\ 
+Before term started I felt it was important to verify the hardware I would use, particularly as there were chip shortages at the time. I therefore ordered and ran basic tests on the Raspberry Pi Picos and AdaFruit RFM69 radio and GPS boards. I chose to use AdaFruit and Raspberry Pi boards as there is a strong community surrounding the hardware, and the AdaFruit boards are supported by open source libraries that allow rudimentary operations to be performed. \\ \\ 
+I had some experience with networking and routing protocols prior to starting this project. This was composed of the Part IB networking module and a small amount of work during an internship. Throughout the course of my project I took the Part II principles of communications course, further expanding my knowledge. I also researched MANETs and their corresponding networking protocols during the summer vacation. Most of this research was centred around the Better Approach to Ad-Hoc Mobile Networking (BATMAN) protocol (TODO cite) and other networking protocols that are not delay-tolerant. My project implemented an extended version of the Epidemic routing protocol from scratch. 
 
-Mention all the things you needed before you started your implementation - tools, databases, hardware, libraries, algorithms all the resources you have had to collect
-
-In networking, I have a little experience with networking and routing protocols. My experience is limited to the Part IB networking module (throughout the course of this project I took the Part II principles of communications course
-The adafruit chips have open source CircuitPython libraries associated with them. While the GPS library was very much plug and play, I found deficiencies in the RFM69 library, which I fixed along the way, and have since submitted this as a pull request to the github repos
-Decided on epidemic rather than another manet protocol I really really wanted to do BATMAN because of the topology of the rowing boats.  
-I read a bunch about manet protocols 
 
 \section{Networking}
-Why was epidemic chosen over other MANET protocols -- is delay tolerant
+A MANET is characterised by wireless nodes, a frequently changing network topology and no reliance on pre-existing infrastructure. They are decentralised and therefore have no single point of failure (TODO cite D2). MANETs have a large range of uses, such as facilitating communication in military conflicts (TODO cite D3) to autonomous vehicles (TODO D4) and disaster relief scenarios where previously existing infrastructure is destroyed (TODO cite D5). This project constructs a MANET due to the lack of pre-existing infrastructure and the difficulties associated with setting up and maintaining a base station or similar. Requiring an infrastructure like this would also raise the barrier for entry for many clubs with limited funds and technical skills. \\ \\
+Routing protocols find a path from a source to one or more destinations destination within the network. Different routing protocols optimise different parameters, and are better suited for different network topologies and applications (TODO cite princomm lecture notes). Within MANETs, a routing protocol must allow the network topology to change over time. They tend to contain node discovery techniques to allow for this. % Within MANETs, routing protocols  be more specific about routing protocols here
 
-\section{Project Structure} 
+% Now talk about the topology of the network that rowing boats are likely to have with that graph also mention that this is in your project proposal
+% why was epidemic chosen over other MANET protocols -- is delay tolerant compared with other protocols including batman and i think it was called something else but idk.
+%Epidemic was chosen as it is a delay tolerant routing protocol, and best fits the likely topology of networks generated by rowing boats. There is a high chance of partitions in these networks. However, the nodes in the networks will be highly mobile, meaning that data can still be transferred through the network through exploiting this mobility. A potential topology for the network, generated from looking at satellite images of a 5.5km stretch of the river Thames [7], is shown in Figures 1 and 2, both on a map and as an abstracted topology.
+
+\section{Project Development} 
 This project was structured using the waterfall model for software development. The project proposal [\hyperref[appendixD]{Appendix D}] lays out the phases of the project and the output from each stage in a plan of work. The waterfall model of software development was used as it lends itself to the structure of a dissertation, with the five stages: \\
 \centerline{Requirements $\rightarrow$ System Design $\rightarrow$ Implementation $\rightarrow$ Testing $\rightarrow$ Maintenance} \\ \\
-GitHub was used to perform version control on the code and dissertation for this project. This also allowed the project to be available  Version control with Git repository -- also allowed me to submit fork and pull requests to AdaFruit.
-
-
+This project used CircuitPython, as it is compatible with the existing AdaFruit libraries I used and extended in the project, and can easily be run on the Raspberry Pi Pico. \\ \\
+GitHub was used to perform version control on the code and dissertation for this project. This also allowed me to fork repositories and submit a pull request to AdaFruit.
 
 \section{Requirements}
-Evidence of requirements analysis
+Evidence of requirements analysis. \\ \\
+The final three requirements I identified as my success criteria were:
+\begin{enumerate}
+\item The Epidemic routing protocol is implemented on the network 
+\item An application layer to demonstrate the utility of the network has been implemented
+\item An evaluation of the performance of the network has been carried out
+\end{enumerate}
+All of these requirements have been implemented during this project. The finer details of this are in the Implementation chapter. 
 
-\section{State Machines and Data Structures}
-Should definately rename this section how about structure of the code? Idk
+\section{System Design}
 Wow look at these state machines and data structures I built It is notable that these change during the implementation phase. Show how the Epidemic one changes from the Epidemic proposed in the initial paper.
 
 %%% IMPLEMENTATION %%%
