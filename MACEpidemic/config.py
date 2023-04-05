@@ -3,8 +3,6 @@ from micropython import const
 """
 CONSTANTS
 """
-# Is this node one that will generate messages?
-GENERATOR = False
 # Should the node use a contacted list?
 USECONTACTED = True
 
@@ -93,3 +91,10 @@ The number of attempts that should be made to send packets
 TS_REENTRIES = 3
 DATA_REENTRIES = 8
 ACK_REENTRIES = 3
+
+
+
+""" 
+For evaluation
+"""
+BANDWIDTH_TIMER = 1 

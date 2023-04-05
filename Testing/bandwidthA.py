@@ -1,24 +1,27 @@
 """
-A Circuit Python implmentation of the epidemic routing protocol with media access control
+Includes Circuit Python implementation of the epidemic routing protocol with media access control
 Based on the paper by Amin Vahdat and David Becker: https://issg.cs.duke.edu/epidemic/epidemic.pdf
 
-Uses Raspberry Pi Pico with the Adafruit Ultimate GPS Breakout V3 and rfm69HCW Radio breakout
+Uses Raspberry Pi Pico with RFM69HCW Radio breakout
 Requires rfm69 library and config files
- 
-Wiring: TODO GPS
-Radio   GPS   Pico
-------------------
-GND            GND
-VIN            3V3
-SCK            GP2
-MISO           GP0
-MOSI           GP3
-CS             GP1
-RST            GP6
+
+WIRING
+Button    RFM69     Pico
+--------------------------
++          VIN        3V3
+-          GND        GND
+L                     3V3
+R                     GP7
+           SCK        GP2
+           MISO       GP0
+           MOSI       GP3
+           CS         GP1
+           RST        GP4
+
 """
 
-# TODO - get from app layer function to add to messages
 
+### IMPORTS ###
 from micropython import const
 import config
 import rfm69
@@ -30,24 +33,7 @@ import digitalio
 import supervisor
 
 
-def sendToAppLayer(item):
-    """
-    TODO - implement this using global variable(s)
-    """
-    return True
-
-def getFromAppLayer(item):
-    """
-    TODO - make this work and poll it every so often (no interupts) to make sure we don't miss anything
-    """
-    # This is called when a timer goes 
-    # Checks if something is empty and if so returns None or something
-    # If not empty, return a new dictionary entry to be added to the dictionary entries
-    # Perhaps if this returns something we should clear contacted sp will be forwarded to all neighbours who send a hello? Actually will only work for very small 
-    # numerical nodes
-
-
-
+### TIMING ###
 class Timers:
     def __init__(self):
         # supervisor.ticks_ms() contants
@@ -59,6 +45,8 @@ class Timers:
         nextIncrement = config.HELLO_TIMER + random.uniform(-10.0, 10.0)
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
+        self._obstacle = self._ticksAdd(supervisor.ticks_ms(), config.OBSTACLE_TIMER)
+        self._bandwidth = self._ticksAdd(supervisor.ticks_ms(), config.BANDWIDTH_TIMER)
         self._ACKTimeout: int
 
         # For time since start
@@ -187,17 +175,49 @@ class Timers:
             self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
             return True
         return False
-        
+    
+    def obstacle(self) -> bool:
+        """
+        Checks if the timer for decrementing the contacted list has elapsed
 
+        Args:
+            None
+
+        Returns:
+            bool: True if the timer has elapsed, otherwise False
+        """
+        if self._ticksDiff(self._obstacle, supervisor.ticks_ms()) < 0:
+            self._obstacle = self._ticksAdd(supervisor.ticks_ms(), config.OBSTACLE_TIMER)
+            return True
+        return False
+    
+
+    def bandwidth(self) -> bool:
+        if self._ticksDiff(self._bandwidth, supervisor.ticks_ms()) < 0:
+            self._bandwidth = self._ticksAdd(supervisor.ticks_ms(), config.BANDWIDTH_TIMER)
+            return True
+        return False
+
+
+### LOGGING ###
 class Logging:
     """
     Class with multiple functions to handle logging
+    
+    Logs 
+        Node Address, Time, Time Since Node Startup, Event Type, Event Information
+
+    Event Types:
+    0   -   General logging string
+    1   -   Logging function
+    2   -   Logging packet
+    3   -   Logging messages
+    4   -   Logging error
     """
 
     def __init__(self):
         # Printing turned on if we have a USB connection
         self._printing = supervisor.runtime.serial_connected
-        # self._printing = True
 
         # Log into file if not connected to device
         if not self._printing:
@@ -209,48 +229,86 @@ class Logging:
         self._end = "\033[0m"
         self._blue = "\033[94m"
         self._green = "\033[92m"
+        self._cyan = "\033[96m"
         
         if self._printing:
-            print("Logging")
+            print("Logging will be printed")
     
+
     def log(self, message: str):
         global timers
         if self._printing:
-            print(f"[{timers.timeSinceStart()}] {message}")
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
         else: 
             self._fp.write(f"[{timers.timeSinceStart()}] {message}")
 
+
     def logFunction(self, function: str, message: str):
+        """
+        Logs the function and a message from that function
+        Event information 
+            Function, Message
+        """
         global timers
         if self._printing:
-            print(f"{self._green}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print(f"{self._green}{config.ADDRESS},{timeString},{timers.timeSinceStart()},1,{function},{message}{self._end}\n")
         else:
             self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
+
 
     def logPacket(self, function: str, src: int, dst: int, pckType: int):
+        """
+        Event information 
+            Function, Source, Destination, Type
+        """
         global timers
         if self._printing:
-            print(f"{self._blue}[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}{self._end}")
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print(f"{self._blue}{config.ADDRESS},{timeString},{timers.timeSinceStart()},2,{function},{src},{dst},{pckType},{self._end}\n")
         else:
             self._fp.write(f"[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}")
-        
+    
+    
+    def logMessages(self):
+        """
+        Event information
+            message key, message key, ... 
+        """
+        global timers
+        global messages
+        if self._printing:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print(f"{self._cyan}{config.ADDRESS},{timeString},{timers.timeSinceStart()},3,{str(list(messages.keys()))[1:-1]},{self._end}\n")
+        else:
+            pass
+
+
     def logError(self, function: str, message: str):
+        """
+        Event information 
+            Function, Message
+        """
         global timers
         if self._printing:
-            print (f"{self._red}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print (f"{self._red}{config.ADDRESS},{timeString},{timers.timeSinceStart()},4,{function},{message}{self._end}\n")
         else:
             self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
 
 
-
-def getGPS():
-    """
-    TODO (will be moved up)
-    """
-    
-    return (10.284638, 89.473057)
-
-
+### SENDING PACKETS ###
 def sendHello() -> bool:
     """
     Sends a packet of type HELLO
@@ -293,6 +351,7 @@ def sendRTS(dest: int, messages: dict) -> bool:
     return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
+### ANTI-ENTROPY ###
 def removeLowestMessage(messages: dict) -> dict:
     """
     Removes the item in the messages dict with the lowest TTL 
@@ -413,7 +472,7 @@ def RTSGetData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
     return (False, messages)
 
 
-def RTSSendDataFrames(dest: int, messages: dict):
+def RTSSendDataFrames(dest: int, messages: dict) -> bool:
     """
     Called from RTSAntiEntropy
     Sends data frames until an ACK or another data frame (indicating receipt) is received from the destination
@@ -522,7 +581,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
     
     # We receive a CTS from the desired node
     else:
-        logging.logFunction("RTSAntiEntropy", "CTS received - sending data frames")
+        logging.logFunction("RTSAntiEntropy", "CTS recieved - sending data frames")
         packet = args[4]
         destKeys = []
         messagesToSend = {}
@@ -539,7 +598,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
         success, newMessages = RTSGetData(sender=dest, packet = args[4])
 
         if newMessages != {}:
-            sendToAppLayer(newMessages)
+            #sendToAppLayer(newMessages)
             messages.update(newMessages)
             while len(messages)>30:
                 messages = removeLowestMessage(messages = messages)
@@ -547,7 +606,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
         return (success, messages)        
 
 
-def CTSSendDataFrames(dest: int, messages: dict):
+def CTSSendDataFrames(dest: int, messages: dict) -> bool:
     """
     Called from CTSAntiEntropy
     Sends data frames until an ACK or another data frame (indicating receipt) is received from the destination
@@ -682,7 +741,7 @@ def CTSGetData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
     return (False, messages)
 
 
-def sendCTS(sender: int, messages: dict):
+def sendCTS(sender: int, messages: dict) -> bool:
     """
     Sends a packet of type CTS to the given sender
 
@@ -740,6 +799,7 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
         return False, messages
     
     # We receive a data frame from the desired node
+    #logging.logFunction("CTSAntiEntropy", "first DATA recieved, moving onto receving all data")
     success, newMessages = CTSGetData(sender = sender, packet = args[4])
 
     if success:
@@ -756,7 +816,7 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
         success, args = CTSSendDataFrames(sender, messagesToSend)
 
     if newMessages != {}:
-        sendToAppLayer(newMessages)
+        #sendToAppLayer(newMessages)
         messages.update(newMessages)
         while len(messages)>30:
             messages = removeLowestMessage(messages = messages)
@@ -806,7 +866,7 @@ def handleReceive(params: tuple[any]) -> int:
         elif params == None or params[1] == config.DATA or params[1]==config.HELLO or params[1]==config.RTS:
             return config.QUIET
         elif (params[1] == config.ACK and params[2] == quietNode):
-            # All nodes after they receive an ACK should not talk for 3 seconds
+            # All nodes after they recieve an ACK should not talk for 3 seconds
             time.sleep(3)
             return config.LISTEN
         elif params[1] == config.CTS: 
@@ -820,32 +880,87 @@ def handleReceive(params: tuple[any]) -> int:
         return config.LISTEN
 
 
-def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
-    """"
+def decrementContacted():
+    """
     Decrements the TTL for each key in contacted, removing anything with a TTL of 0
+    contacted (dict[int, int]): The dictionary of contacted nodes, key is node address, value is TTL
 
     Args:
-        contacted (dict[int, int]): The dictionary of contacted nodes, key is node address, value is TTL
+        None
 
     Returns:
-        dict[int, int]: The modified dictionary
+        None
     """
+    global contacted
 
     for key in contacted:
         contacted[key]+=-1
         if contacted[key]==0:
             del(contacted[key])
-    
-    return contacted
 
 
+### GPS ###
+def getGPS():
+    """
+    Returns empty values due to absence of GPS chip
+    """
+    return (0.00000, 0.00000)
 
 
-# Initialise the radio
+def decrementObstacles():
+    """"
+    Decrements the TTL for each obstacle in obstacles, removing anything with a TTL of 0 and leaving permanent obstacles with a TTL of -1
+    obstacles structure: [[[GPS, GPS], TTL], ...] 
+
+
+    Args:
+        None
+    Returns:
+        None
+    """
+    global obstacles
+
+    for item in obstacles:
+        if item[1]!=-1:
+            item[1]+=-1
+            if item[1]==0:
+                obstacles.remove(item)
+
+
+def calculateDistance(location1: list[float, float], location2: list[float, float]) -> float:
+    """
+    Calculates the distance in m between two GPS locations
+    Uses the Haversine Formula (assumes the Earth is a sphere)
+    signed decimal degrees without compass direction, where negative indicates west/south (e.g. 40.7486, -73.9864): 
+
+    Args:
+        location1 (list[float, float]): The first location
+        location2 (list[float, float]): The second location
+
+    Returns:
+        float: The distance between the two points in meters
+    """
+
+
+### INITIALIZATION ### 
+# Button 
+button = digitalio.DigitalInOut(board.GP7)
+button.switch_to_input(pull=digitalio.Pull.DOWN)
+
+# RFM69
 spi = SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
-reset = digitalio.DigitalInOut(board.GP6)
+reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
+
+# State to the starting state 
+state = config.LISTEN
+
+# Logging
+logging = Logging()
+
+# Timer
+timers = Timers()
 
 # List of nodes we have contacted recently
 contacted: dict[int, str]
@@ -853,21 +968,22 @@ contacted = {}
 
 # Dictionary of messages that we have - similar to the list of obstacles in the application layer
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
-# {key : [GPS1, GPS2, TTL]}
+# {key : [Lat, Long, TTL]}
 messages: dict[int, list[int]]
 messages = {}
+
+logging.logMessages()
+
+# List of the known obstacles 
+# [[[Lat, Long], TTL], ...] 
+obstacles = []
 
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
 quietNode: int
 
-# Initialise state to the starting state 
-state = config.LISTEN
 
-logging = Logging()
-
-timers = Timers()
-logging.log(f"Messages at the start: {messages}")
+### MAIN LOOP ###
 while True:
     if state == config.LISTEN:
         args = rfm69.receive()
@@ -882,13 +998,12 @@ while True:
     elif state == config.RECEIVED_HELLO:
         sender = args[2]
         packet = args[4]
-        sendToAppLayer(packet)
+        #sendToAppLayer(packet)
         if sender not in contacted:
             if sender>config.ADDRESS:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
                 if config.USECONTACTED and success:
                     contacted.update({sender : config.CONTACTED_LIVES})
-                logging.log(f"Messages after {success} antientropy: {messages}")
         state = config.LISTEN
 
     elif state == config.QUIET:
@@ -899,17 +1014,33 @@ while True:
         success, messages = CTSAntiEntropy(sender = args[2], messages = messages, RTSpacket = args[4])
         state = config.LISTEN
         # No point updating contacted as will not attempt to contact a node with larger address
-        logging.log(f"Messages after {success} anti entropy: {messages}")
 
     else:
         logging.logError("topLevel", f"Saw an unknown state: {str(state)}")
         state = config.LISTEN
 
 
+
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
     if config.USECONTACTED and timers.contacted():
-        contacted = decrementContacted(contacted)
+        decrementContacted()
+
+    if timers.obstacle():
+        decrementObstacles()
+
+
+        # Also remove the send to app layer nonsense and instead add stuff directly to the thing
+        # Perhaps only read the GPS location once every few seconds (tbh could handle this in the function) 
+        # Check location relative to obstacles at the start of this loop -- honestly just have a table and iterate through it
+        # Gonna have to work out the relation between GPS location and distance then do some trig I guess
+
 
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
+
+
+    # For evaluating bandwidth
+    if timers.bandwidth():
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(4, 10)]})
+        logging.logMessages()

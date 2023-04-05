@@ -1,7 +1,4 @@
 """
-The overall program for carrier nodes 
-(nodes with the RFM69 and button but without GPS or buzzer)
-
 Includes Circuit Python implementation of the epidemic routing protocol with media access control
 Based on the paper by Amin Vahdat and David Becker: https://issg.cs.duke.edu/epidemic/epidemic.pdf
 
@@ -21,17 +18,10 @@ R                     GP7
            CS         GP1
            RST        GP4
 
-
-
-TODO 
-Logging -- make better and fit with the logging in the evaluation 
-Add a logging for messages function
-Button -- log when pressed :)
-
-Then just the radio one
 """
 
-# Imports
+
+### IMPORTS ###
 from micropython import const
 import config
 import rfm69
@@ -43,7 +33,7 @@ import digitalio
 import supervisor
 
 
-
+### TIMING ###
 class Timers:
     def __init__(self):
         # supervisor.ticks_ms() contants
@@ -199,14 +189,22 @@ class Timers:
             self._obstacle = self._ticksAdd(supervisor.ticks_ms(), config.OBSTACLE_TIMER)
             return True
         return False
-        
 
+
+### LOGGING ###
 class Logging:
     """
     Class with multiple functions to handle logging
     
-    Logs in form
-    Node Address, Time, Time Since Node Startup, Event Type, Event Information
+    Logs 
+        Node Address, Time, Time Since Node Startup, Event Type, Event Information
+
+    Event Types:
+    0   -   General logging string
+    1   -   Logging function
+    2   -   Logging packet
+    3   -   Logging messages
+    4   -   Logging error
     """
 
     def __init__(self):
@@ -223,47 +221,86 @@ class Logging:
         self._end = "\033[0m"
         self._blue = "\033[94m"
         self._green = "\033[92m"
+        self._cyan = "\033[96m"
         
         if self._printing:
             print("Logging will be printed")
     
+
     def log(self, message: str):
         global timers
         if self._printing:
-            print(f"[{timers.timeSinceStart()}] {message}")
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
         else: 
             self._fp.write(f"[{timers.timeSinceStart()}] {message}")
 
+
     def logFunction(self, function: str, message: str):
+        """
+        Logs the function and a message from that function
+        Event information 
+            Function, Message
+        """
         global timers
         if self._printing:
-            print(f"{self._green}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print(f"{self._green}{config.ADDRESS},{timeString},{timers.timeSinceStart()},1,{function},{message}{self._end}\n")
         else:
             self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
+
 
     def logPacket(self, function: str, src: int, dst: int, pckType: int):
+        """
+        Event information 
+            Function, Source, Destination, Type
+        """
         global timers
         if self._printing:
-            print(f"{self._blue}[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}{self._end}")
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print(f"{self._blue}{config.ADDRESS},{timeString},{timers.timeSinceStart()},2,{function},{src},{dst},{pckType},{self._end}\n")
         else:
             self._fp.write(f"[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}")
-        
+    
+    
+    def logMessages(self):
+        """
+        Event information
+            message key, message key, ... 
+        """
+        global timers
+        global messages
+        if self._printing:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print(f"{self._cyan}{config.ADDRESS},{timeString},{timers.timeSinceStart()},3,{str(list(messages.keys()))[1:-1]},{self._end}\n")
+        else:
+            pass
+
+
     def logError(self, function: str, message: str):
+        """
+        Event information 
+            Function, Message
+        """
         global timers
         if self._printing:
-            print (f"{self._red}[{timers.timeSinceStart()}] [{function}] {message}{self._end}")
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+            print (f"{self._red}{config.ADDRESS},{timeString},{timers.timeSinceStart()},4,{function},{message}{self._end}\n")
         else:
             self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
 
 
-def getGPS():
-    """
-    Returns empty values due to absence of GPS chip
-    """
-    return (0.00000, 0.00000)
-
-
-# Packet functions
+### SENDING PACKETS ###
 def sendHello() -> bool:
     """
     Sends a packet of type HELLO
@@ -306,7 +343,7 @@ def sendRTS(dest: int, messages: dict) -> bool:
     return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
-# Anti-entropy functions
+### ANTI-ENTROPY ###
 def removeLowestMessage(messages: dict) -> dict:
     """
     Removes the item in the messages dict with the lowest TTL 
@@ -553,7 +590,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
         success, newMessages = RTSGetData(sender=dest, packet = args[4])
 
         if newMessages != {}:
-            sendToAppLayer(newMessages)
+            #sendToAppLayer(newMessages)
             messages.update(newMessages)
             while len(messages)>30:
                 messages = removeLowestMessage(messages = messages)
@@ -771,7 +808,7 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
         success, args = CTSSendDataFrames(sender, messagesToSend)
 
     if newMessages != {}:
-        sendToAppLayer(newMessages)
+        #sendToAppLayer(newMessages)
         messages.update(newMessages)
         while len(messages)>30:
             messages = removeLowestMessage(messages = messages)
@@ -837,15 +874,14 @@ def handleReceive(params: tuple[any]) -> int:
 
 def decrementContacted():
     """
-    TODO edit this (also check it works)
-    contacted: dict[int, int]) -> dict[int, int]:
     Decrements the TTL for each key in contacted, removing anything with a TTL of 0
+    contacted (dict[int, int]): The dictionary of contacted nodes, key is node address, value is TTL
 
     Args:
-        contacted (dict[int, int]): The dictionary of contacted nodes, key is node address, value is TTL
+        None
 
     Returns:
-        dict[int, int]: The modified dictionary
+        None
     """
     global contacted
 
@@ -853,6 +889,15 @@ def decrementContacted():
         contacted[key]+=-1
         if contacted[key]==0:
             del(contacted[key])
+
+
+### GPS ###
+def getGPS():
+    """
+    Returns empty values due to absence of GPS chip
+    """
+    return (0.00000, 0.00000)
+
 
 def decrementObstacles():
     """"
@@ -872,10 +917,24 @@ def decrementObstacles():
             item[1]+=-1
             if item[1]==0:
                 obstacles.remove(item)
-    
 
 
-# Initialization
+def calculateDistance(location1: list[float, float], location2: list[float, float]) -> float:
+    """
+    Calculates the distance in m between two GPS locations
+    Uses the Haversine Formula (assumes the Earth is a sphere)
+    signed decimal degrees without compass direction, where negative indicates west/south (e.g. 40.7486, -73.9864): 
+
+    Args:
+        location1 (list[float, float]): The first location
+        location2 (list[float, float]): The second location
+
+    Returns:
+        float: The distance between the two points in meters
+    """
+
+
+### INITIALIZATION ### 
 # Button 
 button = digitalio.DigitalInOut(board.GP7)
 button.switch_to_input(pull=digitalio.Pull.DOWN)
@@ -883,7 +942,7 @@ button.switch_to_input(pull=digitalio.Pull.DOWN)
 # RFM69
 spi = SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
-reset = digitalio.DigitalInOut(board.GP6)
+reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
 # State to the starting state 
@@ -901,26 +960,23 @@ contacted = {}
 
 # Dictionary of messages that we have - similar to the list of obstacles in the application layer
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
-# {key : [GPS1, GPS2, TTL]}
+# {key : [Lat, Long, TTL]}
 messages: dict[int, list[int]]
 messages = {}
 
-
 # List of the known obstacles 
-# [[[GPS, GPS], TTL], ...] 
+# [[[Lat, Long], TTL], ...] 
 obstacles = []
 
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
 quietNode: int
 
-logging.log(f"Messages at the start: {messages}")
 
-
-
-
-# Main loop
+### MAIN LOOP ###
 while True:
+    logging.logMessages()
+
     if state == config.LISTEN:
         args = rfm69.receive()
         state = handleReceive(args)
@@ -934,13 +990,12 @@ while True:
     elif state == config.RECEIVED_HELLO:
         sender = args[2]
         packet = args[4]
-        sendToAppLayer(packet)
+        #sendToAppLayer(packet)
         if sender not in contacted:
             if sender>config.ADDRESS:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
                 if config.USECONTACTED and success:
                     contacted.update({sender : config.CONTACTED_LIVES})
-                logging.log(f"Messages after {success} antientropy: {messages}")
         state = config.LISTEN
 
     elif state == config.QUIET:
@@ -951,11 +1006,11 @@ while True:
         success, messages = CTSAntiEntropy(sender = args[2], messages = messages, RTSpacket = args[4])
         state = config.LISTEN
         # No point updating contacted as will not attempt to contact a node with larger address
-        logging.log(f"Messages after {success} anti entropy: {messages}")
 
     else:
         logging.logError("topLevel", f"Saw an unknown state: {str(state)}")
         state = config.LISTEN
+
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
@@ -969,9 +1024,9 @@ while True:
         # Also remove the send to app layer nonsense and instead add stuff directly to the thing
         # Perhaps only read the GPS location once every few seconds (tbh could handle this in the function) 
         # Check location relative to obstacles at the start of this loop -- honestly just have a table and iterate through it
+        # Gonna have to work out the relation between GPS location and distance then do some trig I guess
+
 
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
-
-    
