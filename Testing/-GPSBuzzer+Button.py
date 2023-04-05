@@ -2,7 +2,7 @@
 The overall program for carrier nodes 
 (nodes with the RFM69 and button but without GPS or buzzer)
 
-Includes Circuit Python implmentation of the epidemic routing protocol with media access control
+Includes Circuit Python implementation of the epidemic routing protocol with media access control
 Based on the paper by Amin Vahdat and David Becker: https://issg.cs.duke.edu/epidemic/epidemic.pdf
 
 Uses Raspberry Pi Pico with RFM69HCW Radio breakout
@@ -41,7 +41,7 @@ import random
 from busio import SPI
 import digitalio
 import supervisor
- 
+
 
 
 class Timers:
@@ -55,6 +55,7 @@ class Timers:
         nextIncrement = config.HELLO_TIMER + random.uniform(-10.0, 10.0)
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
+        self._obstacle = self._ticksAdd(supervisor.ticks_ms(), config.OBSTACLE_TIMER)
         self._ACKTimeout: int
 
         # For time since start
@@ -181,6 +182,21 @@ class Timers:
         """
         if self._ticksDiff(self._contacted, supervisor.ticks_ms()) < 0:
             self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
+            return True
+        return False
+    
+    def obstacle(self) -> bool:
+        """
+        Checks if the timer for decrementing the contacted list has elapsed
+
+        Args:
+            None
+
+        Returns:
+            bool: True if the timer has elapsed, otherwise False
+        """
+        if self._ticksDiff(self._obstacle, supervisor.ticks_ms()) < 0:
+            self._obstacle = self._ticksAdd(supervisor.ticks_ms(), config.OBSTACLE_TIMER)
             return True
         return False
         
@@ -411,7 +427,7 @@ def RTSGetData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
     return (False, messages)
 
 
-def RTSSendDataFrames(dest: int, messages: dict):
+def RTSSendDataFrames(dest: int, messages: dict) -> bool:
     """
     Called from RTSAntiEntropy
     Sends data frames until an ACK or another data frame (indicating receipt) is received from the destination
@@ -545,7 +561,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
         return (success, messages)        
 
 
-def CTSSendDataFrames(dest: int, messages: dict):
+def CTSSendDataFrames(dest: int, messages: dict) -> bool:
     """
     Called from CTSAntiEntropy
     Sends data frames until an ACK or another data frame (indicating receipt) is received from the destination
@@ -680,7 +696,7 @@ def CTSGetData(sender: int, packet: Optional[str] = None) -> tuple(bool, dict):
     return (False, messages)
 
 
-def sendCTS(sender: int, messages: dict):
+def sendCTS(sender: int, messages: dict) -> bool:
     """
     Sends a packet of type CTS to the given sender
 
@@ -819,8 +835,10 @@ def handleReceive(params: tuple[any]) -> int:
         return config.LISTEN
 
 
-def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
-    """"
+def decrementContacted():
+    """
+    TODO edit this (also check it works)
+    contacted: dict[int, int]) -> dict[int, int]:
     Decrements the TTL for each key in contacted, removing anything with a TTL of 0
 
     Args:
@@ -829,17 +847,35 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
     Returns:
         dict[int, int]: The modified dictionary
     """
+    global contacted
 
     for key in contacted:
         contacted[key]+=-1
         if contacted[key]==0:
             del(contacted[key])
+
+def decrementObstacles():
+    """"
+    Decrements the TTL for each obstacle in obstacles, removing anything with a TTL of 0 and leaving permanent obstacles with a TTL of -1
+    obstacles structure: [[[GPS, GPS], TTL], ...] 
+
+
+    Args:
+        None
+    Returns:
+        None
+    """
+    global obstacles
+
+    for item in obstacles:
+        if item[1]!=-1:
+            item[1]+=-1
+            if item[1]==0:
+                obstacles.remove(item)
     
-    return contacted
 
 
-
-# Intialisation
+# Initialization
 # Button 
 button = digitalio.DigitalInOut(board.GP7)
 button.switch_to_input(pull=digitalio.Pull.DOWN)
@@ -870,10 +906,16 @@ messages: dict[int, list[int]]
 messages = {}
 
 
+# List of the known obstacles 
+# [[[GPS, GPS], TTL], ...] 
+obstacles = []
+
+
 # Node we waiting to overhear an ACK from before we can exit QUIET state
 quietNode: int
 
 logging.log(f"Messages at the start: {messages}")
+
 
 
 
@@ -918,8 +960,18 @@ while True:
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
     if config.USECONTACTED and timers.contacted():
-        contacted = decrementContacted(contacted)
+        decrementContacted()
+
+    if timers.obstacle():
+        decrementObstacles()
+
+
+        # Also remove the send to app layer nonsense and instead add stuff directly to the thing
+        # Perhaps only read the GPS location once every few seconds (tbh could handle this in the function) 
+        # Check location relative to obstacles at the start of this loop -- honestly just have a table and iterate through it
 
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
+
+    
