@@ -161,7 +161,8 @@ While these routing protocols often have mechanisms to minimise the probability 
 This project was structured using the waterfall model for software development. The project proposal [\hyperref[appendixD]{Appendix D}] lays out the phases of the project and the output from each stage in a plan of work. The waterfall model of software development was used as it lends itself to the structure of a dissertation, with the five stages: \\
 \centerline{Requirements $\rightarrow$ System Design $\rightarrow$ Implementation $\rightarrow$ Testing $\rightarrow$ Maintenance} \\ \\
 This project used CircuitPython, as it is compatible with the existing AdaFruit libraries I used and extended in the project, and can easily be run on the Raspberry Pi Pico. \\ \\
-GitHub was used to perform version control on the code and dissertation for this project. This also allowed me to fork repositories and submit a pull request to AdaFruit.
+GitHub was used to perform version control on the code and dissertation for this project. This also allowed me to fork repositories and submit a pull request to AdaFruit. \\ \\ 
+TODO -- VS code and pylint so you don't have to run the code on the device to find out if it is correct 
 
 \section{Requirements}
 My requirements were based around the use case for the project -- as devices attached to rowing boats. This factored into my hardware decisions, as I wanted to use small and relatively lightweight items. Additionally, I chose to use the 433 MHz band as it is free to use without licencing, allowing me and other rowing clubs to use it without additional bureaucracy. \\ \\ 
@@ -194,6 +195,7 @@ All of these requirements have been implemented during this project. The finer d
 
 \section{System Design}
 Having decided on the Epidemic routing protocol, I planned the structure of the software that would run on each node. I knew that the Raspberry Pi Pico uses the RP2040 chip, containing two cores. To make best use of the hardware, I decided to design application and networking threads that would run on each core, with global data structures and concurrency control to pass messages between the two layers and allow both of them to access the GPS board. \\ \\
+TODO you should talk about the flooding state machine you designed and the similarities between eidemic and flooding \\ \\ 
 The application thread is responsible for notifying the user when they are too close to an obstacle. It also takes input from the user, generating new obstacles when a button is pressed. The initial state machine is shown in Figure 2.4. The a time to live (TTL) for each obstacle. If the object is permanent, such as a bridge, the TTL is set to $-1$, indicating that it should never be removed.
 \begin{figure}[h]
 \begin{center}
@@ -210,7 +212,7 @@ The networking thread contains the implementation of Epidemic with media access 
 \end{center}
 \end{figure}
 \FloatBarrier
-%The data structures designed to communicate messages between one thread and the other are  \\ \\
+TODO -- talk about data structures -- The data structures designed to communicate messages between one thread and the other are  \\ \\
 While these state machines were broadly implemented, the overall structure of the software changed, with only one thread running due to the limitations of CircuitPython and difficulties transitioning into MicroPython. This decision and the reasoning behind it is detailed in the Implementation chapter. 
 
 %%% IMPLEMENTATION %%%
@@ -219,12 +221,13 @@ While these state machines were broadly implemented, the overall structure of th
 
 %%% EVALUATION %%%
 \newchapter{4}{Evaluation}
-Evaluation was done according to the plan in appendix. It was split into evaluation of the MANET and the whole system.
+Evaluation was done (mostly) according to the plan in appendix. It was split into evaluation of the MANET and the whole system.
 
 \section{Evaluating the MANET}
+Break this down into smaller sections -- heavily quanitfy your results
 
 \section{Evaluating the System}
-% We can def call this something better than the system? Idk the whole project, a more holistic evaluation?
+We can def call this something better than the system? Idk the whole project, a more holistic evaluation? Emphasise that while the use case is kinda huge and untestable you tested within these restrictions and these parameters were met
 
 %%% CONCLUSION %%%
 \newchapter{5}{Conclusion}
@@ -254,7 +257,7 @@ a proxy metric for traffic passing through a node
 attack from GPS and combining sensor data
 5. The routing layer is further enhanced by passing additional data, such as location awareness,
 to the routing protocol
-Okay so we never shut anything down in a safe ish way -- just kinda pull the plug and fuck off... ?
+Okay so we never shut anything down in a safe ish way -- just kinda pull the plug and fuck off... ? Actually you should definately implement an editing of the Config file so we DO BETTER
 
 
 %%% BIBLIOGRAPHY  %%%

@@ -3,7 +3,7 @@ Welcome to my Part II Project, A MANET to Facilitate Collision Avoidance in Rowi
 </br>
  
 # **Guide to creating your own MANET to facilitate collision avoidance in Rowing Boats**
-This is a 'how to' guide to building the nodes and downloading the software needed to build your very own MANET. Each node *should* beep (or flash an LED, depending on what you choose) when the user is approaching a known obstacle, much like parking sensors on a car!
+This is a 'how to' guide to building the nodes and downloading the software needed to build your very own MANET. Each node *should* beep (or flash an LED, depending on what you choose) when the user is approaching a known obstacle, much like parking sensors on a car! A disclaimer - I do not guarantee this will work and take no responsibility for any collisions.
 
 ## Components Needed
 This is a list of what I used in my project, and therefore what the software I wrote has been designed for. Any microcontroller, GPS and radio can be substituted. 
@@ -15,6 +15,8 @@ This is a list of what I used in my project, and therefore what the software I w
 - Waterproof box
 - Power pack (to power the device)
 - 3M Dual Lock or other method of attaching the final node to the boat
+- Breadboard (optional but recommended)
+- Wires
 
 ## Tools Needed
 - Soldering iron
