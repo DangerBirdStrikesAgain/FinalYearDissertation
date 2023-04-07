@@ -966,6 +966,7 @@ timers = Timers()
 contacted: dict[int, str]
 contacted = {}
 
+count = 0
 # Dictionary of messages that we have - similar to the list of obstacles in the application layer
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
 # {key : [Lat, Long, TTL]}
@@ -1042,5 +1043,12 @@ while True:
 
     # For evaluating bandwidth
     if timers.bandwidth():
-        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(4, 10)]})
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count +=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count+=1
+        while len(messages)>30:
+            messages = removeLowestMessage(messages)
+            
         logging.logMessages()
+
