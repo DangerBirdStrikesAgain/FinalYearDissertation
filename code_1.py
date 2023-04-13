@@ -217,6 +217,7 @@ class Logging:
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
             print(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
         else: 
+            timeString = GPSTime()
             self._fp.write(f"[{timers.timeSinceStart()}] {message}")
 
 
@@ -289,6 +290,13 @@ def getGPS():
     """
     
     return (10.284638, 89.473057)
+
+
+def GPSTime():
+    """
+    Returns the time from GPS
+    """
+    return("0000")
 
 
 def sendHello() -> bool:
