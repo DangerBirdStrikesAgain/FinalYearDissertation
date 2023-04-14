@@ -309,6 +309,8 @@ class RFM69:
             raise RuntimeError(
                 "Failed to find RFM69 with expected version, check wiring!"
             )
+        
+        
         self.idle()  # Enter idle state.
         # Setup the chip in a similar way to the RadioHead RFM69 library.
         # Set FIFO TX condition to not empty and the default FIFO threshold to 15.

@@ -24,7 +24,7 @@ FREQ = 433
 spi = busio.SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
-rfm69 = adafruit_rfm69.RFM69(spi, cs, reset, FREQ, fixed_length = True)
+rfm69 = adafruit_rfm69.RFM69(spi, cs, reset, FREQ)
 
 print("Temperature: {0}C".format(rfm69.temperature))
 print("Frequency: {0}mhz".format(rfm69.frequency_mhz))

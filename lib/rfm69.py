@@ -336,7 +336,7 @@ class RFM69:
 
     def idle(self) -> None:
         """
-        Entera idle standby mode 
+        Enter idle standby mode 
         (switching off high power amplifiers / mode / boost  if on)
         """
         if self._tx_power >= 18:

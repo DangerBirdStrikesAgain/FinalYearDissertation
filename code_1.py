@@ -20,7 +20,6 @@ R                            GP7
 """
 
 
-from typing import Callable
 from micropython import const
 import config
 import rfm69
@@ -42,7 +41,7 @@ class Timers:
         self._TICKS_HALFPERIOD = const(self._TICKS_PERIOD // 2)
 
         # Initialise timers
-        nextIncrement = config.HELLO_TIMER + random.uniform(-10.0, 10.0)
+        nextIncrement = config.HELLO_TIMER + random.uniform(-3.0, 10.0)
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
         self._ACKTimeout: int
@@ -127,7 +126,7 @@ class Timers:
             bool: True if the timer has elapsed, otherwise False
         """
         if self._ticksDiff(self._nextHello, supervisor.ticks_ms()) < 0:
-            nextIncrement = config.HELLO_TIMER + random.uniform(-10.0, 10.0)
+            nextIncrement = config.HELLO_TIMER + random.uniform(-3.0, 10.0)
             self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
             return True
         return False
@@ -631,7 +630,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
         success, newMessages = RTSGetData(sender=dest, packet = args[4])
 
         if newMessages != {}:
-            sendToAppLayer(newMessages)
+            # Add them to the obstacles list
             messages.update(newMessages)
             while len(messages)>30:
                 messages = removeLowestMessage(messages = messages)
@@ -843,7 +842,6 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
         success, args = CTSSendDataFrames(sender, messagesToSend)
 
     if newMessages != {}:
-        sendToAppLayer(newMessages)
         messages.update(newMessages)
         while len(messages)>30:
             messages = removeLowestMessage(messages = messages)
@@ -929,8 +927,9 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
 # Initialise the radio
 spi = SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
-reset = digitalio.DigitalInOut(board.GP6)
+reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
+
 
 # List of nodes we have contacted recently
 contacted: dict[int, str]
