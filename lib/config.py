@@ -94,10 +94,3 @@ The number of attempts that should be made to send packets
 TS_REENTRIES = 3
 DATA_REENTRIES = 8
 ACK_REENTRIES = 3
-
-
-
-""" 
-For evaluation
-"""
-BANDWIDTH_TIMER = 1 
