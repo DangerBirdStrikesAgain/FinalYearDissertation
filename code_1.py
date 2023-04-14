@@ -30,9 +30,10 @@ import random
 from busio import SPI
 import digitalio
 import supervisor
+from math import radians, cos, sin, asin, sqrt
 
 
-
+### TIMERS ###
 class Timers:
     def __init__(self):
         # supervisor.ticks_ms() constants
@@ -174,6 +175,7 @@ class Timers:
         return False
         
 
+### LOGGING ###
 class Logging:
     """
     Class with multiple functions to handle logging
@@ -187,38 +189,34 @@ class Logging:
     2   -   Logging packet
     3   -   Logging messages
     4   -   Logging error
+    5   -   Logging GPS location
     """
 
     def __init__(self):
         # Printing turned on if we have a USB connection
-        self._printing = supervisor.runtime.serial_connected
+        self._usb = supervisor.runtime.serial_connected
 
-        # Log into file if not connected to device
-        if not self._printing:
-            import storage
-            storage.remount("/", False)
-            self._fp = open("/logging.txt", "a")
-        
-        self._red = "\033[91m"
-        self._end = "\033[0m"
-        self._blue = "\033[94m"
-        self._green = "\033[92m"
-        self._cyan = "\033[96m"
-        
-        if self._printing:
-            print("Logging will be printed")
-    
+        # Logging file
+        self._fp = open("/logging.txt", "a")
 
-    def log(self, message: str):
-        global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
         else: 
             timeString = GPSTime()
-            self._fp.write(f"[{timers.timeSinceStart()}] {message}")
+        self._fp.write(f"Logging started at {timeString}\n")
+
+    def log(self, message: str):
+        global timers
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
 
 
     def logFunction(self, function: str, message: str):
@@ -228,13 +226,14 @@ class Logging:
             Function, Message
         """
         global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._green}{config.ADDRESS},{timeString},{timers.timeSinceStart()},1,{function},{message}{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},1,{function},{message}\n")
 
 
     def logPacket(self, function: str, src: int, dst: int, pckType: int):
@@ -243,29 +242,34 @@ class Logging:
             Function, Source, Destination, Type
         """
         global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._blue}{config.ADDRESS},{timeString},{timers.timeSinceStart()},2,{function},{src},{dst},{pckType},{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}")
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},2,{function},{src},{dst},{pckType}\n")
     
     
     def logMessages(self):
         """
         Event information
             message key, message key, ... 
+
+        Does not log the message content!
         """
         global timers
         global messages
-        if self._printing:
+
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._cyan}{config.ADDRESS},{timeString},{timers.timeSinceStart()},3,{str(list(messages.keys()))[1:-1]},{self._end}\n")
-        else:
-            pass
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},3,{str(list(messages.keys()))[1:-1]}\n")
 
 
     def logError(self, function: str, message: str):
@@ -274,16 +278,36 @@ class Logging:
             Function, Message
         """
         global timers
-        if self._printing:
+
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print (f"{self._red}{config.ADDRESS},{timeString},{timers.timeSinceStart()},4,{function},{message}{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},4,{function},{message}\n")
 
 
 
+    def logGPS(self, function: str, gps: str):
+        """
+        Event information
+            Function, GPS location
+        """
+        global timers
+
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},5,{function},{gps}\n")
+
+
+### GPS ###
 def getGPS():
     """
     TODO (will be moved up)
@@ -299,6 +323,33 @@ def GPSTime():
     return("0000")
 
 
+def haversine(pointALat, pointALong, pointBLat, pointBLong):
+    """
+    Calculates the distance between two points on the Earth's surface using the haversine formula
+
+    Args:
+        pointALat (float): The latitude of the first point
+        pointALong (float): The longitude of the first point
+        pointBLat (float): The latitude of the second point
+        pointBLong (float): The longitude of the second point
+
+    Returns:
+        float: The distance in meters between the two points
+    """
+
+    # Convert to radians
+    pointALat, pointALong, pointBLat, pointBLong = map(radians, [pointALat, pointALong, pointBLat, pointBLong])
+
+    dlon = pointBLong - pointALong 
+    dlat = pointBLat - pointALat 
+    a = sin(dlat/2)**2 + cos(pointALat) * cos(pointBLat) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    # Radius of the earth in metres so result is in meters
+    r = 6371009
+    return c * r
+
+
+### PACKET FUNCTIONS ###
 def sendHello() -> bool:
     """
     Sends a packet of type HELLO
@@ -480,7 +531,6 @@ def RTSSendDataFrames(dest: int, messages: dict):
 
     # If there are no messages to send
     if len(messages) == 0:
-        logging.logFunction("RTSSendDataFrames", "No new data - starting to send empty packets now")
         while dataCount<=config.DATA_REENTRIES and not DATA:
             prefix = bytearray(2)
             prefix[0] = 0
@@ -510,7 +560,6 @@ def RTSSendDataFrames(dest: int, messages: dict):
     toSend.append(string)
 
     total = len(toSend)
-    logging.logFunction("RTSSendDataFrames", "Need to sync data! Starting to send")
     while dataCount<=config.DATA_REENTRIES and not DATA:
         # Send all the data frames
         number = 0
@@ -521,7 +570,6 @@ def RTSSendDataFrames(dest: int, messages: dict):
             number+=1
             prefix = prefix + bytes(packet, "utf_8")
             rfm69.send(data = prefix, destination = dest, packetType = config.DATA)
-            logging.logPacket("RTSSendDataFrames", config.ADDRESS, dest, config.DATA)
             time.sleep(0.1)
 
         dataCount+=1
@@ -553,8 +601,6 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
     RTSCount = 0 
     CTS = False
 
-    logging.logFunction("RTSAntiEntropy", "Starting to send RTS...")
-
     while RTSCount<config.TS_REENTRIES and not CTS:
         sendRTS(dest, messages)
         time.sleep(0.2)
@@ -565,12 +611,10 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
     
     # Indicates failure to receive a CTS
     if RTSCount>=config.TS_REENTRIES and not CTS:
-        logging.logError("RTSAntiEntropy", "No CTS received, RTS timeout!!")
         return (False, messages)
     
     # We receive a CTS from the desired node
     else:
-        logging.logFunction("RTSAntiEntropy", "CTS received - sending data frames")
         packet = args[4]
         destKeys = []
         messagesToSend = {}
@@ -614,7 +658,6 @@ def CTSSendDataFrames(dest: int, messages: dict):
 
     # If there are no messages to send
     if len(messages) == 0:
-        logging.logFunction("CTSSendDataFrames", "No new data - starting to send empty packets now")
         while dataCount<=config.DATA_REENTRIES and not ACK:
             prefix = bytearray(2)
             prefix[0] = 0
@@ -643,7 +686,6 @@ def CTSSendDataFrames(dest: int, messages: dict):
     toSend.append(string)
 
     total = len(toSend)
-    logging.logFunction("CTSSendDataFrames", "Need to sync data! Starting to send")
     while dataCount<=config.DATA_REENTRIES and not ACK:
         # Send all the data frames
         number = 0
@@ -751,7 +793,6 @@ def sendCTS(sender: int, messages: dict):
     
     data = data.to_bytes(len(messages)*2, "utf_8")
 
-    logging.logPacket("sendCTS", config.ADDRESS, sender, config.CTS)
     return rfm69.send(data = data, destination = sender, packetType = config.CTS)
 
 
@@ -771,8 +812,6 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
     global logging
     CTSCount = 0 
     data = False
-
-    logging.logFunction("CTSAntiEntropy", "Other node started a transfer - responding")
 
     while CTSCount<config.TS_REENTRIES and not data:
         sendCTS(sender, messages)
@@ -887,8 +926,6 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
     return contacted
 
 
-
-
 # Initialise the radio
 spi = SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
 cs = digitalio.DigitalInOut(board.GP1)
@@ -915,7 +952,7 @@ state = config.LISTEN
 logging = Logging()
 
 timers = Timers()
-logging.log(f"Messages at the start: {messages}")
+logging.logMessages()
 while True:
     if state == config.LISTEN:
         args = rfm69.receive()
@@ -930,13 +967,13 @@ while True:
     elif state == config.RECEIVED_HELLO:
         sender = args[2]
         packet = args[4]
-        sendToAppLayer(packet)
+        # TODO something about send to app layer / add to obstacles
         if sender not in contacted:
             if sender>config.ADDRESS:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
                 if config.USECONTACTED and success:
                     contacted.update({sender : config.CONTACTED_LIVES})
-                logging.log(f"Messages after {success} antientropy: {messages}")
+                logging.logMessages()
         state = config.LISTEN
 
     elif state == config.QUIET:
@@ -947,7 +984,7 @@ while True:
         success, messages = CTSAntiEntropy(sender = args[2], messages = messages, RTSpacket = args[4])
         state = config.LISTEN
         # No point updating contacted as will not attempt to contact a node with larger address
-        logging.log(f"Messages after {success} anti entropy: {messages}")
+        logging.logMessages()
 
     else:
         logging.logError("topLevel", f"Saw an unknown state: {str(state)}")
@@ -955,9 +992,14 @@ while True:
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
+    # TODO get rid of config.USECONTACTED
     if config.USECONTACTED and timers.contacted():
         contacted = decrementContacted(contacted)
 
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
+
+    if len(messages)<30 and random.randint(0,1):
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(4, 10)]})
+    logging.logMessages()

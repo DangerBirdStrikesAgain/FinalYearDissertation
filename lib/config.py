@@ -4,7 +4,7 @@ from micropython import const
 CONSTANTS
 """
 # Should the node use a contacted list?
-USECONTACTED = True
+USECONTACTED = False
 
 
 """
