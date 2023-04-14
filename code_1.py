@@ -999,6 +999,7 @@ while True:
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
 
-    if len(messages)<30 and random.randint(0,1):
-        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), random.randint(4, 10)]})
+    if len(messages)<15 and random.randint(0,1):
+        messages.update({random.randint(0, 0xFFFF) : [20, 20, random.randint(4, 10)]})
     logging.logMessages()
+    print(messages)

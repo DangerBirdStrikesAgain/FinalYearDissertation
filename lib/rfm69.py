@@ -679,6 +679,7 @@ class RFM69:
         
         # Write payload to transmit fifo
         self._write_from(_REG_FIFO, payload)
+        time.sleep(0.1)
         # Turn on transmit mode to send out the packet
         self.transmit()
         # Wait for packet sent interrupt with explicit polling
@@ -739,6 +740,7 @@ class RFM69:
 
         # Enter idle mode to stop receiving other packets
         self.idle()
+        time.sleep(0.1)
 
         if packet is not None:
             return (packetLength, packetType, sender, destination, packet[3:]) 
