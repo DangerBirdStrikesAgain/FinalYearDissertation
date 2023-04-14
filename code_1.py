@@ -602,7 +602,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
 
     while RTSCount<config.TS_REENTRIES and not CTS:
         sendRTS(dest, messages)
-        time.sleep(0.2)
+        #time.sleep(0.2)
         RTSCount+=1
         args = rfm69.receive(timeout=2)
         if args is not None and args[1] == config.CTS and args[2] == dest:
@@ -619,7 +619,10 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
         messagesToSend = {}
         if len(packet) != 0:
             for x in range (0, len(packet), 2):
-                destKeys.append(int.from_bytes(packet[x:(x+2)], "utf_8"))
+                try:
+                    destKeys.append(int.from_bytes(packet[x:(x+2)], "utf_8"))
+                except:
+                    logging.logError(RTSAntiEntropy, "That strange error where  we can't decode a message")
             for key in messages:
                 if key not in destKeys:
                     messagesToSend.update({key : messages[key]})
@@ -835,7 +838,10 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
         messagesToSend = {}
         if len(RTSpacket) != 0:
             for x in range (0, len(RTSpacket), 2):
-                destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
+                try:
+                    destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
+                except:
+                    logging.logError(RTSAntiEntropy, "That strange error where  we can't decode a message")
             for key in messages:
                 if key not in destKeys:
                     messagesToSend.update({key : messages[key]})
@@ -998,8 +1004,3 @@ while True:
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
-
-    if len(messages)<15 and random.randint(0,1):
-        messages.update({random.randint(0, 0xFFFF) : [20, 20, random.randint(4, 10)]})
-    logging.logMessages()
-    print(messages)
