@@ -78,10 +78,8 @@ CONTACTED_TIMER  = 20.0
 CONTACTED_LIVES = 3
 # How many times a message should be forwarded 
 MESSAGES_LIVES = 6
-# How often to decrement the obstacles' TTL (this is how long a nearby boat's position is saved for)
-OBSTACLE_TIMER  = 20.0
 # How many times an obstacle should be decremented before it is removed (5 minutes total) 
-OBSTACLE_TTL = 15
+OBSTACLE_TTL = 10
 
 
 

@@ -33,8 +33,3 @@ while True:
 # def getGPS():
 
 # Set up the global tables
-
-
-# Replace core0 and core1 with the app and manet layers
-#appLayer = _thread.start_new_thread(core1, ())
-#core0()

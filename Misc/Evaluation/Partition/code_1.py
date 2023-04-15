@@ -189,6 +189,7 @@ class Logging:
     3   -   Logging messages
     4   -   Logging error
     5   -   Logging GPS location
+    6   -   Logging connection
     """
 
     def __init__(self):
@@ -304,6 +305,23 @@ class Logging:
             timeString = GPSTime()
         
         self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},5,{function},{gps}\n")
+
+
+    def logConnection(self, success: bool):
+        """
+        Event information
+            success (true if successful connection, false otherwise)
+        """
+        global timers
+
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},6,{str(success)}\n")
 
 
 ### GPS ###
@@ -841,7 +859,7 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
                 try:
                     destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
                 except:
-                    logging.logError(RTSAntiEntropy, "That strange error where  we can't decode a message")
+                    pass
             for key in messages:
                 if key not in destKeys:
                     messagesToSend.update({key : messages[key]})
@@ -944,9 +962,8 @@ contacted = {}
 # Dictionary of messages that we have - similar to the list of obstacles in the application layer
 # The key is two bytes long, source (1byte) and time (1byte) then the list contains the message (GPS location, TTL of location) and the message's TTL
 # {key : [GPS1, GPS2, TTL]}
-messages: dict[int, list[int]]
-messages = {}
-
+#messages: dict[int, list[int]]
+messages = {1 : 1, 2:2, 3:3, 4:4, 5:5, 6:6, 7:7, 8:8, 9:9, 10:10, 11:11, 12:12, 13:13, 14:14, 15:15, 16:16, 17:17, 18:18,19:19,20:20,21:21,22:22,23:23,24:24,25:25,26:26,27:27,28:28,29:29,30:30}
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
 quietNode: int
@@ -978,6 +995,7 @@ while True:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
                 if config.USECONTACTED and success:
                     contacted.update({sender : config.CONTACTED_LIVES})
+                logging.logConnection(success)
                 logging.logMessages()
         state = config.LISTEN
 
@@ -987,6 +1005,7 @@ while True:
 
     elif state == config.RECEIVED_RTS:
         success, messages = CTSAntiEntropy(sender = args[2], messages = messages, RTSpacket = args[4])
+        logging.logConnection(success)
         state = config.LISTEN
         # No point updating contacted as will not attempt to contact a node with larger address
         logging.logMessages()
@@ -1005,3 +1024,5 @@ while True:
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
     print(messages)
+
+    

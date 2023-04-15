@@ -59,7 +59,7 @@
 \vspace*{60mm}
 \begin{center}
 \Huge
-\textbf{A System to Prevent Crashes in Rowing Boats} \\[5mm]
+\textbf{A System to Help Prevent Crashes in Rowing Boats} \\[5mm]
 Computer Science Tripos -- Part II \\[5mm]
 Murray Edwards College \\[5mm]
 2023
@@ -73,12 +73,13 @@ I, Alexandra Riddell-Webster of Murray Edwards College, being a candidate for Pa
 I am content for my dissertation to be made available to the students and staff of the University. \\
 
 \bigskip
+% TODO can do a virtual signature just `cause
 \leftline{\textbf{Signed:} Alexandra Riddell-Webster}
 \leftline{\textbf{Date:} \today}
 
 %%% ACKNOWLEDGEMENTS %%%
 \chapter*{Acknowledgements}
-This dissertation owes a huge amount to Matthew Ireland, for supervising me. My UTO, Jon Crowcroft was invaluable. Thanks to Cambridge University Boat Club, in particular Patrick Ryan and Mike Taylor, for allowing me to put strange boxes on boats and for advising me on communication over water. I also thank Duncan Barnes for discussing GPS and electronics on rowing boats with me.
+This dissertation owes a huge amount to Matthew Ireland, for supervising me. My UTO, Jon Crowcroft was invaluable. Thanks to Cambridge University Boat Club, in particular Patrick Ryan, Mike Taylor and Rosa Millard, for allowing me to put strange boxes on boats, advising me on communication over water and helping me evaluate the system. I also thank Duncan Barnes for discussing GPS and electronics on rowing boats with me.
 
 
 
@@ -92,7 +93,7 @@ This dissertation owes a huge amount to Matthew Ireland, for supervising me. My 
 & in Rowing Boats \\
 \bf Examination:  & Computer Science Tripos -- Part II, May 2023      \\
 \bf Word Count:    & TODO \footnotemark[1]   \\
-\bf Code Line Count:    & TODO (inc. comments?) \\
+\bf Code Line Count:    & TODO (inc. comments?) Code line count: Number of lines of code written by the student in the final version of their software. (say how this was calculated)\\
 \bf Project Originator: & Alexandra Riddell-Webster                 \\
 \bf Supervisor:         & Mr Matthew Ireland  \\ 
 \bf University Teaching Officer:  & Dr Jon Crowcroft \\ 
@@ -275,12 +276,8 @@ Evaluation was done (mostly) according to the plan in appendix. It was split int
 Break this down into smaller sections -- heavily quanitfy your results
 
 \section{Evaluating the System}
-We can def call this something better than the system? Idk the whole project, a more holistic evaluation? Emphasise that while the use case is kinda huge and untestable you tested within these restrictions and these parameters were met
-
 
 Oh my, what happens to the GPS under a bridge? This could be a large and crucial flaw in your work...
-
-I think the running of the system on the water is firstly to show that it does work in the use environment. I indeed would hope to set it up in such a way that the message is carried through multiple boats and a boat is notified of the obstacle before it reaches it. There is huge network topology variability here though, so through testing in the use case is not really feasible.
 
 If it's difficult to test directly, perhaps what's needed is a time delay. That is:
 

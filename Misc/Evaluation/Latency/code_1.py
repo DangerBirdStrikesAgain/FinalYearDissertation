@@ -841,7 +841,7 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
                 try:
                     destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
                 except:
-                    logging.logError(RTSAntiEntropy, "That strange error where  we can't decode a message")
+                    pass
             for key in messages:
                 if key not in destKeys:
                     messagesToSend.update({key : messages[key]})
@@ -1004,4 +1004,10 @@ while True:
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
+    print(messages)
+
+    if len(messages)<30 and random.choice([0,0, 0, 0, 0, 0, 0, 0, 0, 1]):
+        messages.update({random.randint(0, 0xFFF) : [20, 20, random.randint(4, 10)]})
+    print(len(messages))
+    logging.logMessages()
     print(messages)
