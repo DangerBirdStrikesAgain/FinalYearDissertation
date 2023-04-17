@@ -622,7 +622,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
                 try:
                     destKeys.append(int.from_bytes(packet[x:(x+2)], "utf_8"))
                 except:
-                    logging.logError("RTSAntiEntropy", "That strange error where  we can't decode a message")
+                    pass
             for key in messages:
                 if key not in destKeys:
                     messagesToSend.update({key : messages[key]})
@@ -841,7 +841,7 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
                 try:
                     destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
                 except:
-                    logging.logError(RTSAntiEntropy, "That strange error where  we can't decode a message")
+                    pass
             for key in messages:
                 if key not in destKeys:
                     messagesToSend.update({key : messages[key]})
