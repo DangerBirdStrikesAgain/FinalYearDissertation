@@ -21,8 +21,8 @@ def timeDifference(time1, time2):
 
     return t1-t2 
 
-a = pandas.read_csv('a1.csv')
-b = pandas.read_csv('b1.csv')
+a = pandas.read_csv('a500.csv')
+b = pandas.read_csv('b500.csv')
 # Only have ones about messages i.e. logging event number 3
 a = a[a['3']==3]
 b = b[b['3']==3]

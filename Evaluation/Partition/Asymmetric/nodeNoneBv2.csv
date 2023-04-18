@@ -1,36 +1,6 @@
 Logging started at 13.13.38
 3,13.13.39,0.003,3,
 3,13.13.46,7.779,2,sendRTS,3,4,1
-3,13.13.47,8.202,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.207,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.212,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.217,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.222,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.227,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.328,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.334,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.34,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.346,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.353,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.452,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.459,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.465,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.471,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.477,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.482,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.583,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.59,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.596,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.602,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.607,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.613,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.708,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.715,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.721,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.727,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.732,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.738,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.13.47,8.833,4,RTSAntiEntropy,That strange error where  we can't decode a message
 3,13.13.51,12.572,6,True
 3,13.13.51,12.577,3,
 3,13.13.51,12.584,2,sendHello,3,,0
@@ -70,36 +40,6 @@ Logging started at 13.13.38
 3,13.15.23,103.915,2,sendHello,3,,0
 3,13.15.26,107.179,2,sendRTS,3,4,1
 3,13.15.28,109.394,2,sendRTS,3,4,1
-3,13.15.28,109.817,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.28,109.823,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,109.921,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,109.927,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,109.933,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,109.938,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,109.944,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.04,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.046,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.052,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.058,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.063,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.069,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.165,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.171,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.177,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.183,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.188,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.194,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.289,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.295,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.301,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.308,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.313,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.319,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.413,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.419,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.426,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.432,4,RTSAntiEntropy,That strange error where  we can't decode a message
-3,13.15.29,110.437,4,RTSAntiEntropy,That strange error where  we can't decode a message
 3,13.16.0,141.504,4,RTSSendDataFrames,Data frame not received
 3,13.16.0,141.6,6,False
 3,13.16.0,141.605,3,29, 1, 2, 3, 4, 5, 6, 7, 30, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28
@@ -177,9 +117,3 @@ Logging started at 13.13.38
 3,13.19.51,372.533,2,sendHello,3,,0
 3,13.19.57,378.54,6,False
 3,13.19.57,378.545,3,29, 1, 2, 3, 4, 5, 6, 7, 30, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28
-3,13.19.59,380.23,2,sendHello,3,,0
-3,13.20.8,388.913,2,sendHello,3,,0
-3,13.20.16,397.334,2,sendHello,3,,0
-3,13.20.21,402.177,2,sendHello,3,,0
-3,13.20.48,429.021,2,sendHello,3,,0
-3,13.20.51,432.29,2,sendHello,3,,0

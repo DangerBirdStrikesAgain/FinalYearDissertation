@@ -7,6 +7,44 @@
     \chapter*{#2}
     \addcontentsline{toc}{chapter}{#1 #2}
 }
+
+\usepackage{titlesec}
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\makeatletter
+\newenvironment{figurehere}
+  {\def\@captype{figure}}
+  {}
+\makeatother
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
 \usepackage{verbatim}
 \usepackage[utf8]{inputenc}
@@ -28,6 +66,8 @@
 \usepackage{setspace}
 \setstretch{1}
 \usepackage{docmute}
+\usepackage{tikz}
+\usetikzlibrary{matrix,chains,positioning,decorations.pathreplacing,arrows}
 
 %\graphicspath{}			if you have trouble getting images in the thing, asks for graphics in the same folder
 %\usepackage{hhline}         			% Horizontal lines in tables
@@ -87,13 +127,14 @@ This dissertation owes a huge amount to Matthew Ireland, for supervising me. My 
 {\large
 \begin{tabular}{ll}
 \bf Candidate Number:   & TODO \\
-\bf Project Title:  & A System to Help Prevent Crashes in Rowing Boats \\
+\bf Project Title:  & A System to Help Prevent \\
+& Crashes in Rowing Boats \\
 \bf Examination:  & Computer Science Tripos -- Part II, May 2023      \\
 \bf Word Count:    & TODO \footnotemark[1]   \\
 \bf Code Line Count:    & TODO (yes, inc. comments) Code line count: Number of lines of code written by the student in the final version of their software. (say how this was calculated)\\
 \bf Project Originator: & Alexandra Riddell-Webster                 \\
-\bf Project Supervisor:         & Mr Matthew Ireland  \\ 
-\bf Project University Teaching Officer:  & Dr Jon Crowcroft \\ 
+\bf Supervisor:         & Mr Matthew Ireland  \\ 
+\bf University Teaching Officer:  & Dr Jon Crowcroft \\ 
 \end{tabular}
 }
 \footnotetext[1]{TODO} % This word count was computed by \texttt{detex diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w} }
@@ -171,7 +212,7 @@ ROWCUS \cite{rowcus}, a company based in Switzerland, has attempted to solve the
 
 %It is essential to declare the starting point. This states any existing codebase or materials that your project builds on. The text here can commonly be identical to the text in your proposal, but it may enlarge on it or report variations. For instance, the true starting point may have turned out to be different from that declared in the proposal and such discrepancies must be explained.
 \newchapter{2}{Preparation}
-
+\setcounter{figure}{0}
 \section{Starting Point} 
 I had no previous hands-on experience with microcontrollers, although I had worked with single board computers. I therefore dedicated a small amount of time over the summer to learning about microcontrollers and MicroPython, completing basic tasks such as flashing an onboard LED. While this was useful, my project is implemented in CircuitPython, so it would have been more beneficial to have explored this. \\ \\
 My project implemented a modified version of the Epidemic routing protocol. I had some experience with networking and routing protocols prior to starting this project. This was composed from the Part IB Networking module and two weeks' work during an internship on a MANET with different routing protocol, much further abstracted than this project. During the course of my project I took the Part II Principles of Communications course, further expanding my knowledge. 
@@ -262,6 +303,7 @@ While these routing protocols often have mechanisms to minimise the probability 
 
 %%% IMPLEMENTATION %%%
 \newchapter{3}{Implementation}
+\setcounter{figure}{0}
 % talk about the end of each stage where you tested the components 
 
 %This chapter should describe what was actually produced: the programs which were written, the hardware which was built or the theory which was developed. Any design strategies that looked ahead to the testing stage should be described in order to demonstrate a professional approach was taken.
@@ -370,24 +412,214 @@ RFM69 grey area - built off others' but I expanded with fixed length packets?
 
 %%% EVALUATION %%%
 \newchapter{4}{Evaluation}
-The majority of the evaluation was conducted according to the plan in Appendix B [\hyperref[appendixB]{Appendix B}]. It was split into a quantitative evaluation of the MANET then a more qualitative evaluation of the whole system.
+\setcounter{figure}{0}
+The majority of the evaluation was conducted according to the plan in Appendix B [\hyperref[appendixB]{Appendix B}]. It was split into a performance evaluation of the MANET then a more qualitative evaluation of the whole system.
 
 \section{Evaluating the MANET}
-Break this down into smaller sections -- heavily quanitfy your results
+The evaluation of the MANET was designed to mirror the evaluation performed by Vahdat and Becker's paper, with the key difference that my project was implemented in hardware, while theirs was virtualised.
+% todo - add more comparisons
+
+
+\subsection{Latency}
+The latency of the system was as the time between a node being generated at node A and received at node B. Node B was then moved further away from node A, eventually moving to 500m away with an interim node, C. The distances between nodes were 0, 10, 100, 250 and 500 metres. 60 messages were generated by A at each distance. Figure 4.1 shows the setup, with radio connections between nodes marked in blue. \\ \\ 
+\begin{figurehere}
+\begin{center}
+\begin{tikzpicture}[
+roundnode/.style={circle, draw=black, very thick, minimum size=20mm},
+squarednode/.style={circle, draw=black, very thick, minimum size=20mm},
+]
+%Nodes
+\node[squarednode]      (maintopic)                              {\Huge A};
+\node[roundnode]        (uppercircle)       [right =3cm  of maintopic] {\Huge B};
+
+%Lines
+\draw[line width=0.5mm, blue] (maintopic) -- (uppercircle);
+\end{tikzpicture} \\
+\begin{tikzpicture}[
+roundnode/.style={circle, draw=black, very thick, minimum size=20mm},
+squarednode/.style={circle, draw=black, very thick, minimum size=20mm},
+morenode/.style={circle, draw=black, very thick, minimum size=20mm},
+]
+%Nodes
+\node[squarednode]      (maintopic)                              {\Huge A};
+\node[morenode]        (morenode)       [right =3cm  of maintopic] {\Huge C};
+\node[roundnode]        (uppercircle)       [right =3cm  of morenode] {\Huge B};
+
+%Lines
+\draw[line width=0.5mm, blue] (maintopic) -- (morenode);
+\draw[line width=0.5mm, blue] (morenode) -- (uppercircle);
+\end{tikzpicture}
+\end{center}
+\caption{The network used for latency testing}
+\end{figurehere}
+
+
+
+Figure 4.2 shows the percentage of packets delivered over time. Figure 4.3 breaks down the data behind this, showing the times that each packet arrived at each distance. It is unsurprising to find that the charts for 0 and 10 metres differ little, with an average delivery time of 15.0 and 15.7 seconds respectively. The 100 metre interval follows a similar pattern. There is then a significant drop off when the distance is increased to 250 and 500 metres, likely because more than one hop needed to be used to move messages from one node to another. There is a significant increase in the standard deviation, due to the increased variability from passing messages over multiple nodes. \\ \\
+%TODO relate to the speed of rowing boats being 
+\begin{figure}
+\begin{center}
+\input{percentages.pgf}
+\end{center}
+\caption{The percentage of packets delivered with time}
+\end{figure}
+\begin{figure}
+\begin{center}
+\input{distanceIntervals.pgf}
+\end{center}
+\caption{The time taken to deliver messages over distance intervals}
+\end{figure}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{ |c|c|c|c|c| } 
+\hline
+Distance & Average Delivery (seconds) & Standard Deviation \\ 
+\hline
+0 & 15.045454545454545 & 13.795510708287654 \\ 
+\hline
+10 & 15.703125 & 16.1986493336443 \\ 
+\hline
+100 & 34.91428571428571 & 37.96605358066329 \\ 
+\hline
+250 & 151.74137931034483 & 126.72064855622898 \\ 
+\hline
+500 & 233.35714285714286 & 138.67941300653365 \\ 
+\hline
+\end{tabular}
+\end{center}
+\caption{Average delivery and standard deviation in seconds}
+\end{table} 
+
+\FloatBarrier
+
+\subsection{Bandwidth}
+Testing the bandwidth of the system was done with the aim of working out how many messages the system can cope with. In reality, it is unlikely the MANET will need to process as many messages as in this test. Bandwidth testing was conducted between two nodes, with one node generating messages at a set rate and broadcasting them to the other node. Messages were generated at an increasing rate until the number of messages received by node B plateaued. Figure 4.4 shows the setup for this test. \\ \\
+As shown in figure 4.5, the MANET has a relatively low bandwidth, with plateauing at around 0.35 messages transferred on average each second, equivalent to taking around 3 seconds to pass one message from node to node. To improve the bandwidth of the system, I could decrease the time between discovery (`hello') packets sent by each node. 
+
+\begin{figurehere}
+\begin{center}
+\begin{tikzpicture}[
+roundnode/.style={circle, draw=black, very thick, minimum size=17mm},
+squarednode/.style={circle, draw=black, very thick, minimum size=17mm},
+]
+%Nodes
+\node[squarednode]      (maintopic)                              {\Huge A};
+\node[roundnode]        (uppercircle)       [right =3cm  of maintopic] {\Huge B};
+
+%Lines
+\draw[line width=0.5mm, blue] (maintopic) -- (uppercircle);
+\end{tikzpicture} 
+\end{center}
+\caption{The network used for bandwidth testing}
+\end{figurehere}
+
+\begin{figure}
+\begin{center}
+\input{bandwidth.pgf}
+\end{center}
+\caption{The bandwidth of a fully connected two node network with an increasing number of messages generated each second}
+\end{figure}
+
+\subsection{Percentage of Packets Delivered}
+Throughout testing, 100\% of packets were delivered. This is best illustrated by the test with five nodes. To run this test, I recruited four volunteers to move around a large field, approximately 500 x 500 metre area. This allowed nodes to move in and out of range of each other. Each node had a 0.1 probability of generating a message, with up to 30 messages being generated. The nodes moved around this test area for approximately 15 minutes. This is a reduced version of the evaluation performed in Vahdat and Becker's paper \cite{epidemic}, where 50 nodes were simulated within a 1500 x 300 metre area. \\
+While this test was run three times, only two of the results can be used due to a loose connection meaning a node did not work on the second run. In both these tests, 100\% of packets were delivered.
+% TODO perhpas do a perentage delivered over time or something? IDK 
+
+% TODO you can definately do better on this evaluation than this...
+
+\subsection{Partition Testing}
+Partition testing was conducted with four nodes in two pairs. Each pair was set up to communicate with each other, then brought into range of the other pair. Figure 4.6 shows the starting (above) and finishing (below) states of the network. 
+\begin{figurehere}
+\begin{center}
+\begin{tikzpicture}[
+a/.style={circle, draw=black, very thick, minimum size=17mm},
+b/.style={circle, draw=black, very thick, minimum size=17mm},
+c/.style={circle, draw=black, very thick, minimum size=17mm},
+d/.style={circle, draw=black, very thick, minimum size=17mm},
+]
+%Nodes
+\node[a] (aa) {\Huge A};
+\node[b] (bb) [below=2cm of aa] {\Huge B};
+\node[c] (cc) [right=5cm of aa] {\Huge C};
+\node[d] (dd) [right=5cm of bb] {\Huge D};
+
+%Lines
+\draw[line width=0.5mm, blue] (aa) -- (bb);
+\draw[line width=0.5mm, blue] (cc) -- (dd);
+\end{tikzpicture}  \\
+
+
+
+\begin{tikzpicture}[
+a/.style={circle, draw=black, very thick, minimum size=17mm},
+b/.style={circle, draw=black, very thick, minimum size=17mm},
+c/.style={circle, draw=black, very thick, minimum size=17mm},
+d/.style={circle, draw=black, very thick, minimum size=17mm},
+]
+%Nodes
+\node[a] (aa) {\Huge A};
+\node[b] (bb) [below=2cm of aa] {\Huge B};
+\node[c] (cc) [right=2cm of aa] {\Huge C};
+\node[d] (dd) [right=2cm of bb] {\Huge D};
+
+%Lines
+\draw[line width=0.5mm, blue] (aa) -- (bb);
+\draw[line width=0.5mm, blue] (aa) -- (cc);
+\draw[line width=0.5mm, blue] (aa) -- (dd);
+\draw[line width=0.5mm, blue] (bb) -- (dd);
+\draw[line width=0.5mm, blue] (bb) -- (cc);
+\draw[line width=0.5mm, blue] (cc) -- (dd);
+\end{tikzpicture} 
+\end{center}
+\caption{The network used for latency testing}
+\end{figurehere}
+
+\subsubsection{Asymmetric}
+Asymmetric partition testing consisted of the \{A, B\} pair holding 30 messages before partition. After partition, the \{C, D\} pair had all messages. Over 2 partitions, the average time taken for all nodes in the network to hold the same messages was 106.5 seconds. Given the approximate speed of a rowing boat is 15km/h, and the radio range is 500m, this would allow two boats to be in range for 120 seconds, just enough time for the maximum number of messages to be transferred between two boats.  \\ \\
+\begin{table}
+\begin{center}
+\begin{tabular}{ |c|c|c| } 
+\hline
+Run & Time for Node C (seconds) & Time for Node D (seconds) \\ 
+\hline
+1 & 50 & 135 \\ 
+\hline
+2 & 78 & 44  \\ 
+\hline
+\end{tabular}
+\end{center}
+\caption{Time taken for all messages to be received in asymmetric partitions}
+\end{table}  
+
+\subsubsection{Symmetric}
+Symmetric evaluation of the network gave the two pairs of nodes different sets of messages.
+The average time for nodes to receive all 30 messages was 130 seconds, 23.5 seconds greater than an asymmetric partition.
+\begin{table}
+\begin{center}
+\begin{tabular}{ |c|c|c|c| } 
+\hline
+Node A & Node B & Node C & Node D \\ 
+\hline
+87 & 159 & 145 & 129 \\ 
+\hline
+\end{tabular}
+\end{center}
+\caption{Time taken in seconds for all messages to be received in symmetric partitions}
+\end{table}  % TODO the four node partition nonsense
 
 \section{Evaluating the System}
-There are some limitations to the system due to its design. The format of the packets has meant that there can be at most 255 nodes in the system, as there are two bytes reserved for the node address and address 0 is reserved for broadcast. The number of obstacles stored in memory is limited by the available memory on the chip, and at 2Mb this is effectively infinite. However, the message buffer is limited at 30. This limit on the number of messages a node can propagate is placed there to allow the unique ID for each message to fit into a single 64 byte packet, but means that the maximum number of obstacles a node can pass to a neighbour is 30.
 \subsection{On Water} 
-The water evaluation was conducted last. I was concerned that there might be an accident and the project become water damaged or fall into the river, so all trials before this were conducted on land. The system did work on rowing boats, notifying rowers of other boats with the technology and of registered obstacles. \\ \\
-I examined the GPS tracking on water as I was concerned that bridges or similar obstructions to the sky would interfere with the GPS tracking on each boat. This would be of particular concern as a bridge could be considered an obstacle. Figure TODO shows the GPS trace underneath a bridge. While the error caused by the bridge is minimal, it could be improved by applying a Gaussian or Kalman filter, as done in other GPS tracking for rowing boats. An issue this experiment inadvertently highlighted is that the trace does not appear to be accurate, showing the boat moving along the ground at some points. When comparing this to the GPS points taken in later experiments, this does not seem to be a systematic error, just a random error in the placement of the GPS . 
+The water evaluation was conducted last. I was concerned that there might be an accident and the project become water damaged or fall into the river, so all trials before this were conducted on land. The system did work on rowing boats, notifying rowers of other boats with the technology and of registered obstacles. \\
+I examined the GPS tracking on water as I was concerned that bridges or similar obstructions to the sky would interfere with the GPS tracking on each boat. This would be of particular concern as a bridge could be considered an obstacle. Figure 4.7 shows the GPS trace underneath a bridge. While the error caused by the bridge is minimal, it could be improved by applying a Gaussian or Kalman filter, as done in other GPS tracking for rowing boats. An issue this experiment inadvertently highlighted is that the trace does not appear to be accurate, showing the boat moving along the ground at some points. When comparing this to the GPS points taken in later experiments, this does not seem to be a systematic error, instead a random error in the placement of the GPS in that outing. This suggests that an obstacle may be recorded in the wrong place due to an inaccurate GPS reading.
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.3]{bridgeGPS.jpg}
 \end{center}
 \caption{The GPS tracking taken by a node, shown on Google Maps \cite{googlemapsgeneral}}
 \end{figure}
-To evaluate the system I went rowing with a volunteer, each of us with a device on our boat. We ensured that the boats were notified when they were approaching each other. We found this notification to come at around 10 metres between boats. However, when the boats are rowing alongside one another, with no chance of collision, they continually alert the user to the other boat. (N.B. Matthew -- I am currently trying to add a unique ID for each obstacle so this does not occur :) )\\ \\ 
-The nodes also transfer knowledge of obstacles between them. To test this, one boat went further up the river and registered a `new obstacle' at a pre-agreed point (opposite the Goldie Boat House) by pressing the button on the device. The first boat then returned to the second, who rowed towards the potential obstacle. This gave a time delay between the rowers, showing that messages are propagated through the network to warn other boats of the obstacles. The node warned the other boat of the obstacle. 
+To evaluate the system I went rowing with a volunteer, each of us with a device on our boat. We ensured that the boats were notified when they were approaching each other. We found this notification to come at around 10 metres between boats. However, when the boats are rowing alongside one another, with no chance of collision, they continually alert the user to the other boat. (N.B. Matthew -- I am currently trying to add a unique ID for each obstacle so this does not occur :) )\\
+The nodes also transfer knowledge of obstacles between them. To test this, one boat went further up the river and registered a `new obstacle' at a pre-agreed point (shown in figure 4.8, opposite the Goldie Boat House) by pressing the button on the device. The first boat then returned to the second, who rowed towards the potential obstacle. This gave a time delay between the rowers, showing that messages are propagated through the network to warn other boats of the obstacles. The node warned the other boat of the obstacle. 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.3]{obstacle.jpg}
@@ -398,37 +630,34 @@ The nodes also transfer knowledge of obstacles between them. To test this, one b
 % TODO also update the evaluation plan with the correct sizes (not 20m) and what you actually did
 
 \subsection{Qualitative Evaluation}
-For a more qualitative evaluation, I surveyed the rower in the other single. While their overall impression was positive, the survey highlighted extra work that needed to be done to the user interface. They pointed out that the buzzer, even if the bug for notifying users about boats they are rowing alongside is fixed, may be a violation of rules about noise during certain times, so it could include another button to turn off the buzzer if needed.
+For a qualitative evaluation, I surveyed the rower in the other single. While their overall impression was positive, the survey highlighted extra work that needed to be done to the user interface. They pointed out that the buzzer, even if the bug for notifying users about boats they are rowing alongside is fixed, may be a violation of rules about noise during certain times, so it could include another button to turn off the buzzer if needed. \\
+There are some limitations to the system due to its design. The format of the packets has meant that there can be at most 255 nodes in the system, as there are two bytes reserved for the node address and address 0 is reserved for broadcast. The number of obstacles stored in memory is limited by the available memory on the chip, and at 2Mb this is effectively infinite. However, the message buffer is limited at 30. This limit on the number of messages a node can propagate is placed there to allow the unique ID for each message to fit into a single 64 byte packet, but means that the maximum number of obstacles a node can pass to a neighbour is 30.
 
 %%% CONCLUSION %%%
 \newchapter{5}{Conclusion}
-What did this project do? The project met and exceeded the success criteria.
+This dissertation has presented a system to help prevent crashes in rowing boats. The system propagates knowledge about obstacles through a network of rowing boats using the Epidemic routing protocol.
 
-\section{Achievements}
+\section{Summary}
+In the introduction, I highlighted the issues around crashes in rowing boats and the need for a system to help prevent such crashes. This dissertation has presented such a system, propagating knowledge about obstacles through a network of rowing boats using the Epidemic routing protocol. 
+
+The project met and exceeded the success criteria.
+
+
 What have you done?
 In this project I have 
 
-The evaluation shows that. This project is weak in. 
+The evaluation shows that. This project is weak in. Low bandwidth
 
-\section{Learning}
-Aka lessons learnt / what I would do differently last time
-Probably spent too much time researching BATMAN when it didn't really fit the parameters
-Hardware is hard Just a stupid amount about radios and microcontrollers
+\section{Reflections}
+The preparation chapter lays out the choices I made with respect to the software development methodology, tools and programming language. These choices were all found to be effective in deigning and building the system. It was particularly helpful to have a plan that split the project into stages with defined deliverables at each stage. \\ \\ 
+While the research phase is designed to cover broad parts of the area in order to find the best solution to a problem, I spent too much time researching various potential routing protocols. With the benefit of hindsight, it would have been beneficial to settle on the Epidemic routing protocol earlier in the process. \\ \\
+There were both upsides and downsides to implementing the project in hardware. It taught me huge amounts 
+about serial communication protocols and other low level implementation details. It also allowed for a more holistic approach to the evaluation, using the system on rowing boats. However, it is undeniable that the low level details made some aspects of the project more difficult, particularly when it came to debugging a problem. For instance, I had soldered an antenna to a radio module in such a way that caused errors in the received packets, a problem I did not diagnose until I swapped the module for another one. 
 
 \section{Future Work}
-I laid out several extension tasks. Some of them were drawn from my research into networking protocols other than Epidemic. For instance, I wanted to use a metric for transmission quality -- received strength signal indicator (RSSI) in radio communication -- to influence whether an anti-entropy session was initiated. Additionally, the GPS location could be used, either by only contacting nearby nodes to increase the probability that an anti-entropy session is successful, or prioritising sending messages about new obstacles to nodes that are near these obstacles. 
-Encryption 
-The success of my project will be defined by completion of the core criteria listed above. If there is
-time, I have set further challenges:
-1. Case studies on the path and timing of individual packets are performed
-2. The network is further evaluated by examining the power consumption of individual nodes as
-a proxy metric for traffic passing through a node
-3. The User Interface of the device is evaluated
-4. The application layer is further enhanced, using heuristics and extra data such as angle of
-attack from GPS and combining sensor data
-5. The routing layer is further enhanced by passing additional data, such as location awareness,
-to the routing protocol
-
+There is future work that could be conducted in relation to both the networking and application components of the project. \\ \\
+Some of the networking extensions were drawn from my research into networking protocols other than Epidemic. For instance, as in GPSR, the GPS location could be used, either by only contacting nearby nodes to increase the probability that an anti-entropy session is successful. The location could also be used to prioritise sending messages about new obstacles to nodes that are near these obstacles.  A metric for transmission quality, in radio communication, the received strength signal indicator (RSSI), to influence whether an anti-entropy session was initiated. \\ \\ 
+The application component could be further improved by taking the direction of the rowing boat into account when notifying the user of an obstacle. The GPS could be further improved by applying a Guassian or Kalman filter to reduce the noise in the location, particularly under bridges. Additional improvements could be made from the suggestions of users, such as a switch to mute the buzzer. 
 
 
 %%% BIBLIOGRAPHY  %%%

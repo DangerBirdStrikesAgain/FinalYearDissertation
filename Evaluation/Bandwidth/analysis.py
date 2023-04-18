@@ -18,117 +18,125 @@ def timeDifference(time1, time2):
 
     return t1-t2 
 
-B1a = pandas.read_csv('B1a.csv')
+
+
+results = []
+
+B1 = pandas.read_csv('B1.csv')
 # Only have ones about messages i.e. logging event number 3
-B1a = B1a[B1a['3']==3]
-timeTotal = timeDifference(B1a['1'].iloc[-1], B1a['1'].iloc[0])
+B1 = B1[B1['3']==3]
+timeTotal = timeDifference(B1['1'].iloc[-1], B1['1'].iloc[0])
 # Calculate the total number of messages transferred 
 # Get rid of anything that isn't messages
-B1a.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
+B1.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
 msgs = []
-for label, content in B1a.items():
+for label, content in B1.items():
+    for item in content:
+        if not (item in msgs) and not (item != item):
+            msgs.append(item)
+
+
+print(f"Bandwidth is {len(msgs)/timeTotal} per second")
+results.append(len(msgs)/timeTotal)
+
+
+
+B1p5 = pandas.read_csv('B1p5.csv')
+# Only have ones about messages i.e. logging event number 3
+B1p5 = B1p5[B1p5['3']==3]
+timeTotal = timeDifference(B1p5['1'].iloc[-1], B1p5['1'].iloc[0])
+# Calculate the total number of messages transferred 
+# Get rid of anything that isn't messages
+B1p5.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
+msgs = []
+for label, content in B1p5.items():
     for item in content:
         if not (item in msgs) and not (item != item):
             msgs.append(item)
 print(f"Bandwidth is {len(msgs)/timeTotal} per second")
+results.append(len(msgs)/timeTotal)
 
 
 
-
-B1b = pandas.read_csv('B1b.csv')
+B2 = pandas.read_csv('B2.csv')
 # Only have ones about messages i.e. logging event number 3
-B1b = B1b[B1b['3']==3]
-timeTotal = timeDifference(B1b['1'].iloc[-1], B1b['1'].iloc[0])
+B2 = B2[B2['3']==3]
+timeTotal = timeDifference(B2['1'].iloc[-1], B2['1'].iloc[0])
 # Calculate the total number of messages transferred 
 # Get rid of anything that isn't messages
-B1b.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
+B2.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
 msgs = []
-for label, content in B1b.items():
+for label, content in B2.items():
     for item in content:
         if not (item in msgs) and not (item != item):
             msgs.append(item)
 print(f"Bandwidth is {len(msgs)/timeTotal} per second")
+results.append(len(msgs)/timeTotal)
 
 
-
-B1c = pandas.read_csv('B1c.csv')
+B2p5 = pandas.read_csv('B2p5.csv')
 # Only have ones about messages i.e. logging event number 3
-B1c = B1c[B1c['3']==3]
-timeTotal = timeDifference(B1c['1'].iloc[-1], B1c['1'].iloc[0])
+B2p5 = B2p5[B2p5['3']==3]
+timeTotal = timeDifference(B2p5['1'].iloc[-1], B2p5['1'].iloc[0])
 # Calculate the total number of messages transferred 
 # Get rid of anything that isn't messages
-B1c.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
+B2p5.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
 msgs = []
-for label, content in B1c.items():
+for label, content in B2p5.items():
     for item in content:
         if not (item in msgs) and not (item != item):
             msgs.append(item)
 print(f"Bandwidth is {len(msgs)/timeTotal} per second")
+results.append(len(msgs)/timeTotal)
 
 
-
-B2a = pandas.read_csv('B2a.csv')
+B3 = pandas.read_csv('B3.csv')
 # Only have ones about messages i.e. logging event number 3
-B2a = B2a[B2a['3']==3]
-timeTotal = timeDifference(B2a['1'].iloc[-1], B2a['1'].iloc[0])
+B3 = B3[B3['3']==3]
+timeTotal = timeDifference(B3['1'].iloc[-1], B3['1'].iloc[0])
 # Calculate the total number of messages transferred 
 # Get rid of anything that isn't messages
-B2a.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
+B3.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
 msgs = []
-for label, content in B2a.items():
+for label, content in B3.items():
     for item in content:
         if not (item in msgs) and not (item != item):
             msgs.append(item)
 print(f"Bandwidth is {len(msgs)/timeTotal} per second")
+results.append(len(msgs)/timeTotal)
 
 
-
-B2b = pandas.read_csv('B2b.csv')
+B4 = pandas.read_csv('B4.csv')
 # Only have ones about messages i.e. logging event number 3
-B2b = B2b[B2b['3']==3]
-timeTotal = timeDifference(B2b['1'].iloc[-1], B2b['1'].iloc[0])
+B4 = B4[B4['3']==3]
+timeTotal = timeDifference(B4['1'].iloc[-1], B4['1'].iloc[0])
 # Calculate the total number of messages transferred 
 # Get rid of anything that isn't messages
-B2b.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
+B4.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
 msgs = []
-for label, content in B2b.items():
+for label, content in B4.items():
     for item in content:
         if not (item in msgs) and not (item != item):
             msgs.append(item)
 print(f"Bandwidth is {len(msgs)/timeTotal} per second")
+results.append(len(msgs)/timeTotal)
 
 
-
-B2c = pandas.read_csv('B2c.csv')
+B5 = pandas.read_csv('B5.csv')
 # Only have ones about messages i.e. logging event number 3
-B2c = B2c[B2c['3']==3]
-timeTotal = timeDifference(B2c['1'].iloc[-1], B2c['1'].iloc[0])
+B5 = B5[B5['3']==3]
+timeTotal = timeDifference(B5['1'].iloc[-1], B5['1'].iloc[0])
 # Calculate the total number of messages transferred 
 # Get rid of anything that isn't messages
-B2c.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
+B5.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
 msgs = []
-for label, content in B2c.items():
+for label, content in B5.items():
     for item in content:
         if not (item in msgs) and not (item != item):
             msgs.append(item)
 print(f"Bandwidth is {len(msgs)/timeTotal} per second")
-
-
-B4a = pandas.read_csv('B4a.csv')
-# Only have ones about messages i.e. logging event number 3
-B4a = B4a[B4a['3']==3]
-timeTotal = timeDifference(B4a['1'].iloc[-1], B4a['1'].iloc[0])
-# Calculate the total number of messages transferred 
-# Get rid of anything that isn't messages
-B4a.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
-msgs = []
-for label, content in B4a.items():
-    for item in content:
-        if not (item in msgs) and not (item != item):
-            msgs.append(item)
-print(f"Bandwidth is {len(msgs)/timeTotal} per second")
+results.append(len(msgs)/timeTotal)
 
 
 
-
-
+print(results)

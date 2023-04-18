@@ -1047,6 +1047,10 @@ while True:
         count +=1
         messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
         count+=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count +=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count+=1
         while len(messages)>30:
             messages = removeLowestMessage(messages)
             
