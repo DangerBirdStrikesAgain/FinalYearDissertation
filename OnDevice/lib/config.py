@@ -90,3 +90,11 @@ The number of attempts that should be made to send packets
 TS_REENTRIES = 3
 DATA_REENTRIES = 8
 ACK_REENTRIES = 3
+
+
+
+"""
+GPS 
+Values for the specification of the GPS
+"""
+GPS_DISTANCE = 30
