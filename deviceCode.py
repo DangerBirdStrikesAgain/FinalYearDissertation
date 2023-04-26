@@ -338,14 +338,13 @@ def haversine(pointALat, pointALong, pointBLat, pointBLong):
 
     # Convert to radians
     pointALat, pointALong, pointBLat, pointBLong = map(radians, [pointALat, pointALong, pointBLat, pointBLong])
-
     dlon = pointBLong - pointALong 
     dlat = pointBLat - pointALat 
     a = sin(dlat/2)**2 + cos(pointALat) * cos(pointBLat) * sin(dlon/2)**2
     c = 2 * asin(sqrt(a)) 
     # Radius of the earth in metres so result is in meters
     r = 6371009
-    return c * r
+    return (c*r)
 
 
 ### PACKET FUNCTIONS ###
@@ -936,6 +935,17 @@ cs = digitalio.DigitalInOut(board.GP1)
 reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
+# Initialise GPS
+uart = busio.UART(board.GP4, board.GP5, baudrate=9600, timeout=10)
+gps = adafruit_gps.GPS(uart, debug=False)  
+
+# Initialise the button
+button = digitalio.DigitalInOut(board.GP15)
+button.switch_to_input(pull=digitalio.Pull.DOWN)
+
+# Initialise the indicators (buzzer / LED)
+indicator = digitalio.DigitalInOut(board.GP14)
+indicator.direction = digitalio.Direction.OUTPUT
 
 # List of nodes we have contacted recently
 contacted: dict[int, str]
@@ -946,6 +956,8 @@ contacted = {}
 # {key : [GPS1, GPS2, TTL]}
 messages: dict[int, list[int]]
 messages = {}
+
+
 
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
@@ -997,7 +1009,6 @@ while True:
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
-    # TODO get rid of config.USECONTACTED
     if config.USECONTACTED and timers.contacted():
         contacted = decrementContacted(contacted)
 

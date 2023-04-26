@@ -71,7 +71,7 @@ RECEIVE_TIMEOUT = 0.5
 # How often to transmit a new hello message 
 HELLO_TIMER = 5.0
 # How long to remain in quiet mode when waiting for an ACK 
-QUIET_STATE_TIMER = 20.0
+QUIET_STATE_TIMER = 15.0
 # How often to decrement the contacted / do not contact list
 CONTACTED_TIMER  = 20.0
 # How many times an entry in contacted / do not contact should be decremented 

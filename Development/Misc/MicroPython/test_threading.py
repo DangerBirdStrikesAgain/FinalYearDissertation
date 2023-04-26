@@ -6,7 +6,7 @@ def core0():
     global previous
     global now
     
-    print("Core 0 got there first..!")
+    print("Core 0!")
     
     while True:
         lock.acquire()
@@ -28,7 +28,7 @@ def core1():
     global previous
     global now
     
-    print("Core 1 got there first..!")
+    print("Core 1!")
     
     while True:
         lock.acquire()

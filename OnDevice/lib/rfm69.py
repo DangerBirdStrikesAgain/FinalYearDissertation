@@ -262,7 +262,7 @@ class RFM69:
         self.afc_bw_exponent = 0b000
         if fixed_length:
             self.packet_format = 0  
-            # Set the payload length register here
+            # TODO - set the payload length register here
         else:
             self.packet_format = 1 # Variable length.
         

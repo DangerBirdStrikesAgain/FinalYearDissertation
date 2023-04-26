@@ -172,7 +172,7 @@ def getGPS():
     
     return (10.284638, 89.473057)
 
-def getVelocity(oldLocation: int, location: int):
+#def getVelocity(oldLocation: int, location: int):
 
 
 # Configure button 
@@ -193,7 +193,7 @@ while True:
     if timers.GPS():
         oldLocation = location
         location = getGPS()
-        veloity = getVelocity(oldLocation, location)
+        #velocity = getVelocity(oldLocation, location)
         # Check if GPS location is near an obstacle (if yes, flash light or beep / notify user)
 
     if button.value:
