@@ -463,12 +463,16 @@ def decodeMessages(receivedMessages: str) -> dict:
     Assumes the data arrives comes in the form
     key,gpsA,gpsB,TTL\n
 
+    Additionally adds the decoded messages to the obstacles list
+
     Args:
         receivedMessages (str): The string of received messages
 
     Returns: 
         dict: The dictionary of messages, ready to be integrated
     """
+
+    global obstacles
 
     messages={}
 
@@ -477,8 +481,10 @@ def decodeMessages(receivedMessages: str) -> dict:
         if line != "":
             temp = line.split(",")
             # Drops any messages that have been forwarded too many times
-            if len(temp)!=1 and int(temp[3])!=0:
-                messages.update({int(temp[0]) : [float(temp[1]),float(temp[2]),(int(temp[3])-1)]})
+            if len(temp)!=1:
+                obstacles.append([temp[1], temp[2], -1])
+                if int(temp[3])!=0:
+                    messages.update({int(temp[0]) : [float(temp[1]),float(temp[2]),(int(temp[3])-1)]})
     
     return messages
 
@@ -675,7 +681,7 @@ def RTSAntiEntropy(dest: int, messages: dict) -> tuple(bool, dict):
         success, newMessages = RTSGetData(sender=dest, packet = args[4])
 
         if newMessages != {}:
-            # Add them to the obstacles list
+            # Add them to the obstacles list and also decrement by 1 
             messages.update(newMessages)
             while len(messages)>30:
                 messages = removeLowestMessage(messages = messages)
@@ -891,6 +897,7 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
         success, args = CTSSendDataFrames(sender, messagesToSend)
 
     if newMessages != {}:
+        # TODO I think we should decrement the TTL here? 
         messages.update(newMessages)
         while len(messages)>30:
             messages = removeLowestMessage(messages = messages)
@@ -986,9 +993,6 @@ def newMessage(loc, priority = False):
     messageCount += 1
     contacted = {}
 
-    
-
-
 
 def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
     """"
@@ -1007,6 +1011,7 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
             del(contacted[key])
     
     return contacted
+
 
 def decrementObstacles():
     """
@@ -1027,7 +1032,6 @@ def decrementObstacles():
             ob[2]+=-1
 
 
-
 def alert():
     """
     A function to toggle the indicators - flash LED and bleep buzzer
@@ -1037,9 +1041,8 @@ def alert():
     Returns:
         None
     """
-
     global indicator
-    print("alert!!")
+    
     for x in range (0, 3):
         indicator.value = True
         time.sleep(0.5)
@@ -1110,7 +1113,10 @@ while True:
     elif state == config.RECEIVED_HELLO:
         sender = args[2]
         packet = args[4]
-        # split on , then take 0 and 1 and add to obstacles
+        # split on , then take 0 and 1 and add to obstacles with a TTL of 1 so expires soon
+        newObstacle = packet.decode("utf-8")
+        newObstacle = newObstacle.split(",")
+        obstacles.append([newObstacle[0], newObstacle[1], 1])
         if sender not in contacted:
             if sender>config.ADDRESS:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
