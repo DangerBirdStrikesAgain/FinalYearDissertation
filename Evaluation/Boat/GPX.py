@@ -18,7 +18,7 @@ import adafruit_gps
 
 import storage
 
-storage.remount("/", False)
+#storage.remount("/", False)
 
 
 uart = busio.UART(board.GP12, board.GP13, baudrate=9600, timeout=10)

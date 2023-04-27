@@ -26,10 +26,11 @@ import rfm69
 import board
 import time
 import random
-from busio import SPI
+from busio import SPI, UART
 import digitalio
 import supervisor
 from math import radians, cos, sin, asin, sqrt
+import adafruit_gps
 
 
 ### TIMERS ###
@@ -189,6 +190,7 @@ class Logging:
     3   -   Logging messages
     4   -   Logging error
     5   -   Logging GPS location
+    6   -   Logging an alert
     """
 
     def __init__(self):
@@ -306,23 +308,58 @@ class Logging:
         self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},5,{function},{gps}\n")
 
 
+    def logAlert(self, gps: List[float]):
+        """
+        Event information
+            Function, GPS location
+        """
+        global timers
+
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},6,{gps},\n")
+
 ### GPS ###
 def getGPS():
     """
-    TODO (will be moved up)
-    """
+    Finds the GPS location
     
-    return (10.284638, 89.473057)
+    Args:
+        None
+    Returns:
+        List (float): The latitude and longitude
+    """
+    global gps
+    gps.update()
+    if gps.has_fix[0]:
+        lat = f"{gps.latitude_degrees}.{str(gps.latitude_minutes).replace(".", "")}" 
+        long = f"{gps.longitude_degrees}.{str(gps.longitude_minutes).replace(".", "")}"
+        return([float(lat), float(long)])
+    return([0, 0])
 
 
 def GPSTime():
     """
     Returns the time from GPS
+    
+    Args:
+        None
+    Returns:
+        string: The time in format hh.mm.ss
     """
-    return("0000")
+    global gps
+    if gps.timestamp_utc is not None:
+        return (f"{gps.timestamp_utc.tm_hour}.{gps.timestamp_utc.tm_min}.{gps.timestamp_utc.tm_sec}")
+    else:
+        return "00.00.00"
 
 
-def haversine(pointALat, pointALong, pointBLat, pointBLong):
+def haversine(pointA, pointB):
     """
     Calculates the distance between two points on the Earth's surface using the haversine formula
 
@@ -335,6 +372,11 @@ def haversine(pointALat, pointALong, pointBLat, pointBLong):
     Returns:
         float: The distance in meters between the two points
     """
+
+    pointALat = pointA[0]
+    pointALong = pointA[1]
+    pointBLat = pointB[0]
+    pointBLong = pointB[1]
 
     # Convert to radians
     pointALat, pointALong, pointBLat, pointBLong = map(radians, [pointALat, pointALong, pointBLat, pointBLong])
@@ -362,7 +404,7 @@ def sendHello() -> bool:
     global logging
     gps = getGPS()
     logging.logPacket("sendHello", config.ADDRESS, "", config.HELLO)
-    return rfm69.send(data = bytes((str(gps[0])+"," + str(gps[1])), "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
+    return rfm69.send(data = bytes((str(gps[0])+"," + str(gps[1])+","), "utf-8"), destination = config.BROADCAST, packetType = config.HELLO)
 
 
 def sendRTS(dest: int, messages: dict) -> bool:
@@ -390,16 +432,18 @@ def sendRTS(dest: int, messages: dict) -> bool:
     return rfm69.send(data, destination = dest, packetType = config.RTS)
 
 
-def removeLowestMessage(messages: dict) -> dict:
+def removeLowestMessage():
     """
     Removes the item in the messages dict with the lowest TTL 
 
     Args: 
-        messages (dict): The dictionary of messages
+        None
 
     Returns:
-        dict: The dictionary of messages, with the message with the lowest TTL removed
+        None
     """
+
+    global messages
 
     messagesList = list(messages.items())
     lowest = messagesList[0][0]
@@ -411,7 +455,6 @@ def removeLowestMessage(messages: dict) -> dict:
             lowest = item[0]
 
     del(messages[lowest])
-    return messages
 
 
 def decodeMessages(receivedMessages: str) -> dict:
@@ -790,6 +833,7 @@ def sendCTS(sender: int, messages: dict):
 
     # Iterate through the keys to generate byte array of the keys to send to the 
     for key in messages:
+        # Push back two bytes (length of a key) and or with new key - same as concatenating key to the data
         data = data << 16 | key
     
     data = data.to_bytes(len(messages)*2, "utf_8")
@@ -908,6 +952,42 @@ def handleReceive(params: tuple[any]) -> int:
     else:
         logging.logError(("handleReceive" , f"handleReceive was called in state: {str(state)}"))
         return config.LISTEN
+                
+
+def newMessage(loc, priority = False):
+    """
+    Generates a new message with obstacle location loc
+    
+    Args:
+        loc (list[float]) : The new obstacle location
+        priority (bool) : True if message is high priority, default False
+    Returns: 
+        None
+    """
+
+    global logging
+    global messages
+    global messageCount
+    global contacted
+
+    # Wrap around as limited space
+    if messageCount > (0xff):
+        messageCount = 0
+    
+    key = config.ADDRESS << 16 | messageCount
+    if priority:
+        messages.update({ key : [loc[0], loc[1], config.MESSAGE_IMPORTANT_TTL] })
+    else:
+        messages.update({ key : [loc[0], loc[1], config.MESSAGE_NORMAL_TTL] })
+
+    if len(messages) > 30:
+        messages = removeLowestMessage(messages)
+
+    messageCount += 1
+    contacted = {}
+
+    
+
 
 
 def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
@@ -928,6 +1008,44 @@ def decrementContacted(contacted: dict[int, int]) -> dict[int, int]:
     
     return contacted
 
+def decrementObstacles():
+    """
+    Decrements the TTL for each key in contacted, removing anything with a TTL of 0
+    -1 indicates an obstacle that should not be deleted
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
+    global obstacles
+    for ob in obstacles:
+        if ob[2]==1:
+            obstacles.remove(ob)
+        elif ob[2]!=-1:
+            ob[2]+=-1
+
+
+
+def alert():
+    """
+    A function to toggle the indicators - flash LED and bleep buzzer
+
+    Args:
+        None
+    Returns:
+        None
+    """
+
+    global indicator
+    print("alert!!")
+    for x in range (0, 3):
+        indicator.value = True
+        time.sleep(0.5)
+        indicator.value = False
+        time.sleep(0.5)
+
 
 # Initialise the radio
 spi = SPI(board.GP2, MOSI=board.GP3, MISO=board.GP0)
@@ -936,8 +1054,13 @@ reset = digitalio.DigitalInOut(board.GP4)
 rfm69 = rfm69.RFM69(spi, cs, reset, config.FREQUENCY)
 
 # Initialise GPS
-uart = busio.UART(board.GP4, board.GP5, baudrate=9600, timeout=10)
+uart = UART(board.GP12, board.GP13, baudrate=9600, timeout=10)
 gps = adafruit_gps.GPS(uart, debug=False)  
+
+# Turn on the basic GGA and RMC info
+gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
+gps.send_command(b"PMTK220,1000")
+
 
 # Initialise the button
 button = digitalio.DigitalInOut(board.GP15)
@@ -956,8 +1079,11 @@ contacted = {}
 # {key : [GPS1, GPS2, TTL]}
 messages: dict[int, list[int]]
 messages = {}
+messageCount = 0
 
-
+# [GPS1, GPS2, TTL]
+obstacles: list[list[float]]
+obstacles = [[52.215698, 0.126883, -1]]
 
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
@@ -984,7 +1110,7 @@ while True:
     elif state == config.RECEIVED_HELLO:
         sender = args[2]
         packet = args[4]
-        # TODO something about send to app layer / add to obstacles
+        # split on , then take 0 and 1 and add to obstacles
         if sender not in contacted:
             if sender>config.ADDRESS:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
@@ -1009,10 +1135,29 @@ while True:
 
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
-    if config.USECONTACTED and timers.contacted():
-        contacted = decrementContacted(contacted)
+    if timers.contacted():
+        obstacles = decrementObstacles()
+        if config.USECONTACTED:
+            contacted = decrementContacted(contacted)
 
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
     print(messages)
+
+    # Check to make sure that we're not near any obstacles
+    loc = getGPS()
+    if loc != [0, 0]:    
+        for obstacle in obstacles:
+            if haversine(loc, obstacle) < config.GPS_DISTANCE:
+                logging.logAlert(loc)
+                alert()
+
+    if button.value:
+        loc = getGPS()
+        if loc != [0, 0]:
+            time.sleep(0.5)
+            if button.value:
+                newMessage(loc, priority=True)
+            else:
+                newMessage(loc)

@@ -624,7 +624,7 @@ Rather than trawl through the Blinka library looking for the bugs that caused th
 \subsection{Hardware Choice}
 In order for the MANET and GPS to be useful, a rudimentary user interface was built. The plan initially contained only a buzzer and button. An LED was added to allow the device to be more accessible for those who cannot hear the buzzer. 
 Therefore, a button with a built in LED was chosen. This kept the design of a node simple, so easy to construct, and less likely to get moisture inside the box. The button chosen was also waterproof, the system will get wet in rowing boats. It was a momentary, non-locking, relatively large button to allow the user to effortlessly press it when they encounter an obstacle. \\
-A 10k resistor was chosen to be used in series with the buzzer. This resistance modulates the tone of the buzzer. A brief survey of rowers indicated the eventual tone to be most suitable as a warning. 
+A 2k$\Omega$ resistor was chosen to be used in series with the buzzer. This resistance modulates the tone of the buzzer. A brief survey of rowers indicated the eventual tone to be most suitable as a warning. 
 
 \subsection{Integration}
 The buzzer and LED were wired in parallel to the same pin in the Pico, to allow the flashing and buzzing to occur simultaneously. If the system detected that the current GPS position of the node was within the distance specified by the \verb'GPS_DISTANCE' value in \verb'config.py', using the haversine formula. (TODO - writing diagram) \\ \\ 

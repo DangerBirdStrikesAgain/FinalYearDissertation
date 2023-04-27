@@ -72,16 +72,16 @@ RECEIVE_TIMEOUT = 0.5
 HELLO_TIMER = 5.0
 # How long to remain in quiet mode when waiting for an ACK 
 QUIET_STATE_TIMER = 15.0
-# How often to decrement the contacted / do not contact list
+# How often to decrement the contacted / do not contact list and the obstacles 
 CONTACTED_TIMER  = 20.0
 # How many times an entry in contacted / do not contact should be decremented 
 CONTACTED_LIVES = 3
 # How many times a message should be forwarded 
-MESSAGES_LIVES = 6
-# How many times an obstacle should be decremented before it is removed (5 minutes total) 
-OBSTACLE_TTL = 10
-
-
+MESSAGE_NORMAL_TTL = 6
+# How many times an important message should be forwarded
+MESSAGE_IMPORTANT_TTL = 12
+# How many times an obstacle should be decremented (5 minutes)
+OBSTACLE_TTL = 15
 
 """
 REENTRIES 
@@ -97,4 +97,4 @@ ACK_REENTRIES = 3
 GPS 
 Values for the specification of the GPS
 """
-GPS_DISTANCE = 30
+GPS_DISTANCE = 100
