@@ -59,9 +59,8 @@
 \usepackage{hyperref}				% Hyperlinks package
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor = blue, filecolor=black, urlcolor=blue} 	% Make types of hyperlinks
 \urlstyle{same}
-\usepackage{caption}				% Captions
 \usepackage[none]{hyphenat}			% Stops it splitting words over two lines 
-\usepackage[OT1]{fontenc}		% Font
+
 \renewcommand*\familydefault{\sfdefault} 
 \usepackage{setspace}
 \setstretch{1}
@@ -413,74 +412,69 @@ The Project Proposal laid out a timeline for the creation of the system. For the
 % How are things scheduled on the pico? How is code compiled for the pico? 
 % talk about how the project was implemented, starting with the system design and then implementing in blocks 
 
-
-
-\section{Open Source}
-The system was designed and documented so it could be reproduced by other rowing clubs and used to help prevent crashes. Due to plagiarism rules the repositories and documentation, including README, have not been made available. They will be made public immediately after my graduation. \\
-The repository is licenced under the MIT licence, allowing others to use and expand on the system.
-
 \section{Final System}
-The final system 
+\subsection{Hardware}
+Figure 3.1 shows a wiring diagram of the system, produced on Fritzing software, so others can replicate the system. Figure 3.2 shows a virtual breadboard with the system included, again so others can replicate it. Figure 3.3 is an image of the final system, before it is contained in a box. I have soldered the Raspberry Pi Pico `upside down' so I can more easily view the pin numbers, so while the wiring in Figures 3.2 and 3.3 seems different at first glance, it is all the same. 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.8]{wiring.pdf}
+\end{center}
+\caption{A wiring digram for the system}
+\end{figure}
+
 \begin{figure}[h]
 \begin{center}
 \includegraphics{breadboard.pdf}
 \end{center}
-\caption{An overview of the system}
+\caption{A virtual breadboard with the system}
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics{wiring.pdf}
+\includegraphics[scale=0.15]{insideBox.jpeg}
 \end{center}
-\caption{The wiring of the system}
-\end{figure}
-
-\section{System Design}
-Before design, it was decided the system would identify obstacles using GPS coordinates. The Epidemic routing protocol would be used to propagate obstacles through the network. Users need to be notified of upcoming obstacles and add new obstacles. \\
-From these criteria, the structure of the software to run on each node was designed. The Raspberry Pi Pico uses the RP2040 chip, containing two cores \cite{rp2040}. To make best use of the hardware, application and networking threads were designed to run on each core. Global data structures and concurrency control were designed to pass messages between the two layers and allow both layers access to the GPS. \\
-
-\subsection{Application}
-The application thread was responsible for notifying the user when they are too close to an obstacle and allowing them to add obstacles. The initial state machine is shown in Figure 2.4. %The time to live (TTL) for each obstacle. If the object is permanent, such as a bridge, the TTL is set to $-1$, indicating that it should never be removed. 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[scale=0.5]{appThread.jpg}
-\end{center}
-\caption{(TODO - typeset) The initial state machine for the application thread}
+\caption{The wiring of the final system}
 \end{figure}
 \FloatBarrier
 
-\subsection{Networking}
-%TODO you should talk about the flooding state machine you designed and the similarities between eidemic and flooding
-% goal of the networking layer 
-
-
-The networking thread contains the implementation of Epidemic with medium access control. While routing and medium access control are typically handled separately -- in the OSI model they are in the second and third layers respectively -- they were considered together for my project to prevent work being repeated and use the limited computing resources available most effectively. This means that the implementation of Epidemic will also change. Not only will the node refuse to send any messages after hearing a CTS for a set period of time, or until it hears an ACK, I also integrated the message vector exchange at the start of an anti-entropy session into the CTS and RTS messages. This minimised the number of packets sent over the network, reducing the overall probability of collisions or errors in transmission. This state machine has changed slightly since it was first designed. 
+\subsection{Software}
+Figure 3.4 shows the final state machine representing the software running on the Raspberry Pi Pico. The software differs slightly from the software designed, although both designs have the same effects. The two key differences are in the Epidemic routing protocol and multithreading. \\ 
+Within Epidemic, routing packets were merged with the medium access control packets to minimise the number of packets used in each anti-entropy session. This is discussed in more detail under the Epidemic section. \\
+Unfortunately, some of the hardware did not have libraries that worked in MicroPython. Therefore, the system was not multithreaded, but ran all on one thread. This is further detailed in the MicroPython section.
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.5]{net.jpg}
+\includegraphics[scale=0.4]{finalMachine.pdf}
 \end{center}
-\caption{(TODO - typeset) The initial state machine for the networking thread}
+\caption{The final state machine representation of the software}
 \end{figure}
 \FloatBarrier
-While these state machines were broadly implemented, the overall structure of the software changed, with only one thread running due to the limitations of CircuitPython and difficulties transitioning into MicroPython.
 
-%\subsection{Data Structures}
-%(TODO) Introduce and typeset the data structure to transfer information between the two threads 
-
-% The initial idea here is to for a routing or application layer to push data onto the queue
-% The network layer tkaes care of deduplication?
 
 
 \subsection{Packet Design}
-After designing the system, I considered the structure of the packets sent by each node. These are  influenced by the structures of packets in previous routing protocols I examined. I attempted to keep the structure of the start of the packets  Figure 3.3 shows the overall design for these packets. Figure 3.4 shows the breakdown of the packet data by packet type, given that the preamble is the same for all packets. They all start with the length of the packet so the system knows how much data to expect. \\
-\begin{figure}
+The structure of the packets sent within the network is standardised. These structures are influenced by the structures of packets in previous routing protocols I examined,particularly BATMAN \cite{batman}. I attempted to keep the structure of the start of the packets  Figure 3.5 shows the overall design for these packets. Figure 3.6 shows the breakdown of the packet data by packet type, given that the preamble is the same for all packets. They all start with the length of the packet so the system knows how much data to expect.
+\begin{figure}[h]
 \begin{center}
-\begin{verbatim}
-|  length  | packetType |  sender  | destination | 
-|                   payload                      | 
-\end{verbatim}
+\begin{tabular}{ |c|c|c|c|c| } 
+\hline
+\textbf{Bytes /} & \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} \\ 
+\textbf{Offset} &  &  &  &  \\ 
+\hline
+\textbf{0} & length & packetType & sender & destination \\ 
+\hline
+\textbf{1} &     \multicolumn{4}{c|}{payload}  \\ 
+\hline
+\textbf{2} &     \multicolumn{4}{c|}{payload}  \\
+\hline
+ - & \multicolumn{4}{c|}{....................................}  \\
+\hline
+\textbf{14} & \multicolumn{4}{c|}{payload}  \\
+\hline
+\textbf{15} & \multicolumn{4}{c|}{payload}  \\
+\hline
+\end{tabular}
 \end{center}
-\caption{The preamble for all packet types (TODO - typeset, add lengths and different payloads)}
+\caption{The preamble for all packet types}
 \end{figure}
 % ALso add the rest of the packet types and things like that 
 % HELLO = const(0x00)
@@ -493,6 +487,55 @@ After designing the system, I considered the structure of the packets sent by ea
 % Empty payload
 %ACK = const(0x04)
 The address \verb'0x00' for broadcast, then each node numbered sequentially and uniquely. This limits the number of nodes a network can contain to be 255.
+
+
+
+\subsection{Open Source}
+The system was designed and documented so it could be reproduced by other rowing clubs and used to help prevent crashes. Due to plagiarism rules the repositories and documentation, including README, have not yet been made available. They will be made public immediately after my graduation. \\
+The repository is licenced under the MIT licence, allowing others to use and expand on the system.
+
+\section{System Design}
+Before designing the system, it was decided the system would identify obstacles using GPS coordinates. The Epidemic routing protocol would be used to propagate obstacles through the network. Users need to be notified of upcoming obstacles and be able to add new obstacles. \\
+From these criteria, the structure of the software to run on each node was designed. The Raspberry Pi Pico uses the RP2040 chip, containing two cores \cite{rp2040}. To make best use of the hardware, application and networking threads were designed to run on each core. Global data structures and concurrency control were chosen to pass messages between the two layers and allow both layers access to the GPS. \\
+
+\subsection{Application}
+The application thread was responsible for notifying the user when they are too close to an obstacle and allowing them to add obstacles. The initial state machine is shown in Figure 2.4. %The time to live (TTL) for each obstacle. If the object is permanent, such as a bridge, the TTL is set to $-1$, indicating that it should never be removed. 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.6]{app.pdf}
+\end{center}
+\caption{The initial state machine for the application thread}
+\end{figure}
+\FloatBarrier
+
+\subsection{Networking}
+%TODO you should talk about the flooding state machine you designed and the similarities between eidemic and flooding
+% goal of the networking layer 
+
+
+The networking thread contains the implementation of Epidemic with medium access control. While routing and medium access control are typically handled separately -- in the OSI model they are in the second and third layers respectively -- they were considered together for my project to prevent work being repeated and use the limited computing resources available most effectively. This means that the implementation of Epidemic will also change. Not only will the node refuse to send any messages after hearing a CTS for a set period of time, or until it hears an ACK, I also integrated the message vector exchange at the start of an anti-entropy session into the CTS and RTS messages. This minimised the number of packets sent over the network, reducing the overall probability of collisions or errors in transmission. This state machine has changed slightly since it was first designed. 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.4]{appLayer.pdf}
+\end{center}
+\caption{The initial state machine for the networking thread}
+\end{figure}
+\FloatBarrier
+While these state machines were broadly implemented, the overall structure of the software changed, with only one thread running due to the limitations of CircuitPython and difficulties transitioning into MicroPython.
+
+\subsection{Data Structures}
+The main data structures 
+
+\subsubsection{Application}
+
+\subsubsection{Networking}
+
+\subsubsection{Global}
+% Introduce and typeset the data structure to transfer information between the two threads 
+
+% The initial idea here is to for a routing or application layer to push data onto the queue
+% The network layer tkaes care of deduplication?
+% like 10 pages and 2000 words coming on ouch 
 
 
 \section{Debugging and Logging}
@@ -512,6 +555,7 @@ Event Types:
     3   -   Logging messages
     4   -   Logging error
     5   -   Logging GPS location
+    6   -   Logging an alert
     
 \end{verbatim}
 
@@ -526,8 +570,7 @@ I also found that when the rate and length of packets sent increased, more error
 The point to point messages were then moved to sending and receiving discovery messages, of type \verb'0x00', also known as `hello' messages. I used the packet structure previously defined to do this. To test this part of the system, I ensured that `hello' packets were correctly sent and received. The payload of the `hello' packets was designed to be the current GPS location of the node, so it could be used by the other nodes as an obstacle to warn users about. When first initiated, this called a stand in function that gave a random set of numbers, later replaced by a call to the GPS board. 
 
 \subsection{Anti-Entropy}
-% what is the name of the thing we are trying to avoid when we say anti entropy is initiated by the lower ID node? 
-In Vahdat and Becker's Epidemic paper \cite{epidemic}, an anti-entropy session occurs when two nodes come into communication range and exchange messages. Anti-entropy is initiated by the node with the lower ID to prevent collisions. Figure 3.4 shows the first half of anti-entropy. Node A, with a lower ID, initiates anti-entropy by sending a summary vector (SV\textsubscript{A}) to node B. This summary vector is represents the messages node A holds. Node B calculates the logical AND between this summary vector and the negation of its own summary vector (SV\textsubscript{B}) to produce the messages it has not seen, but the other node holds. It sends this request (SV\textsubscript{A} + $\neg$ SV\textsubscript{B}) to node A. Node A responds by sending the requested messages to node B. \\
+When a new node is discovered, anti-entropy will occur. In Vahdat and Becker's Epidemic paper \cite{epidemic}, an anti-entropy session occurs when two nodes come into communication range and exchange messages. Anti-entropy is initiated by the node with the lower ID to prevent collisions. Figure 3.4 shows the first half of anti-entropy. Node A, with a lower ID, initiates anti-entropy by sending a summary vector (SV\textsubscript{A}) to node B. This summary vector is represents the messages node A holds. Node B calculates the logical AND between this summary vector and the negation of its own summary vector (SV\textsubscript{B}) to produce the messages it has not seen, but the other node holds. It sends this request (SV\textsubscript{A} + $\neg$ SV\textsubscript{B}) to node A. Node A responds by sending the requested messages to node B. \\
 The roles are then reversed, with node B sending its summary vector (SV\textsubscript{B}) to A. A requests messages it has not seen from B (SV\textsubscript{B} + $\neg$ SV\textsubscript{A}) and receives them. \\
 After a successful message exchange, node B is added to node A's list of recently contacted nodes, preventing anti-entropy from being repeatedly conducted between two nodes. This list is periodically cleared. \\
 \begin{figurehere} 
@@ -543,6 +586,8 @@ After a successful message exchange, node B is added to node A's list of recentl
 \end{center}
 \caption{The first stage of anti-entropy \cite{epidemic}}
 \end{figurehere}
+
+My implementation of Epidemic routing is broadly similar, but 
 
 
 If a node receives a `hello' message from a node that has an address that is larger than it, and the node is not on the list of recently contacted nodes, it attempts to initiate anti-entropy. It does this by sending a request to send (RTS) packet, constructed from the message keys that are held on that node. \\ 
@@ -573,6 +618,115 @@ To acknowledge receipt of these messages, the first node sends an acknowledgemen
 %When messages are identical 
 %When messages is empty 
 %When one is empty and other isn't
+
+\begin{figure}[h]
+\begin{center}
+\tikzset{
+    host/.style={rectangle,rounded corners,             
+                  thick,draw=black},
+    host/.default=black,
+    trama/.style={thick,draw=#1,fill=#1, node font = \tiny},
+    trama/.default=red,
+    ack/.style={trama=blue},
+}
+
+\newcommand{\tramaok}[2]{%
+    \draw[trama,->, node font = \tiny]  #2 --++(1.5,-2) node[above right,near start] {#1};
+}
+\newcommand{\tramaperduda}[2]{%
+    \path #2 coordinate (a)--++(1.5,-2) coordinate (b) coordinate[midway] (c); 
+    \draw[trama,-, node font = \tiny]  (a) --(c) node[below] {#1};
+    \draw[trama,-> , node font = \tiny]  (c) -- ++(30:.5);
+}
+
+\newcommand{\ackok}[2]{
+    \draw[ack,->, node font = \tiny] {#2}--++(1.5,2) node[below right,near start] {#1};
+}
+
+\newcommand{\ackperdut}[2]{
+    \path #2 coordinate (a)--++(1.5,2) coordinate (b) coordinate[midway] (c); 
+    \draw[ack,-]  (a) --(c) node[above] {#1};
+    \draw[ack,->]  (c) -- ++(-30:.5);
+}
+
+\newcommand{\1}[3]{%
+    \draw #1 --++(0,5mm);
+    \draw #2 --++(0,5mm);
+    \begin{scope}[yshift=2.5mm]
+    \draw[-] #1 -- #2 node[above,midway, text = black!50,  node font = \tiny]{#3};
+    \end{scope}
+}
+
+\newcommand{\4}[3]{%
+    \draw #2 --++(0,5mm);
+    \begin{scope}[yshift=2.5mm]
+    \draw[<-] #1 -- #2 node[below,midway, text = black!50, node font = \tiny]{#3};
+    \end{scope}
+}
+
+
+\newcommand{\3}[3]{%
+    \draw #2 --++(0,5mm);
+    \begin{scope}[yshift=2.5mm]
+    \draw[<-] #1 -- #2 node[above,midway, text = black!50, node font = \tiny]{#3};
+    \end{scope}
+}
+
+\newcommand{\5}[3]{%
+    \draw #1 --++(0,5mm);
+    \draw #2 --++(0,5mm);
+    \begin{scope}[yshift=2.5mm]
+    \draw[-] #1 -- #2 node[below,midway, text = black!50, node font = \tiny]{#3};
+    \end{scope}
+}
+
+\newcommand{\6}[3]{%
+    \draw #1 --++(0,5mm);
+    \begin{scope}[yshift=2.5mm]
+    \draw[->] #1 -- #2 node[below, text = black!50,  node font = \tiny]{#3};
+    \end{scope}
+}
+
+\newcommand{\2}[3]{%
+    \draw #1 --++(0,5mm);
+    \begin{scope}[yshift=2.5mm]
+    \draw[->] #1 -- #2 node[above,midway, text = black!50, node font = \tiny]{#3};
+    \end{scope}
+}
+
+\begin{tikzpicture}%[>=stealth]
+
+\draw[help lines,->, node font = \Large, text = black] (-0.2,0) node[host,left] {B}--(13,0);
+\draw[help lines,->,  node font = \Large, text = black] (-0.2,2) node[host,left] {A}--(13,2);
+
+\tramaok{HELLO}{(0,2)}
+\ackok{RTS}{(1.5,0)}
+\tramaok{CTS}{(3,2)}
+\ackok{DATA}{(4.5,0)}
+\ackok{}{(5,0)}
+\ackok{}{(5.5,0)}
+\ackok{}{(6,0)}
+\tramaok{DATA}{(7.5,2)}
+\tramaok{}{(8,2)}
+\ackok{ACK}{(9.5,0)}
+
+\3{(0,2)}{(3,2)}{\textbf{Listening State}}
+\1{(3,2)}{(6,2)}{\textbf{Received RTS State}}
+\1{(6,2)}{(7.5,2)}{\textbf{Get Data State}}
+\1{(7.5,2)}{(11,2)}{\textbf{CTS Send Data State}}
+\2{(11,2)}{(13,2)}{\textbf{Listening State}}
+
+
+\4{(0,-0.5)}{(1.5,-0.5)}{\textbf{Listening State}}
+\5{(1.5,-0.5)}{(4.5,-0.5)}{\textbf{RTS Anti-Entropy State}}
+\5{(4.5,-0.5)}{(9,-0.5)}{\textbf{RTS Send Data State}}
+\5{(9,-0.5)}{(12.2,-0.5)}{\textbf{RTS Get Data State}}
+\6{(12.2,-0.5)}{(13,-0.5)}{\textbf{Listening State}}
+\end{tikzpicture}
+\end{center}
+\caption{Messages and states of two nodes completing anti-entropy with no missed messages}
+\end{figure}
+
 
 \section{Medium Access Control}
 Medium access control was implemented using Epidemic. If a node overheard the exchange of an RTS / CTS message exchange between two other nodes, it does not broadcast any hello or CTS messages nor respond to RTS messages. This silence continues until an ACK is seen, sent by the appropriate node, matching the exchange of RTS / CTS messages, or until the timer has elapsed, based on a time set in the \verb'config.py' file, currently set to 15 seconds. This timeout was chosen as a worst case scenario for a very long exchange of messages between two nodes, so even an unusually long exchange will not be interrupted. 
@@ -946,6 +1100,7 @@ Such a system could be utilised for other applications. The most obvious is coll
 \addcontentsline{toc}{section}{A -- Guide to Building a Node}  
 \setcounter{chapter}{0}
 \setcounter{figure}{0}
+\input{README}
 
 \newpage
 \section*{B -- Evaluation Plan}

@@ -32,7 +32,6 @@ import supervisor
 from math import radians, cos, sin, asin, sqrt
 import adafruit_gps
 
-
 ### TIMERS ###
 class Timers:
     def __init__(self):
@@ -482,7 +481,8 @@ def decodeMessages(receivedMessages: str) -> dict:
             temp = line.split(",")
             # Drops any messages that have been forwarded too many times
             if len(temp)!=1:
-                obstacles.append([temp[1], temp[2], -1])
+                obstacles.append([float(temp[1]), float(temp[2]), -1])
+                print(f"new obstacle: {temp[1]} {temp[2]}")
                 if int(temp[3])!=0:
                     messages.update({int(temp[0]) : [float(temp[1]),float(temp[2]),(int(temp[3])-1)]})
     
@@ -1025,12 +1025,16 @@ def decrementObstacles():
         None
     """
     global obstacles
-    for ob in obstacles:
-        if ob[2]==1:
-            obstacles.remove(ob)
-        elif ob[2]!=-1:
-            ob[2]+=-1
-
+    #print(obstacles)
+    #print(type(obstacles))
+    print("obstacles here!!")
+    if len(obstacles) > 0:
+        for ob in obstacles:
+            if ob[2]==1:
+                obstacles.remove(ob)
+            elif ob[2]!=-1:
+                ob[2]+=-1
+    
 
 def alert():
     """
@@ -1085,8 +1089,8 @@ messages = {}
 messageCount = 0
 
 # [GPS1, GPS2, TTL]
-obstacles: list[list[float]]
-obstacles = [[52.215698, 0.126883, -1]]
+#obstacles: list[list[float]]
+obstacles = []
 
 
 # Node we waiting to overhear an ACK from before we can exit QUIET state
@@ -1116,7 +1120,7 @@ while True:
         # split on , then take 0 and 1 and add to obstacles with a TTL of 1 so expires soon
         newObstacle = packet.decode("utf-8")
         newObstacle = newObstacle.split(",")
-        obstacles.append([newObstacle[0], newObstacle[1], 1])
+        obstacles.append([float(newObstacle[0]), float(newObstacle[1]), 1])
         if sender not in contacted:
             if sender>config.ADDRESS:
                 success, messages = RTSAntiEntropy(dest = sender, messages = messages)
@@ -1142,28 +1146,33 @@ while True:
 
     # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
     if timers.contacted():
-        obstacles = decrementObstacles()
+        decrementObstacles()
         if config.USECONTACTED:
             contacted = decrementContacted(contacted)
 
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
+        print("sent hello")
         state = config.SEND_HELLO
     print(messages)
 
     # Check to make sure that we're not near any obstacles
     loc = getGPS()
-    if loc != [0, 0]:    
-        for obstacle in obstacles:
-            if haversine(loc, obstacle) < config.GPS_DISTANCE:
-                logging.logAlert(loc)
-                alert()
+    if loc != [0, 0]:
+        if len(obstacles)>0:
+            for obstacle in obstacles:
+                if haversine(loc, obstacle) < config.GPS_DISTANCE:
+                    logging.logAlert(loc)
+                    print("alert")
+                    alert()
 
     if button.value:
         loc = getGPS()
         if loc != [0, 0]:
             time.sleep(0.5)
             if button.value:
+                print("low priority message generaeed")
                 newMessage(loc, priority=True)
             else:
+                print("high priority message generated")
                 newMessage(loc)
