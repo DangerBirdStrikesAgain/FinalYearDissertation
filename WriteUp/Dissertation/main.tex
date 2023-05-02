@@ -452,7 +452,8 @@ Unfortunately, some of the hardware did not have libraries that worked in MicroP
 
 
 \subsection{Packet Design}
-The structure of the packets sent within the network is standardised. These structures are influenced by the structures of packets in previous routing protocols I examined,particularly BATMAN \cite{batman}. I attempted to keep the structure of the start of the packets  Figure 3.5 shows the overall design for these packets. Figure 3.6 shows the breakdown of the packet data by packet type, given that the preamble is the same for all packets. They all start with the length of the packet so the system knows how much data to expect.
+The structure of the packets sent within the network is standardised. These structures are influenced by the structures of packets in previous routing protocols I examined,particularly BATMAN \cite{batman}. I attempted to keep the structure of the start of the packets  Figures 3.5 and 3.6 show the overall design for packets sent on the network. The preamble for all packet types start with the length of the packet so the system knows how much data to expect. Figures 3.7 to 3.9 show the breakdown of the payload by packet type, given that the preamble is the same for all packets.  \\ \\
+The address \verb'0x00' is designated for broadcast, then each node numbered sequentially and uniquely. This limits the number of nodes a network can contain to be 255.
 \begin{figure}[h]
 \begin{center}
 \begin{tabular}{ |c|c|c|c|c| } 
@@ -460,46 +461,124 @@ The structure of the packets sent within the network is standardised. These stru
 \textbf{Bytes /} & \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} \\ 
 \textbf{Offset} &  &  &  &  \\ 
 \hline
-\textbf{0} & length & packetType & sender & destination \\ 
+\textbf{0} & Length & Packet Type & Sender & Destination \\ 
 \hline
-\textbf{1} &     \multicolumn{4}{c|}{payload}  \\ 
+\textbf{1} &     \multicolumn{4}{c|}{Payload}  \\ 
 \hline
-\textbf{2} &     \multicolumn{4}{c|}{payload}  \\
+\textbf{2} &     \multicolumn{4}{c|}{Payload}  \\
 \hline
  - & \multicolumn{4}{c|}{....................................}  \\
 \hline
-\textbf{14} & \multicolumn{4}{c|}{payload}  \\
+\textbf{14} & \multicolumn{4}{c|}{Payload}  \\
 \hline
-\textbf{15} & \multicolumn{4}{c|}{payload}  \\
+\textbf{15} & \multicolumn{4}{c|}{Payload}  \\
 \hline
 \end{tabular}
 \end{center}
 \caption{The preamble for all packet types}
 \end{figure}
-% ALso add the rest of the packet types and things like that 
-% HELLO = const(0x00)
-%Payload contains the keys for message dict
-%RTS = const(0x01)
-% Payload contains the keys for message dict
-%CTS = const(0x02)
-% First byte of payload is the total number of DATA packets, second is the number of the DATA packet, then the messages themselves
-%DATA = const(0x03)
-% Empty payload
-%ACK = const(0x04)
-The address \verb'0x00' for broadcast, then each node numbered sequentially and uniquely. This limits the number of nodes a network can contain to be 255.
+
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{ |c|c| } 
+\hline
+\textbf{Packet Type} &  \textbf{Hexadecimal Representation} \\
+\hline
+HELLO & \verb'0x00' \\ 
+\hline
+RTS &  \verb'0x01'  \\ 
+\hline
+CTS &   \verb'0x02'  \\
+\hline
+DATA &  \verb'0x03' \\
+\hline
+ACK &  \verb'0x04' \\
+\hline
+\end{tabular}
+\end{center}
+\caption{The types of packet}
+\end{figure}
 
 
+\begin{figure}[h]
+\begin{center}
+\begin{tabular}{ |c|c|c|c|c| }
+\hline
+\textbf{Bytes /} & \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} \\ 
+\textbf{Offset} &  &  &  &  \\ 
+\hline
+\textbf{1} &     \multicolumn{4}{c|}{GPS latitude}  \\ 
+\hline
+\textbf{2} &     \multicolumn{4}{c|}{GPS longitude}  \\
+\hline
+\textbf{3} &     \multicolumn{4}{c|}{Padding}  \\
+\hline
+ - & \multicolumn{4}{c|}{.........................................................}  \\
+ \hline
+\textbf{15} &     \multicolumn{4}{c|}{Padding}  \\
+\hline
+\end{tabular}
+\end{center}
+\caption{The payload of HELLO packet type}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}\begin{tabular}{ |c|c|c|c|c| }
+\hline
+\textbf{Bytes /} & \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} \\ 
+\textbf{Offset} &  &  &  &  \\ 
+\hline
+\textbf{1} &     \multicolumn{2}{c|}{Message ID 0}  & \multicolumn{2}{c|}{Message ID 1}  \\ 
+\hline
+\textbf{2} &  \multicolumn{2}{c|}{Message ID 2}  & \multicolumn{2}{c|}{Message ID 3}   \\
+\hline
+ - & \multicolumn{4}{c|}{.........................................................}  \\
+ \hline
+ \textbf{14} &  \multicolumn{2}{c|}{Message ID 26}  & \multicolumn{2}{c|}{Message ID 27}   \\
+\hline
+\textbf{15} &   \multicolumn{2}{c|}{Message ID 28}  & \multicolumn{2}{c|}{Message ID 29}   \\
+\hline
+\end{tabular}
+\end{center}
+\caption{The payload of CTS and RTS packet types}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\resizebox{\textwidth}{!}{\begin{tabular}{ |c|c|c|c|c| }
+\hline
+\textbf{Bytes /} & \textbf{0} & \textbf{1} & \textbf{2} & \textbf{3} \\ 
+\textbf{Offset} &  &  &  &  \\ 
+\hline
+\textbf{1} &   Total number of DATA packets expected  &  Number of this DATA packet & \multicolumn{2}{c|}{Requested Message ID 0} \\ 
+\hline
+\textbf{2} &  \multicolumn{4}{c|}{Requested Message Data}   \\
+\hline
+ - & \multicolumn{4}{c|}{.........................................................}  \\
+ \hline
+ \textbf{14} &  \multicolumn{2}{c|}{Requested Message Data}  & \multicolumn{2}{c|}{Requested Message ID 7}   \\
+\hline
+\textbf{15} & \multicolumn{4}{c|}{Requested Message Data} \\
+\hline
+\end{tabular}}
+\end{center}
+\caption{The payload of DATA packet types}
+\end{figure}
+\FloatBarrier
 
 \subsection{Open Source}
 The system was designed and documented so it could be reproduced by other rowing clubs and used to help prevent crashes. Due to plagiarism rules the repositories and documentation, including README, have not yet been made available. They will be made public immediately after my graduation. \\
-The repository is licenced under the MIT licence, allowing others to use and expand on the system.
+The repository is licenced under the MIT licence, allowing others to use and expand on the system. \\
+
 
 \section{System Design}
 Before designing the system, it was decided the system would identify obstacles using GPS coordinates. The Epidemic routing protocol would be used to propagate obstacles through the network. Users need to be notified of upcoming obstacles and be able to add new obstacles. \\
-From these criteria, the structure of the software to run on each node was designed. The Raspberry Pi Pico uses the RP2040 chip, containing two cores \cite{rp2040}. To make best use of the hardware, application and networking threads were designed to run on each core. Global data structures and concurrency control were chosen to pass messages between the two layers and allow both layers access to the GPS. \\
+From these criteria, the structure of the software to run on each node was designed. The Raspberry Pi Pico uses the RP2040 chip, containing two cores \cite{rp2040}. To make best use of the hardware, application and networking threads were designed to run on each core. Global data structures and concurrency control were chosen to pass messages between the two layers and allow both layers access to the GPS. \\ \\
+While these state machines were broadly implemented, the overall structure of the software changed, with only one thread running due to the limitations of CircuitPython and difficulties transitioning into MicroPython. \\
+
 
 \subsection{Application}
-The application thread was responsible for notifying the user when they are too close to an obstacle and allowing them to add obstacles. The initial state machine is shown in Figure 2.4. %The time to live (TTL) for each obstacle. If the object is permanent, such as a bridge, the TTL is set to $-1$, indicating that it should never be removed. 
+The application thread was responsible for notifying the user when they are too close to an obstacle and allowing them to add obstacles. The initial state machine is shown in Figure 3.10. 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.6]{app.pdf}
@@ -509,11 +588,9 @@ The application thread was responsible for notifying the user when they are too 
 \FloatBarrier
 
 \subsection{Networking}
-%TODO you should talk about the flooding state machine you designed and the similarities between eidemic and flooding
-% goal of the networking layer 
-
-
-The networking thread contains the implementation of Epidemic with medium access control. While routing and medium access control are typically handled separately -- in the OSI model they are in the second and third layers respectively -- they were considered together for my project to prevent work being repeated and use the limited computing resources available most effectively. This means that the implementation of Epidemic will also change. Not only will the node refuse to send any messages after hearing a CTS for a set period of time, or until it hears an ACK, I also integrated the message vector exchange at the start of an anti-entropy session into the CTS and RTS messages. This minimised the number of packets sent over the network, reducing the overall probability of collisions or errors in transmission. This state machine has changed slightly since it was first designed. 
+% literially anything about the flooding state machine thing
+The networking thread was designed to propagate messages through the network. It contained the implementation of Epidemic with medium access control. While routing and medium access control are typically handled separately -- in the OSI model they are in the second and third layers respectively -- they were considered together in this system to prevent work being repeated and use limited computing resources effectively. These traditionally separate layers were combined as some data structures, such as the contacted node dictionary, would need to be shared between layers, increasing complexity and compute time. Figure 3.11 shows the Networking machine. \\
+This meant Vahdat and Becker's implementation of Epidemic was adjusted. A quiet state was defined, where a node did not send any messages after hearing a CTS for a set period of time, or until it hears an ACK. The message vector exchange was combined into the CTS and RTS messages. This minimised the number of packets sent over the network, reducing the probability of collisions or errors in transmission.
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.4]{appLayer.pdf}
@@ -521,28 +598,67 @@ The networking thread contains the implementation of Epidemic with medium access
 \caption{The initial state machine for the networking thread}
 \end{figure}
 \FloatBarrier
-While these state machines were broadly implemented, the overall structure of the software changed, with only one thread running due to the limitations of CircuitPython and difficulties transitioning into MicroPython.
 
 \subsection{Data Structures}
-The main data structures 
-
-\subsubsection{Application}
-
-\subsubsection{Networking}
-
 \subsubsection{Global}
-% Introduce and typeset the data structure to transfer information between the two threads 
+The global data structures would be accessed by both threads, with associated locks to ensure that both threads do not access the structure at the same time. \\ \\
+\resizebox{\textwidth}{!}{\begin{tabular}{ l l l }
+\hline
+\textbf{Structure} & \textbf{Construction} & \textbf{Notes} \\  
+\hline
+Location & Tuple of (longitude, latitude) &  Calls a function that communicates with \\
+& & the GPS board \\ 
+\hline
+ApplicationToNetwork & Queue of obstacles &  Application machine pushes user defined \\
+& & obstacles onto queue so they can be \\
+& & propagated through the network\\ 
+\hline
+NetworkToApplication & Queue of obstacles & Network machine pushes messages propagated \\
+& & through the network to the application layer\\ 
+\hline
+\end{tabular}}
+
 
 % The initial idea here is to for a routing or application layer to push data onto the queue
 % The network layer tkaes care of deduplication?
 % like 10 pages and 2000 words coming on ouch 
+\subsubsection{Application}
 
+\resizebox{\textwidth}{!}{\begin{tabular}{ l l l }
+\hline
+\textbf{Structure} & \textbf{Construction} & \textbf{Notes} \\  
+\hline
+Obstacles & List of obstacles and their TTL & A list of obstacles and their TTL. Any obstacles\\
+& &   with a TTL of -1 are considered permanent \\
+\hline
+\end{tabular}}
 
-\section{Debugging and Logging}
-Throughout the project, I needed to debug different pieces of hardware and unusual issues. To debug hardware, a multimeter was used to detect if data was being sent along various connections. On occasions when the multimeter could not be accessed, the anode of an LED was attached to the connection I was debugging and the cathode grounded. The LED would light up when data was passing through this connection. \\
-When debugging more persistent issues, such as the MicroPython-CircuitPython communication, my supervisor kindly lent me a logic analyser. \\ \\ 
-% TODO some images here?
-Logging was done through a bespoke class. The class had functions to handle different types of log. It output series of statements, printed and saved to the flash memory on the Pico in a `logging.txt' file. This allowed easy modelling of the relationships between nodes. The docstring from the logging class reads:\begin{verbatim}
+\subsubsection{Networking}
+\resizebox{\textwidth}{!}{\begin{tabular}{ l l l }
+\hline
+\textbf{Structure} & \textbf{Construction} & \textbf{Notes} \\  
+\hline
+Messages & Dictionary of & The messages' ID is constructed from the \\
+& \{Message ID : [Latitude, Longitude, TTL]\}  &  generating node ID and the number of messages \\
+& &  that node has generated\\ 
+\hline
+\end{tabular}}
+\FloatBarrier
+
+\section{Debugging}
+Throughout the project, different pieces of hardware and unusual issues needed to be debugged. To debug hardware, a multimeter was used to detect if data was being sent along various connections. On occasions when the multimeter could not be accessed, the anode of an LED was attached to the connection being examined and the cathode grounded. The LED would light up when data was passing through this connection. \\
+When debugging more persistent issues, such as the MicroPython-CircuitPython communication, my supervisor kindly lent me a logic analyser. Figure 3.12 shows the a node being analysed. \\ \\ 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.2]{logicAnalyser.jpeg}
+\end{center}
+\caption{A logic analyser being used to examine the signals sent from the Raspberry Pi Pico to the RMF69}
+\end{figure}
+
+%TODO Debugging when connected to an external power source was actually awful I have never hated antthing so much 
+
+\section{Logging}
+Logging was done via a bespoke class. The class had functions to handle different types of log. It output series of statements, printed and saved to the flash memory on the Pico in a `logging.txt' file. This allowed easy modelling of the relationships between nodes. The docstring from the logging class reads:\begin{verbatim}
 Class with multiple functions to handle logging
     
 Logs: 
@@ -561,16 +677,23 @@ Event Types:
 
 
 \section{Point to Point}
-Before starting to implement Epidemic, I ensured that the two nodes could communicate in a point to point way. This was successful; each node could send a packet to another node. I found several interesting variables in the communication between point to point nodes. \\ \\
-A quarter wave whip antenna was used -- a piece of wire cut to 17.4 cm (1/4 of the wavelength) and soldered to the antenna port and ground plane. I found that the thickness of the wire had an impact on the signal, with thicker wire having a longer range. This is likely due to the lower resistance of ticket wire. \\ \\ 
-I also found that when the rate and length of packets sent increased, more errors crept into transmission and decoding. To fix this, I wanted to move to fixed length packets, padded with 0s. However, the \verb'adafruit_rfm69' library did not allow for fixed length packets. I therefore added this functionality. I consulted the RFM69HCW datasheet, set the packet format register to 0 (indicating fixed length) and the packet length to 64 (the size of the FIFO buffer). I integrated configurable length fixed length packets into a fork of the \verb'adafruit\_rfm69' library and have submitted a pull request so others can use this functionality. 
+Before starting to implement Epidemic, I ensured that the two nodes in line of sight could communicate. This was successful; each node could send a packet to another node. Several interesting variables were found in the communication between point to point nodes. \\ \\
+A quarter wave whip antenna was used -- a piece of wire cut to 17.4 cm (1/4 of the wavelength) and soldered to the antenna port and ground plane. I found that the thickness of the wire had an impact on the signal, with thicker wire having a longer range. This is likely due to the lower resistance of ticket wire. Figure 3.13 shows the antenna of varying thickness on three of the radio. 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.1]{wires1.jpeg}           \includegraphics[scale=0.12]{wires2.jpeg}
+\end{center}
+\caption{A selection of antenna on the radios}
+\end{figure}
+\FloatBarrier
+It was also found that when the rate and length of packets sent increased, more errors were found in transmission and decoding. To fix this, I wanted to move to fixed length packets, padded with 0s. However, the \verb'adafruit_rfm69' library did not allow for fixed length packets. I therefore added this functionality. I consulted the RFM69HCW datasheet \cite{radiodata}, set the packet format register to 0 (indicating fixed length) and the packet length to 64 (the size of the FIFO buffer). I integrated configurable length fixed length packets into a fork of the \verb'adafruit_rfm69' library \cite{radiogit} and have submitted a pull request so others can use this functionality. \\ \\
 
 \section{Epidemic}
 \subsection{Discovery Messages}
-The point to point messages were then moved to sending and receiving discovery messages, of type \verb'0x00', also known as `hello' messages. I used the packet structure previously defined to do this. To test this part of the system, I ensured that `hello' packets were correctly sent and received. The payload of the `hello' packets was designed to be the current GPS location of the node, so it could be used by the other nodes as an obstacle to warn users about. When first initiated, this called a stand in function that gave a random set of numbers, later replaced by a call to the GPS board. 
+The point to point messages were then moved to sending and receiving discovery messages, of type \verb'0x00', also known as HELLO packets. These messages used the broadcast address, \verb'0x00'. These packets used structure defined in the Final System section. To test discovery packets, it was ensured that HELLO packets were correctly sent and received. The payload of HELLO packets contained the node's current GPS location, so it could be recognised as an obstacle by other nodes. When first initiated, this location was generated by a stand in function that gave a random set of numbers, later replaced by a call to the GPS board. 
 
 \subsection{Anti-Entropy}
-When a new node is discovered, anti-entropy will occur. In Vahdat and Becker's Epidemic paper \cite{epidemic}, an anti-entropy session occurs when two nodes come into communication range and exchange messages. Anti-entropy is initiated by the node with the lower ID to prevent collisions. Figure 3.4 shows the first half of anti-entropy. Node A, with a lower ID, initiates anti-entropy by sending a summary vector (SV\textsubscript{A}) to node B. This summary vector is represents the messages node A holds. Node B calculates the logical AND between this summary vector and the negation of its own summary vector (SV\textsubscript{B}) to produce the messages it has not seen, but the other node holds. It sends this request (SV\textsubscript{A} + $\neg$ SV\textsubscript{B}) to node A. Node A responds by sending the requested messages to node B. \\
+When a new node is discovered, anti-entropy will occur. An anti-entropy session allows nodes to exchange messages and occurs when two nodes come into communication range. In Vahdat and Becker's Epidemic paper \cite{epidemic}, anti-entropy is initiated by the node with the lower ID to prevent collisions. Figure 3.14 shows the first half of anti-entropy. Node A, with a lower ID, initiates anti-entropy by sending a summary vector (SV\textsubscript{A}) to node B. This summary vector is represents the messages node A holds. Node B calculates the logical AND between this summary vector and the negation of its own summary vector (SV\textsubscript{B}) to produce the messages it has not seen, but the other node holds. It sends this request (SV\textsubscript{A} + $\neg$ SV\textsubscript{B}) to node A. Node A responds by sending the requested messages to node B. \\
 The roles are then reversed, with node B sending its summary vector (SV\textsubscript{B}) to A. A requests messages it has not seen from B (SV\textsubscript{B} + $\neg$ SV\textsubscript{A}) and receives them. \\
 After a successful message exchange, node B is added to node A's list of recently contacted nodes, preventing anti-entropy from being repeatedly conducted between two nodes. This list is periodically cleared. \\
 \begin{figurehere} 
@@ -585,40 +708,32 @@ After a successful message exchange, node B is added to node A's list of recentl
 \end{tikzpicture}
 \end{center}
 \caption{The first stage of anti-entropy \cite{epidemic}}
-\end{figurehere}
+\end{figurehere} 
+\bigskip
 
-My implementation of Epidemic routing is broadly similar, but 
+The implementation of Epidemic routing in this project is broadly the same as Vahdat and Becker's, initiated by the lower ID node. However, the implementation in this project combines medium access control with the exchange of summary vectors, with SV\textsubscript{A} being combined with the RTS and SV\textsubscript{B} combined with CTS. These contained the message keys that are held on that node. \\
+The other key difference is in requests. As all nodes use the same mechanism to construct a request to send to the other nodes, this can be moved off node. Once a node has received the summary vector from the other node, it will calculate the messages the node wants by comparing the message keys each node holds (SV\textsubscript{A} + $\neg$ SV\textsubscript{B}). This removes two messages from the anti-entropy process, reducing the opportunity for error. Figure 3.15 shows updated anti-entropy.
 
+\begin{figurehere} 
+\begin{center}
+\begin{tikzpicture}
+[node/.style={circle, draw=black, very thick, minimum size=30mm}]
+\node[node]      (A)         {\Huge A};
+\node[node]        (B)    [right =3cm of A]   {\Huge B};
+\draw[-latex, line width=0.5mm, blue] (A.60)--(A.60-|B.-120) node[midway, above] {RTS (SV\textsubscript{A})};
+\draw[-latex, line width=0.5mm, red] (B.155)--(A.25) node[midway, above] {CTS (SV\textsubscript{B})};
+\draw[-latex, line width=0.5mm, blue] (A)--(B) node[midway, above] {DATA};
+\draw[-latex, line width=0.5mm, red] (B.-155)--(A.-25) node[midway, above] {DATA};
+\draw[-latex, line width=0.5mm, blue] (A.-60)--(A.-60-|B.-120) node[midway, above] {ACK};
+\end{tikzpicture}
+\end{center}
+\caption{The anti-entropy implemented}
+\end{figurehere} 
+\bigskip
 
-If a node receives a `hello' message from a node that has an address that is larger than it, and the node is not on the list of recently contacted nodes, it attempts to initiate anti-entropy. It does this by sending a request to send (RTS) packet, constructed from the message keys that are held on that node. \\ 
-When a clear to send (CTS) packet is received from the contacted node, it contains the message keys that the node that sent it. These two lists of message keys are compared, and any messages the other node contains are added to the list of messages to be sent. These messages are then combined into data frame (DF) packets and sent to the other node. \\
-As an acknowledgement, the other node sends their own DF packets, containing any messages the other node holds but the first does not. \\ 
-To acknowledge receipt of these messages, the first node sends an acknowledgement (ACK) message. 
-(TODO - timing diagram and node message exchange diagram and code snippet)
-% talk about what happens if these messages aren't sent in the correct time
-% What if no messages? also adding how each node understands that all the DF messages have been sent  
-%The plan for the system then requests that the message lists are 
-% This change was made to minimise the number of messages sent, hopefully resulting in less bandwidth taken up and fewer error in transmissions 
-
-% What if you are the receiving node?
-
-% perhaps I should add a section for key data structures?
-% timeouts and changes 
-% Talk about all the changes you made and perhaps generate a new state machine that shows the final epidemic you used - ``history of changed decisions''
-
-%Some nice diagrams for packet structure and how they are sent (how about one of those diagrams with two lines for time and messages sent between them
-
-
-%Also the TTL started as being time based and became number of hops (moves into extension where one is sent with more hops -> will propagate through the network faster (you didn't actually test this...)
-%Debugging when connected to an external power source was actually awful I have never hated antthing so much 
-
-%Testing!!
-% Talk about generating messages on what typed in, generated messages anyway, generating messages based on node ID and number of messages previously generated, circling round 
-% What edge cases did we consider and deal with? 
-%When messages are identical 
-%When messages is empty 
-%When one is empty and other isn't
-
+The message exchange in the system design was also tweaked. Again, these changes were made to reduce the number of packets sent, and therefore the bandwidth taken up by the anti-entropy process and possibility for errors. The design has DATA FRAME (DF) and DATA packets, where the DF packet sets up the number of expected DATA packets. Instead of sending a separate packet, the number of DATA packets expected was designated the first byte of the payload. Each DATA packet given an ID, its number from the total. When the initiating node (A) has sent all its packets, it waits for the DATA packets sent from the other node as an acknowledgement all DATA packets have been received. If DATA packets are not seen within the timeout, set in the \verb'config.py' file, the node resends the DATA packets. If this is repeated as many times as defined in the \verb'config.py' file, the initiating node (A) ceases anti-entropy and enters the listening state again. \\ 
+If node A successfully receives all DATA packets from node B, it sends an acknowledgement (ACK) to indicate no resends are necessary and ends the anti-entropy process. \\ \\
+When the non-initiating node (B) sees it has received all the DATA packets from node A, and has sent all DATA packets, it waits for the ACK from A. If unseen after a certain time, specified in the \verb'config.py' file, it resends the DATA messages. Should the resends still not be acknowledged, the anti-entropy times out. Figure 3.16 shows a timing diagram for the implemented Epidemic routing. 
 \begin{figure}[h]
 \begin{center}
 \tikzset{
@@ -677,28 +792,20 @@ To acknowledge receipt of these messages, the first node sends an acknowledgemen
     \draw #2 --++(0,5mm);
     \begin{scope}[yshift=2.5mm]
     \draw[-] #1 -- #2 node[below,midway, text = black!50, node font = \tiny]{#3};
-    \end{scope}
-}
-
+    \end{scope}}
 \newcommand{\6}[3]{%
     \draw #1 --++(0,5mm);
     \begin{scope}[yshift=2.5mm]
     \draw[->] #1 -- #2 node[below, text = black!50,  node font = \tiny]{#3};
-    \end{scope}
-}
-
+    \end{scope}}
 \newcommand{\2}[3]{%
     \draw #1 --++(0,5mm);
     \begin{scope}[yshift=2.5mm]
     \draw[->] #1 -- #2 node[above,midway, text = black!50, node font = \tiny]{#3};
-    \end{scope}
-}
-
+    \end{scope}}
 \begin{tikzpicture}%[>=stealth]
-
 \draw[help lines,->, node font = \Large, text = black] (-0.2,0) node[host,left] {B}--(13,0);
 \draw[help lines,->,  node font = \Large, text = black] (-0.2,2) node[host,left] {A}--(13,2);
-
 \tramaok{HELLO}{(0,2)}
 \ackok{RTS}{(1.5,0)}
 \tramaok{CTS}{(3,2)}
@@ -709,14 +816,11 @@ To acknowledge receipt of these messages, the first node sends an acknowledgemen
 \tramaok{DATA}{(7.5,2)}
 \tramaok{}{(8,2)}
 \ackok{ACK}{(9.5,0)}
-
 \3{(0,2)}{(3,2)}{\textbf{Listening State}}
 \1{(3,2)}{(6,2)}{\textbf{Received RTS State}}
 \1{(6,2)}{(7.5,2)}{\textbf{Get Data State}}
 \1{(7.5,2)}{(11,2)}{\textbf{CTS Send Data State}}
 \2{(11,2)}{(13,2)}{\textbf{Listening State}}
-
-
 \4{(0,-0.5)}{(1.5,-0.5)}{\textbf{Listening State}}
 \5{(1.5,-0.5)}{(4.5,-0.5)}{\textbf{RTS Anti-Entropy State}}
 \5{(4.5,-0.5)}{(9,-0.5)}{\textbf{RTS Send Data State}}
@@ -726,41 +830,123 @@ To acknowledge receipt of these messages, the first node sends an acknowledgemen
 \end{center}
 \caption{Messages and states of two nodes completing anti-entropy with no missed messages}
 \end{figure}
+\bigskip 
 
+These variables remain configurable to allow each user to choose values that work best for their use. The sensitivity analysis was the basis for the values I used when Evaluating and using the system.
+
+\subsection{Pseudocode}
+Figure 3.17 shows an abstracted and commented version of the Epidemic routing. Note that logging, error messages have been cut out. The full code is available in the code repository, under \verb'OnDevice > DeviceCode'.
+\begin{figure}[h] 
+\begin{verbatim}
+if state == config.LISTEN:
+    args = rfm69.receive()
+    # Update the state based on any packets received
+    state = handleReceive(args) 
+
+elif state == config.RECEIVED_HELLO:
+    # Add the location of the node that sent the HELLO to the obstacles list
+    obstacles.append([float(newObstacle[0]), float(newObstacle[1]), 1])
+    if sender not in contacted and sender>config.ADDRESS:
+        # Anti-entropy initiated by this node
+        success, messages = RTSAntiEntropy(dest = sender, messages = messages)
+        if success:
+            # Add the other node to the dictionary of contacted node 
+            # on successful anti-entropy
+            contacted.update({sender : config.CONTACTED_LIVES})
+    state = config.LISTEN
+
+    
+elif state == config.RECEIVED_RTS:
+    # Initiate anti-entropy from the side of sending a CTS       
+    success, messages = CTSAntiEntropy(sender, messages, RTSpacket)
+    state = config.LISTEN
+
+if state == config.LISTEN and timers.hello():
+    # Broadcast HELLO packet
+\end{verbatim}
+\caption{Abstracted Epidemic routing code}
+\end{figure}
+\FloatBarrier
+
+\subsection{Sensitivity Analysis}
+The value of each configurable value in the network was determined experientially. The most important of these was how often a HELLO packet would be sent. This has a direct impact on how often anti-entropy would be initiated, and therefore the latency of messages. \\ 
+Figure 3.18 shows the latency of 30 messages being sent between two nodes with interference from another node. From this experimentation, I decided to send HELLO packets every 5 seconds (with a random jitter). This was a trade-off between collisions of HELLO packets, the power consumption involved in sending packets, and the latency of packets sent through the network.
+\begin{figure}[h]
+\begin{center}
+\input{sensitivity.pgf}
+\end{center}
+\caption{The time taken to deliver messages over distance intervals}
+\end{figure}
+\FloatBarrier
+
+\subsection{Testing}
+Testing the Epidemic implementation ensured that it worked, particularly with edge cases. The edge cases tested involved: \\
+Both nodes containing full messages dictionary, with 30 messages \\
+One node holding some messages and one node with no messages \\
+Both nodes having identical messages \\
+Both nodes holding no messages \\ \\
+This testing highlighted an issue with anti-entropy, where no DATA packets were sent if there were no messages the other node needed. This was rectified by sending one empty DATA packet to indicate that the node had no new messages. \\ \\
+Once the edge testing was finished, I demonstrated the utility of the network by allowing the user to type in a message on the terminal of a laptop on one node. This message was passed to another node and displayed on the attached screen. \\
 
 \section{Medium Access Control}
-Medium access control was implemented using Epidemic. If a node overheard the exchange of an RTS / CTS message exchange between two other nodes, it does not broadcast any hello or CTS messages nor respond to RTS messages. This silence continues until an ACK is seen, sent by the appropriate node, matching the exchange of RTS / CTS messages, or until the timer has elapsed, based on a time set in the \verb'config.py' file, currently set to 15 seconds. This timeout was chosen as a worst case scenario for a very long exchange of messages between two nodes, so even an unusually long exchange will not be interrupted. 
-(TODO - diagram with state changes)
+Medium access control was implemented alongside the Epidemic routing protocol, detailed in the previous section. If a node overheard the exchange of an RTS / CTS message exchange between two other nodes, it enters a silent state. The node does not broadcast any HELLO or CTS messages, nor respond to RTS messages. The node remains in the silent state until an ACK is seen, sent by the appropriate node matching the exchange of RTS / CTS messages, or until the timer has elapsed, based on a time set in the \verb'config.py' file, currently set to 15 seconds. This timeout was chosen as a worst case scenario for a very long exchange of messages between two nodes, so even an unusually long exchange will not be interrupted. 
 
-\section{Sensitivity Analysis}
-TODO - the graph with changing of different configurable variables to show how I experimentally determined the values
+\subsection{Pesudocode}
+\begin{figure}[h]
+\begin{verbatim}
+if packet == CTS:
+    state = config.QUIET
+    # Record the node that sent the CTS 
+    # Allowing us to check if any ACKs overheard are correct 
+    sendingCTSNode = sender
+
+if state == config.QUIET:
+    args = rfm69.receive()
+    # Listen for the ACK connected with the node pair
+    # Wait for timeout the timer until 
+\end{verbatim}
+\caption{Abstracted version of the code for medium access control}
+\end{figure}
+
+
 
 \section{GPS} 
 Before integrating the GPS into the system, I ensured that it worked. Several different serial communication protocols were used, staring with SPI. In the end, UART was used as the asynchronicity worked best with the GPS. To ensure that the GPS generated the correct coordinates, I checked that the coordinates given were my location. \\ \\ 
 I found that the GPS had a long time to first fix (TTFF) when started. This was because there was no long term memory when power was lost to the device, so any real time clock (RTC) and downloaded almanac data would be lost. A holder for and CR1220 coin cell were added to allow the GPS to keep accurate RTC data when the system was powered off. This significantly reduced the TTFF. 
-% TODO talk about the easy thing on the data sett
+% TODO talk about the easy thing on the data set
+% cold statrt
+%NMEA messages
 
 
 \subsection{Precision}
-To test the tracking on the GPS, I wrote a short program to generate GPX files. A short walk was tracked with the GPS. For comparison, the same activity was tracked with a smart watch. Figures 3.4 and 3.5 show the GPX files overlaid on Google Maps. \\
+To test the tracking on the GPS, a short program was written to generate GPX files. A brief walk was tracked with the GPS. For comparison, the same activity was tracked with a smart watch. Figures 3.4 and 3.5 show the GPX files overlaid on Google Maps. \\
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.4]{gps1.jpg}
 \end{center}
 \caption{The first attempt at tracking a walk with GPS. The red line is the GPX track generated by the board, the blue line is the GPX track generated by a smartwatch \cite{googlemapsgeneral}}
 \end{figure}\\ 
-As can be seen from Figure 3.4, the track generated by the system's GPS was jagged and inaccurate. On examination of the GPS coordinates generated by the board, they are only precise to five significant figures, so it is unsurprising that the coordinates are not precisely accurate. Therefore the degrees and minutes were combined to generate more precise coordinates, to eight significant figures. Figure 3.5 shows the GPX track with the more accurate coordinates. Based on the route taken when walking, the board's GPX track is slightly more accurate than the smartwatch's. 
+As can be seen from Figure 3.4, the track generated by the system's GPS was jagged and inaccurate. On examination of the GPS coordinates generated by the board, they are only precise to five significant figures, so it is unsurprising that the coordinates are not precisely accurate. Therefore, the degrees and minutes were combined to generate more precise coordinates, to eight significant figures. Figure 3.5 shows the GPX track with the more accurate coordinates. Based on the route taken when walking, the board's GPX track is slightly more accurate than the smartwatch's. 
 \begin{figure} [h]
 \begin{center}
 \includegraphics[scale=0.4]{gps2.jpg}
 \end{center}
 \caption{The final attempt at tracking a walk with GPS. The red line is the GPX track generated by the board, the blue line is the GPX track generated by a smartwatch \cite{googlemapsgeneral}}
-\end{figure}\\ 
+\end{figure}
+\FloatBarrier
 
 \subsection{Haversine Formula}
-%After some research, I discovered the haversine formula is commonly used for this application. TODO formula
-The haversine formula was used to calculate the distance between two sets of GPS coordinates. This was chosen as it is relatively simple to compute. The haversine formula is very commonly used to find distance between two sets of GPS coordinates. It is notable that this formula finds two points on a sphere, and the earth is an ellipsoid. The radius of the earth is not consistent across the globe. The average radius of the earth was used instead. As this is an approximation, it will result in errors of up to 0.5\% \cite{gps}. As the distances being measured are relatively small, this was not a problem. Should the system be moved to other planets with a GPS satellite system, this radius will have to be changed. Luckily, this is unlikely due to the absence of interstellar rowing. \\ %TODO remove this sentence
-Vincenty's formulae takes the ellipsoidal nature of the earth into consideration, but is more complicated and due to the small distances involved it was decided that the saving made on compute time would be more beneficial than the additional accuracy in distance measurements. 
+The haversine formula was used to calculate the distance between two sets of GPS coordinates. This was chosen as it is relatively simple to compute. The haversine formula is very commonly used to find distance between two sets of GPS coordinates \cite{haversine}. It is notable that this formula finds two points on a sphere, and the earth is an ellipsoid. The radius of the earth is not consistent across the globe. The average radius of the earth was used instead. As this is an approximation, it will result in errors of up to 0.5\% \cite{gps}. As the distances being measured are relatively small, this was not a problem. Should the system be moved to other planets with a GPS satellite system, this radius will have to be changed. Luckily, this is unlikely due to the absence of interstellar rowing. \\ %TODO remove this sentence
+Vincenty's formulae takes the ellipsoidal nature of the earth into consideration, but is more complicated and due to the small distances involved it was decided that the saving made on compute time would be more beneficial than the additional accuracy in distance measurements. \\
+\subsubsection{Equations}
+The haversine is defined:
+$haversine(\theta) = sin^2(\theta/2)$ \\ \\ 
+Where $\phi$ is the latitude and $\lambda$ is the longitude and $haversine(\theta)$ is abbreviated to $hav(\theta)$. \\
+$hav(\theta) = hav(\phi_2 - \phi_1) + cos(\phi_1) cos(\phi_2) hav(\lambda_2 - \lambda_1)$ \\
+$\theta$ is the angle between the two points on the sphere. $d$ is the distance between the points and $r$ is the radius of the sphere. \\
+$\theta = d / r$ \\ \\ 
+Combining these equations gives us the distance between the two points as \\
+$d = r * 2 * sin^{-1}(\sqrt{sin((\phi_2 - \phi_1)/2))^2 + cos(\lambda_1) * cos(\lambda_2) * sin((\lambda_2 - \lambda_1)/2)})^2$
 
 \subsection{Satellite Error}
 It was found that the GPS location moved even when the board was stationary. I believed this to be an error in the library, perhaps related to the precision of floating point numbers. However, research indicated that the noise at the receiver was due to the clock phase noise and interpolation of ephemeris data \cite{satellite}. Implementing a Gaussian or Kalman filter to remove some of the noise would be possible and is further work. %In the meantime it is necessary to accept a small quantity of error in the reading. %After attempting to debug this and talking to the gentleman who took GPS measurements for the Oxford Cambridge Boat Race, I discovered that this is a limitation of the technology, and that as satellites move across the sky they generate noise in the readings. In their solution to this problem, the Boat Race sets their own base station up at the end of the course, uses an external antenna and a  reads from the GPS up to 20 times a second. They then feed this data through a Kalman filter to give the final value for location. Implementing a Gaussian or Kalman filter to remove some of the noise from the GPS would be possible in this system and is further work. In the meantime it is necessary to accept a small quantity of error in the reading. 
@@ -1081,7 +1267,7 @@ Some of the networking extensions were drawn from my research into networking pr
 The application component could be further improved by taking the direction of the rowing boat into account when notifying the user of an obstacle. The GPS could be further improved by applying a Gaussian or Kalman filter to reduce the noise in the location, particularly under bridges. Additional improvements could be made from the suggestions of users, such as a switch to mute the buzzer. 
 
 \section{Other applications}
-Such a system could be utilised for other applications. The most obvious is collision avoidance for other water sports, such as canoeing and kayaking. There are more avant-garde applications for this system, for instance decide if boats have collided within competitions, removing human bias. % Worry of low latency The MANET within the system could easily be ported to use in autonomous vehicles. There are more avant-garde applications for this system, for instance within Bumps to decide if boats have collided, removing human bias. 
+Such a system could be utilised for other applications. The most obvious is collision avoidance for other water sports, such as canoeing and kayaking. There are more avant-garde applications for this system, for instance decide if boats have collided within competitions, removing human bias. The low latency may be a concern in other uses of the system. 
 
 %%% BIBLIOGRAPHY  %%%
 % TODO -- why has this kille any capitalization in
