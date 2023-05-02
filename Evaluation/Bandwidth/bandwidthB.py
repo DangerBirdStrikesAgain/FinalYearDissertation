@@ -45,7 +45,6 @@ class Timers:
         nextIncrement = config.HELLO_TIMER + random.uniform(-10.0, 10.0)
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
-        self._obstacle = self._ticksAdd(supervisor.ticks_ms(), config.OBSTACLE_TIMER)
         self._ACKTimeout: int
 
         # For time since start
@@ -174,24 +173,7 @@ class Timers:
             self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
             return True
         return False
-    
-    def obstacle(self) -> bool:
-        """
-        Checks if the timer for decrementing the contacted list has elapsed
 
-        Args:
-            None
-
-        Returns:
-            bool: True if the timer has elapsed, otherwise False
-        """
-        if self._ticksDiff(self._obstacle, supervisor.ticks_ms()) < 0:
-            self._obstacle = self._ticksAdd(supervisor.ticks_ms(), config.OBSTACLE_TIMER)
-            return True
-        return False
-
-
-### LOGGING ###
 class Logging:
     """
     Class with multiple functions to handle logging
@@ -205,37 +187,35 @@ class Logging:
     2   -   Logging packet
     3   -   Logging messages
     4   -   Logging error
+    5   -   Logging GPS location
+    6   -   Logging an alert
     """
 
     def __init__(self):
         # Printing turned on if we have a USB connection
-        self._printing = supervisor.runtime.serial_connected
+        self._usb = supervisor.runtime.serial_connected
 
-        # Log into file if not connected to device
-        if not self._printing:
-            import storage
-            storage.remount("/", False)
-            self._fp = open("/logging.txt", "a")
-        
-        self._red = "\033[91m"
-        self._end = "\033[0m"
-        self._blue = "\033[94m"
-        self._green = "\033[92m"
-        self._cyan = "\033[96m"
-        
-        if self._printing:
-            print("Logging will be printed")
-    
+        # Logging file
+        self._fp = open("/logging.csv", "a")
 
-    def log(self, message: str):
-        global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
         else: 
-            self._fp.write(f"[{timers.timeSinceStart()}] {message}")
+            timeString = GPSTime()
+        self._fp.write(f"Logging started at {timeString}\n")
+
+    def log(self, message: str):
+        global timers
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
 
 
     def logFunction(self, function: str, message: str):
@@ -245,13 +225,14 @@ class Logging:
             Function, Message
         """
         global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._green}{config.ADDRESS},{timeString},{timers.timeSinceStart()},1,{function},{message}{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},1,{function},{message}\n")
 
 
     def logPacket(self, function: str, src: int, dst: int, pckType: int):
@@ -260,29 +241,34 @@ class Logging:
             Function, Source, Destination, Type
         """
         global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._blue}{config.ADDRESS},{timeString},{timers.timeSinceStart()},2,{function},{src},{dst},{pckType},{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}")
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},2,{function},{src},{dst},{pckType}\n")
     
     
     def logMessages(self):
         """
         Event information
             message key, message key, ... 
+
+        Does not log the message content!
         """
         global timers
         global messages
-        if self._printing:
+
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._cyan}{config.ADDRESS},{timeString},{timers.timeSinceStart()},3,{str(list(messages.keys()))[1:-1]},{self._end}\n")
-        else:
-            pass
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},3,{str(list(messages.keys()))[1:-1]}\n")
 
 
     def logError(self, function: str, message: str):
@@ -291,13 +277,50 @@ class Logging:
             Function, Message
         """
         global timers
-        if self._printing:
+
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print (f"{self._red}{config.ADDRESS},{timeString},{timers.timeSinceStart()},4,{function},{message}{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},4,{function},{message}\n")
+
+
+
+    def logGPS(self, function: str, gps: str):
+        """
+        Event information
+            Function, GPS location
+        """
+        global timers
+
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},5,{function},{gps}\n")
+
+
+    def logAlert(self, gps: List[float]):
+        """
+        Event information
+            Function, GPS location
+        """
+        global timers
+
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},6,{gps},\n")
 
 
 ### SENDING PACKETS ###
@@ -1012,15 +1035,6 @@ while True:
         state = config.LISTEN
 
 
-
-    # Poll timers (best we can do due to lack of interrupt support in CircuitPython)
-    if config.USECONTACTED and timers.contacted():
-        decrementContacted()
-
-    if timers.obstacle():
-        decrementObstacles()
-
-
         # Also remove the send to app layer nonsense and instead add stuff directly to the thing
         # Perhaps only read the GPS location once every few seconds (tbh could handle this in the function) 
         # Check location relative to obstacles at the start of this loop -- honestly just have a table and iterate through it
@@ -1030,3 +1044,5 @@ while True:
     # This is lazy and timers.hello is not called if state!=LISTEN  (timers.hello() has side effects on the state of the hello timer)
     if state == config.LISTEN and timers.hello():
         state = config.SEND_HELLO
+    logging.logMessages()
+    print(messages)

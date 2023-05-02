@@ -46,7 +46,7 @@ class Timers:
         self._nextHello = self._ticksAdd(supervisor.ticks_ms(), nextIncrement)
         self._contacted = self._ticksAdd(supervisor.ticks_ms(), config.CONTACTED_TIMER)
         self._obstacle = self._ticksAdd(supervisor.ticks_ms(), config.OBSTACLE_TIMER)
-        self._bandwidth = self._ticksAdd(supervisor.ticks_ms(), config.BANDWIDTH_TIMER)
+        self._bandwidth = self._ticksAdd(supervisor.ticks_ms(), 1)
         self._ACKTimeout: int
 
         # For time since start
@@ -194,12 +194,10 @@ class Timers:
 
     def bandwidth(self) -> bool:
         if self._ticksDiff(self._bandwidth, supervisor.ticks_ms()) < 0:
-            self._bandwidth = self._ticksAdd(supervisor.ticks_ms(), config.BANDWIDTH_TIMER)
+            self._bandwidth = self._ticksAdd(supervisor.ticks_ms(), 1)
             return True
         return False
 
-
-### LOGGING ###
 class Logging:
     """
     Class with multiple functions to handle logging
@@ -213,37 +211,35 @@ class Logging:
     2   -   Logging packet
     3   -   Logging messages
     4   -   Logging error
+    5   -   Logging GPS location
+    6   -   Logging an alert
     """
 
     def __init__(self):
         # Printing turned on if we have a USB connection
-        self._printing = supervisor.runtime.serial_connected
+        self._usb = supervisor.runtime.serial_connected
 
-        # Log into file if not connected to device
-        if not self._printing:
-            import storage
-            storage.remount("/", False)
-            self._fp = open("/logging.txt", "a")
-        
-        self._red = "\033[91m"
-        self._end = "\033[0m"
-        self._blue = "\033[94m"
-        self._green = "\033[92m"
-        self._cyan = "\033[96m"
-        
-        if self._printing:
-            print("Logging will be printed")
-    
+        # Logging file
+        self._fp = open("/logging.csv", "a")
 
-    def log(self, message: str):
-        global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
         else: 
-            self._fp.write(f"[{timers.timeSinceStart()}] {message}")
+            timeString = GPSTime()
+        self._fp.write(f"Logging started at {timeString}\n")
+
+    def log(self, message: str):
+        global timers
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},0,{message}\n")
 
 
     def logFunction(self, function: str, message: str):
@@ -253,13 +249,14 @@ class Logging:
             Function, Message
         """
         global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._green}{config.ADDRESS},{timeString},{timers.timeSinceStart()},1,{function},{message}{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},1,{function},{message}\n")
 
 
     def logPacket(self, function: str, src: int, dst: int, pckType: int):
@@ -268,29 +265,34 @@ class Logging:
             Function, Source, Destination, Type
         """
         global timers
-        if self._printing:
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._blue}{config.ADDRESS},{timeString},{timers.timeSinceStart()},2,{function},{src},{dst},{pckType},{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] Source: {src} Dest: {dst} Type: {pckType}")
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},2,{function},{src},{dst},{pckType}\n")
     
     
     def logMessages(self):
         """
         Event information
             message key, message key, ... 
+
+        Does not log the message content!
         """
         global timers
         global messages
-        if self._printing:
+
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print(f"{self._cyan}{config.ADDRESS},{timeString},{timers.timeSinceStart()},3,{str(list(messages.keys()))[1:-1]},{self._end}\n")
-        else:
-            pass
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},3,{str(list(messages.keys()))[1:-1]}\n")
 
 
     def logError(self, function: str, message: str):
@@ -299,13 +301,50 @@ class Logging:
             Function, Message
         """
         global timers
-        if self._printing:
+
+        if self._usb:
             tm = time.localtime()
             # Local time in form hh.mm.ss
             timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
-            print (f"{self._red}{config.ADDRESS},{timeString},{timers.timeSinceStart()},4,{function},{message}{self._end}\n")
-        else:
-            self._fp.write(f"[{timers.timeSinceStart()}] [{function}] {message}")
+        else: 
+            timeString = GPSTime()
+
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},4,{function},{message}\n")
+
+
+
+    def logGPS(self, function: str, gps: str):
+        """
+        Event information
+            Function, GPS location
+        """
+        global timers
+
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},5,{function},{gps}\n")
+
+
+    def logAlert(self, gps: List[float]):
+        """
+        Event information
+            Function, GPS location
+        """
+        global timers
+
+        if self._usb:
+            tm = time.localtime()
+            # Local time in form hh.mm.ss
+            timeString = f"{tm[3]}.{tm[4]}.{tm[5]}"
+        else: 
+            timeString = GPSTime()
+        
+        self._fp.write(f"{config.ADDRESS},{timeString},{timers.timeSinceStart()},6,{gps},\n")
 
 
 ### SENDING PACKETS ###
@@ -809,7 +848,10 @@ def CTSAntiEntropy(sender: int, messages: dict, RTSpacket: bytearray) -> dict:
         messagesToSend = {}
         if len(RTSpacket) != 0:
             for x in range (0, len(RTSpacket), 2):
-                destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
+                try:
+                    destKeys.append(int.from_bytes(RTSpacket[x:(x+2)], "utf_8"))
+                except:
+                    pass
             for key in messages:
                 if key not in destKeys:
                     messagesToSend.update({key : messages[key]})
@@ -1046,13 +1088,26 @@ while True:
         messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
         count +=1
         messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
-        count+=1
+        count +=1
         messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
         count +=1
         messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
-        count+=1
+        count +=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count +=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count +=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count +=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count +=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count +=1
+        messages.update({random.randint(0, 0xFFFF) : [random.uniform(-20, 20), random.uniform(-20, 20), count]})
+        count +=1
         while len(messages)>30:
             messages = removeLowestMessage(messages)
             
         logging.logMessages()
+        print(messages)
 
