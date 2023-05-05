@@ -71,7 +71,7 @@ plt.plot(results500, per500, color="magenta", label='500m')
 
 
 plt.legend(loc='lower right')
-plt.xlabel("Time taken (seconds)")
+plt.xlabel("Time taken /Seconds")
 plt.ylabel("Percentage of packets delivered")
 
 plt.savefig('percentages.pgf')

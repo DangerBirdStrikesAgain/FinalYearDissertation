@@ -1,6 +1,5 @@
 """
-Designed to analyze results of the latency testing
-This code is awful, I know. I'm tired. 
+Sensitivity test analysis -- works through the different variables and outputs a list we can then use to graph it
 """
 
 import pandas

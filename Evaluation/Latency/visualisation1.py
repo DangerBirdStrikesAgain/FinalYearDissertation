@@ -52,7 +52,7 @@ print(meanTime)
 print(f"[{np.std(results0)}, {np.std(results10)}, {np.std(results100)}, {np.std(results250)}, {np.std(results500)}]")
 
 
-plt.xlabel("Distance (metres)")
-plt.ylabel("Time taken (seconds)")
+plt.xlabel("Distance /Metres")
+plt.ylabel("Time taken /Seconds")
 
 plt.savefig('distanceIntervals.pgf')
