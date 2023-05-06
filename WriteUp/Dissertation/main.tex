@@ -1104,16 +1104,7 @@ node/.style={circle, draw=black, very thick, minimum size=17mm},
 \end{figure}
 
 \subsection{Percentage of Packets Delivered}
-With the exception of bandwidth testing, when more packets were generated than could be delivered, 100\% of packets were delivered throughout testing. This mirrors the results found by Vahdat and Becker, where their simulation gave a 100\% delivery rate when the number of messages was smaller or equal to the size of the message buffer. \\
-
-\subsection{Five Node Field Test}
-The percentage of packets delivered is best illustrated by the test with five nodes. To run this test, I recruited four volunteers to move around a large field, approximately 500 x 500 metre area. This allowed nodes to move in and out of range of each other. Each node had a 0.1 probability of generating a message each second, with up to 30 messages being generated. The nodes moved around this test area for approximately 15 minutes. This is a reduced version of the evaluation performed in Vahdat and Becker's paper \cite{epidemic}, where 50 nodes were simulated within a 1500 x 300 metre area. \\
-This test was run twice, with results being compared to ensure no anomalies occured. In both these tests, 100\% of packets were delivered.
-% 5 nodes
-Unfortunately, Vahdat and Becker do not release the implementation details for their paper, so a direct comparison of the two implementations is not available. However, \\ \\
-% TODO perhpas do a perentage delivered over time or something? IDK 
-% TODO you can definately do better stats on this 
-% ADD a diagram
+With the exception of bandwidth testing, when more packets were generated than could be delivered, 100\% of packets were delivered throughout testing. This mirrors the results found by Vahdat and Becker, where their simulation gave a 100\% delivery rate when the number of messages was smaller or equal to the size of the message buffer.\\
 
 \subsection{Partitions}
 The network was broken into smaller networks to ensure that messages are propagated through the network after partition and compare the time taken to propagate messages after partition. \\
@@ -1182,7 +1173,7 @@ Run & Time for Node C /Seconds & Time for Node D /Seconds \\
 \subsubsection{Symmetric}
 Symmetric evaluation of the network gave the two pairs of nodes different sets of messages.
 The average time for nodes to receive all 30 messages was 130 seconds, 23.5 seconds greater than an asymmetric partition.
-\begin{table}
+\begin{table}[h]
 \begin{center}
 \begin{tabular}{ |c|r| } 
 \hline
@@ -1202,12 +1193,36 @@ D & 129 \\
 \end{table}  
 \FloatBarrier
 
-\section{Evaluating the System}
-\subsection{On Water} 
-The water evaluation was conducted last. I was concerned that there might be an accident and the project become water damaged or fall into the river, so all experiments before this were conducted on land. The system works on rowing boats, notifying rowers of other boats who are using the system and of registered obstacles. \\ \\ 
+\subsection{Five Node Field Evaluation}
+The percentage of packets delivered is best illustrated by the test with five nodes. To run this test, I recruited four volunteers to move around a large field, approximately 500 x 500 metre area. This allowed nodes to move in and out of range of each other. Each node had a 0.1 probability of generating a message each second, with up to 30 messages being generated. The transmission range of the nodes was reduced to 30m. The nodes moved around this test area for approximately 15 minutes. This test was run twice, with results being compared to ensure no anomalies occurred. In both these tests, 100\% of packets were delivered. \\ \\
+This part of the evaluation is a reduced version of the evaluation performed in Vahdat and Becker's paper \cite{epidemic}, where 50 nodes were simulated within a 1500 x 300 metre area. Unfortunately, Vahdat and Becker do not release the implementation details for their paper, so a direct comparison of the two implementations is not available. However, we can compare our results to their results and draw conclusions from this. The coverage floor for both evaluations is calculated as $\pi * r^2 / a$ where $a$ is the total testing area ($m^2$) and $r$ is the transmission range of the radios ($m$).  \\ 
+The results of the five node evaluation fit with the trend shown in Vahdat and Becker's evaluation. Table 4.4 shows the results I obtained in my evaluation and the results Vahdat and Becker obtained. The coverage floor I used did not exactly match any of the values in their evaluation, so the surrounding two have been selected. The the coverage floor and latency have an inverse relationship, best described by a reciprocal function.
 
-\subsubsection{GPS}
-Rivers and lakes are in many ways ideal for the GPS, being large open spaces with few obstacles to the system's view of the sky. However, I was concerned that bridges or similar obstructions to the sky would interfere with the GPS tracking on each boat. This would be of particular concern as a bridge could be considered an obstacle. I therefore examined the GPS tracking on the water by logging the location at regular intervals in a GPX file. \\
+% graphs 
+\begin{table}[h]
+\begin{center}
+\resizebox{\textwidth}{!}{\begin{tabular}{ |c|r|r|r|r| } 
+\hline
+Evaluation & Delivery rate /\% & Average Latency /Seconds & Max Latency /Seconds & Coverage Floor /\% \\ 
+\hline
+Part II Project & 100 & 69.287 & 347 & 1.13\\
+\hline
+Vahdat and Becker  & 100 & 12.8 & 177 & 1.75\\
+\hline
+Vahdat and Becker & 100 & 153.0 & 760 & 0.44\\
+\hline
+\end{tabular}}
+\end{center}
+\caption{Results from the five node evaluation and comparison to other papers}
+\end{table}  
+% Start doing TABLES :)
+% graph for the latency for messages on each node -- want to have two analysis files 
+
+\section{Evaluating the Crash Prevention System}
+The water evaluation was conducted last due to the increased risk of the project becoming water damaged or falling into the river. The system works on rowing boats, notifying rowers of other boats who are using the system and of registered obstacles. The water evaluation was completed in coxless single person boats.\\ 
+
+\subsection{GPS}
+Rivers and lakes are in many ways ideal for the GPS, being large open spaces with few obstacles to the system's view of the sky. However, I was concerned that bridges or similar obstructions to the sky would interfere with the GPS tracking on each boat. This was of particular concern as a bridge could be an obstacle. The GPS tracking on water was examined by logging the location at regular intervals in a GPX file. \\
 Figure 4.7 shows the GPS trace underneath a bridge. While the error caused by the bridge is minimal, it could be improved by applying a Gaussian or Kalman filter, as done in other GPS tracking for rowing boats. An issue this experiment inadvertently highlighted is that the trace does not appear to be accurate, showing the boat moving along the ground at some points. When comparing this to the GPS points taken in later experiments, this does not seem to be a systematic error, but rather a random error in the placement of the GPS in that outing. This suggests that an obstacle may be recorded in the wrong place due to an inaccurate GPS reading.
 \begin{figure}[h]
 \begin{center}
@@ -1216,9 +1231,11 @@ Figure 4.7 shows the GPS trace underneath a bridge. While the error caused by th
 \caption{The GPS track taken by a node, shown on Google Maps \cite{googlemapsgeneral}}
 \end{figure}
 
-\subsubsection{Crash Prevention on Water}
-To ensure the system worked in the use case environment, I went rowing with a volunteer, each of us with a device on our boat. We ensured that the boats were notified when they were approaching each other. We found this notification to come at around 10 metres between boats. However, when the boats are rowing alongside one another, with no chance of collision, they continually alert the user to the other boat. \\ \\ 
-The nodes also transfer knowledge of obstacles between them. To test this, one boat went further up the river and registered a `new obstacle' at a pre-agreed point (shown in Figure 4.8, opposite the Goldie Boat House) by pressing the button on the device. The first boat then returned to the second, which moved towards the potential obstacle. This gave a time delay between the boats approaching the obstacle, showing that messages are propagated through the network to warn other boats of the obstacles. The node warned the other boat of the obstacle. 
+\subsection{Crash Prevention on Water}
+\subsubsection{Notification of Other Rowing Boats}
+To ensure the system worked in the use case environment, I went rowing with a volunteer, each of us with a device on our boat. We ensured that the boats were notified when they were approaching each other. We found this notification to come at around 10 metres between boats. However, when the boats are rowing alongside one another, with no chance of collision, they continually alert the user to the other boat. \\
+\subsubsection{Propagation and Notification of Obstacles}
+The nodes also transferred knowledge of obstacles between them. To test this, one boat went further up the river and registered a `new obstacle' at a pre-agreed point (shown in Figure 4.8, opposite the Goldie Boat House) by pressing the button on the device. The first boat then returned to the second, which moved towards the potential obstacle. This gave a time delay between the boats approaching the obstacle, showing that messages are propagated through the network to warn other boats of the obstacles. The node warned the other boat of the obstacle. 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.3]{obstacle.jpg}
@@ -1226,11 +1243,10 @@ The nodes also transfer knowledge of obstacles between them. To test this, one b
 \caption{The registered obstacle as a red marker on Google Maps \cite{googlemapsgeneral}}
 \end{figure}
 
-\subsection{Qualitative Evaluation}
-\subsubsection{Survey}
-For a qualitative evaluation, I surveyed the rower in the other single. While their overall impression was positive, the survey highlighted extra work that needed to be done to the user interface. They pointed out that the buzzer, even if the bug for notifying users about boats they are rowing alongside is fixed, might be a violation of rules about noise during certain times, so it could include another button to turn off the buzzer if needed.
+\subsection{User Evaluation}
+To evaluate how useful the system was to the users, I surveyed the rower in the other single. While their overall impression was positive, the survey highlighted extra work that needed to be done to the user interface. They pointed out that the buzzer, even if the bug for notifying users about boats they are rowing alongside is fixed, might be a violation of rules about noise during certain times, so it could include another button to turn off the buzzer if needed. \\
 
-\subsubsection{Limitations Caused by Implementation}
+\subsection{Limitations from the Implementation}
 There are some limitations to the system due to its design. The format of the packets has meant that there can be at most 255 nodes in the system, as there are two bytes reserved for the node address and address 0 is reserved for broadcast. The number of obstacles stored in memory is limited by the available memory on the chip, 1.9MB as 1MB is dedicated to the code running the node. Assuming each obstacle takes 10 bytes, 95000 obstacles can be stored on a device. This is sufficient. However, the message buffer is limited to 30. This limit on the number of messages a node can propagate is placed there to allow the unique ID for each message to fit into a single 64 byte packet, but means that the maximum number of obstacles a node can pass to a neighbour is 30.
 
 %%% CONCLUSION %%%

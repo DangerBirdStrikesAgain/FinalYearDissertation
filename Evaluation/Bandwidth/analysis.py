@@ -173,7 +173,7 @@ d = pandas.read_csv('10.csv')
 # Only have ones about messages i.e. logging event number 3
 d = d[d['3']==3]
 timeTotal = timeDifference(d['1'].iloc[-1], d['1'].iloc[0])
-# caldulate the total number of messages transferred 
+# calculate the total number of messages transferred 
 # Get rid of anything that isn't messages
 d.drop(['0', '1', '2', '3'], axis=1,  inplace=True)
 msgs = []
