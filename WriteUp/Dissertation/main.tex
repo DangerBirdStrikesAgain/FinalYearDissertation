@@ -83,10 +83,10 @@
 
 \raggedbottom                           % try to avoid widows and orphans
 \sloppy
-\clubpenalty1000%
-\widowpenalty1000%
+\clubpenalty1000
+\widowpenalty1000
 
-\setlength{\parindent}{0pt} % get to fuck the paragraph indent
+\setlength{\parindent}{0pt} % get to fuck paragraph indent
 \begin{document}
 
 %%% TITLE PAGE %%%
@@ -100,7 +100,7 @@
 \textbf{A System to Help Prevent Crashes in Rowing Boats} \\[5mm]
 Computer Science Tripos -- Part II \\[5mm]
 Murray Edwards College \\[5mm]
-2023
+May 2023
 \end{center}
 
 %%% DECELERATION OF ORIGINALITY %%%
@@ -114,11 +114,11 @@ I am content for my dissertation to be made available to the students and staff 
 \leftline{\textbf{Signed} }
 \includegraphics[scale=0.35]{sig.jpg} \\
 \leftline{\textbf{Date}} \\ 
-\today
+May 10, 2023
 
 %%% ACKNOWLEDGEMENTS %%%
 \chapter*{Acknowledgements}
-This dissertation owes a huge amount to Matthew Ireland, for supervising me. My UTO, Jon Crowcroft was invaluable. Thanks to the members of Cambridge University Boat Club for allowing me to put strange boxes on thier boats, advising me on communication over water and helping me evaluate the system. Special thanks to CUBC members Patrick Ryan, Mike Taylor, Rosa Millard and Imogen Grant. I also thank Duncan Barnes for discussing GPS and electronics on rowing boats with me.
+This dissertation owes a huge amount to Matthew Ireland, for supervising me. My UTO, Jon Crowcroft was invaluable. Thanks to the members of Cambridge University Boat Club for allowing me to put strange boxes on their boats, advising me on communication over water and helping me evaluate the system. Special thanks to CUBC members Patrick Ryan, Mike Taylor,  and Imogen Grant. I also thank Duncan Barnes for discussing GPS and electronics on rowing boats with me.
 
 
 %%% PROFORMA %%%
@@ -200,8 +200,10 @@ There is precedent for using MANETs on rowing boats. I spoke to the team behind 
 \begin{center}
 \includegraphics[scale=0.07]{boatrace1.jpg}           \includegraphics[scale=0.07]{boatrace2.jpg}
 \end{center}
-\caption{Equipment placed on the stern of the Cambridge boat \cite{mike}}
+\caption{Equipment placed on the stern of the Cambridge boat \textsuperscript{4} }
 \end{figure}
+
+\footnotetext[4]{Photographs courtesy of Mike Taylor}
 
 \subsection{Delay Tolerant Routing}
 Delay tolerant routing assumes that networks will lack connectivity, with partitions between nodes. Vahdat and Becker's paper \emph{Epidemic Routing for Partially-Connected Ad Hoc Networks} \cite{epidemic} introduces a replication-based, delay-tolerant routing protocol where messages are passed onto nodes that do not have a copy of the message. Vahdat and Becker's paper is the key paper used to implement routing in this project. \\
@@ -1001,18 +1003,17 @@ A surprising issue occurred when a node was powered from a power bank, where the
 %%% EVALUATION %%%
 \newchapter{4}{Evaluation}
 \setcounter{figure}{0}
-The goal of the evaluation was to prove correctness and utility. The evaluation also allowed me to compare the MANET to other implementations of Epidemic routing using common benchmarks.
-
-The majority of the evaluation was conducted according to the plan in Appendix B [\hyperref[appendixB]{Appendix B}]. Evaluation was split into a performance evaluation of the MANET and an evaluation of the whole system, including a qualitative evaluation. \\
-The key metrics evaluated when considering the MANET were percentage of packets delivered, latency, bandwidth and time taken to propagate message after partition. \\
+The goal of the evaluation was to prove correctness and utility. The evaluation also allows comparison between the MANET and other implementations of Epidemic routing, using common benchmarks. \\
+The majority of the evaluation was conducted according to the plan in Appendix B [\hyperref[appendixB]{Appendix B}]. Evaluation was split into a performance evaluation of the MANET, and an evaluation of the whole system, including a qualitative evaluation. \\
+The key metrics evaluated in the MANET were percentage of packets delivered, latency, bandwidth and time taken to propagate message after partition. \\
 The whole system evaluation considered the GPS readings taken by the system and its interaction with the user.\\ 
 
 \section{Evaluating the MANET}
-The evaluation of the MANET was designed to mirror the evaluation performed by Vahdat and Becker's paper, with the key difference that my project was implemented in hardware, while theirs was simulated. The similarities between the evaluations allowed me to prove correctness through comparison of results. It also offers insight into both implementations and any improvements that could be made. \\
+The evaluation of the MANET was designed to mirror the evaluation performed by Vahdat and Becker's paper \cite{epidemic}. The key difference between the implementations was my project being implemented in hardware, while theirs was simulated. The similarities between the evaluations allowed me to prove correctness through comparison of results. It also offers insight into both implementations and any improvements that could be made. \\
 
 \subsection{Latency}
 The latency of a message is the time between the message being generated at node A and received at node B. \\
-Node B started next to node A and was moved further away, finishing at a maximum distance of 500 metres. There was a third node, C, interacting with the \{A, B\} pair. This allowed messages to pass over a greater distance. The distances (denoted d) between nodes A and B were 0, 10, 100, 250 and 500 metres. 60 messages were generated by A at each distance. Figure 4.1 shows the setup, with radio connections between nodes marked in blue and the distance measured in grey. 
+Node B started next to node A and was moved further away, finishing at a maximum distance of 500 metres. There was a third node, C, interacting with the \{A, B\} pair. This allowed messages to pass over a distance greater than the radio range. The distances (denoted d) between nodes A and B were 0, 10, 100, 250 and 500 metres. 60 messages were generated by A at each distance. Figure 4.1 shows the setup, with radio connections between nodes marked in blue and the distance measured in grey. 
 \begin{figurehere}
 \begin{center}
 \begin{tikzpicture}[a/.style={circle, draw=black, very thick, minimum size=17mm},]
@@ -1021,13 +1022,14 @@ Node B started next to node A and was moved further away, finishing at a maximum
 \node[a]        (c)       [above=0.5 cm  of uppercircle] {\Huge C};
 \draw[line width=0.5mm, blue] (maintopic) -- (uppercircle);
 \draw[line width=0.5mm, blue] (maintopic) -- (c);
+\draw[line width=0.5mm, blue] (uppercircle) -- (c);
 \begin{scope}
 \draw[black!50] (maintopic.-10) -- (uppercircle.-170)  node[below,midway, text = black!50]{d};
 \end{scope}
 \end{tikzpicture} \\
 \begin{tikzpicture}[
 a/.style={circle, draw=black, very thick, minimum size=17mm},]
-\node[a]      (maintopic)                              {\Huge A};
+\node[a]      (maintopic)        {\Huge A};
 \node[a]        (morenode)       [right =3cm  of maintopic] {\Huge C};
 \node[a]        (uppercircle)       [right =3cm  of morenode] {\Huge B};
 \draw[line width=0.5mm, blue] (maintopic) -- (morenode);
@@ -1040,8 +1042,8 @@ a/.style={circle, draw=black, very thick, minimum size=17mm},]
 \end{figurehere}
 \FloatBarrier
 \bigskip
-The results of the latency evaluation are shown below. Figure 4.2 shows the percentage of packets delivered over time. Figure 4.3 breaks down the data behind this, showing the times that each packet arrived at each distance. Table 4.1 shows the raw data. The metrics for 0 and 10 metres differ little, with an average delivery time of 15.0 and 15.7 seconds respectively. The 100 metre interval follows a similar pattern. There is a significant drop-off when the distance is increased to 250 and 500 metres, likely because more than one hop is needed to move messages from one node to another. There is a significant increase in the standard deviation, due to the increased variability from passing messages over multiple nodes. As distance increases, the latency increases. This is probably due to the spreading of signal causing more errors in transmission. \\
-At first glance, these latencies seem unusually high. When compared to the latencies in Vahdat and Becker's paper \cite{epidemic}, the latencies in the paper are also high. This is due to the design of Epidemic routing. Epidemic routing is optimised to transmit messages through networks with a high chance of partition, rather than being optimised for latency. A message is not sent as soon as it is generated. Instead, neighbouring nodes periodically poll each other to find any messages that are not on both nodes. This polling also explains the increased variability in delivery times when more than one hop is taken, as the anti-entropy process needs to occur multiple times to allow a message to reach its destination.
+The results of the latency evaluation are shown below. Figure 4.2 shows the percentage of packets delivered over time. Figure 4.3 breaks down the data behind this, showing the times that each packet arrived. Table 4.1 shows the raw data. The metrics for 0 and 10 metres differ little, with an average delivery time of 15.0 and 15.7 seconds respectively. The 100 metre interval follows a similar pattern. There is a significant drop-off when the distance is increased to 250 and 500 metres, as more than one hop is needed to transmit messages from A to B. There is an increase in the standard deviation, due to the increased variability from passing messages over multiple nodes. As distance increases, the latency increases. This is likely due to the spreading of signal causing more errors in transmission. \\
+At first glance, these latencies seem unusually high. However, when compared to the latencies in Vahdat and Becker's paper, we see their latencies are also high \cite{epidemic}. This is due to the design of Epidemic routing. Epidemic routing is delay tolerant, optimised to transmit messages through networks with a high chance of partition, rather than optimised for latency. A message is not sent as soon as it is generated. Instead, neighbouring nodes periodically poll each other to find any messages that are not on both nodes. This polling also explains the increased variability in delivery times when more than one hop is taken, as the anti-entropy process needs to occur multiple times to allow a message to reach its destination.
 \begin{figure}[h]
 \begin{center}
 \input{percentages.pgf}
@@ -1079,17 +1081,16 @@ Distance & Average Latency & Standard Deviation & Minimum Latency & Maximum Late
 \FloatBarrier
 
 \subsection{Bandwidth}
-Evaluating the bandwidth of the system was done to work out how many messages the MANET can transfer. In reality, it is unlikely the MANET will need to process as many messages as sent in this test as obstacles will not be generated this quickly by human users. Bandwidth testing was conducted between two nodes, with one node generating messages at a set rate and broadcasting them to the other node. Messages were generated at an increasing rate until the number of messages received by node B plateaued. Figure 4.4 shows the setup for this test. \\ \\
-As shown in Figure 4.5, the MANET has a relatively low bandwidth, with plateauing at around 0.4 messages transferred on average each second, equivalent to taking around 3 seconds to pass one message from node to node. To improve the bandwidth of the system, the time between discovery (HELLO) packets sent by each node could be decreased. 
+Evaluating the bandwidth of the system was done to work out how many messages the MANET can transfer. In reality, it is unlikely the MANET will need to process as many messages as sent in this test as obstacles will not be generated this quickly by human users. Bandwidth testing was conducted between two nodes, with one node generating messages at a set rate and broadcasting them to the other node. The rate at which messages were generated was increased, up to 10 messages being generated each second. Figure 4.4 shows the setup for this test. \\ \\
+As shown in Figure 4.5, the MANET has a relatively low bandwidth. The bandwidth plateaued at around 0.4 messages transferred each second, equivalent to taking around 3 seconds to pass a message between two nodes. To improve the bandwidth of the system, the time between discovery (HELLO) packets sent by each node could be decreased. 
 \begin{figurehere}
 \begin{center}
 \begin{tikzpicture}[
 node/.style={circle, draw=black, very thick, minimum size=17mm},
 ]
 %Nodes
-\node[node]      (maintopic)         {\Huge A};
-\node[node]        (uppercircle)       [right =3cm  of maintopic] {\Huge B};
-
+\node[node]      (maintopic)  {\Huge A};
+\node[node]        (uppercircle)   [right =3cm  of maintopic] {\Huge B};
 %Lines
 \draw[line width=0.5mm, blue] (maintopic) -- (uppercircle);
 \end{tikzpicture} 
@@ -1104,7 +1105,7 @@ node/.style={circle, draw=black, very thick, minimum size=17mm},
 \end{figure}
 
 \subsection{Percentage of Packets Delivered}
-With the exception of bandwidth testing, when more packets were generated than could be delivered, 100\% of packets were delivered throughout testing. This mirrors the results found by Vahdat and Becker, where their simulation gave a 100\% delivery rate when the number of messages was smaller or equal to the size of the message buffer.\\
+With the exception of the bandwidth evaluation, where more packets were generated than could be delivered, 100\% of packets were delivered throughout the evaluation. This mirrors the results found by Vahdat and Becker, where their simulation had a 100\% delivery rate when the number of messages was smaller or equal to the size of the message buffer \cite{epidemic}.\\
 
 \subsection{Partitions}
 The network was broken into smaller networks to ensure that messages are propagated through the network after partition and compare the time taken to propagate messages after partition. \\
@@ -1153,7 +1154,7 @@ d/.style={circle, draw=black, very thick, minimum size=17mm},
 \FloatBarrier
 
 \subsubsection{Asymmetric}
-Asymmetric partition testing consisted of the \{A, B\} pair holding 30 messages before partition. After the partition was removed, the \{C, D\} pair held the same messages \{A, B\} held. Over 2 partitions, the average time taken for all nodes in the network to hold the same messages was 106.5 seconds. Given the approximate speed of a rowing boat is 15km/h, and the radio range is 500 meters, this would allow two boats to be in range for 120 seconds, just enough time for the maximum number of messages to be transferred between two boats.  \\ \\
+Asymmetric partition testing consisted of the \{A, B\} pair holding 30 messages before partition. After the partition was removed, the \{C, D\} pair held the same messages \{A, B\} held. Over 2 partitions, the average time taken for all nodes in the network to hold the same messages was 106.5 seconds. Given an overestimate for the speed of a rowing boat as 15km/h, and the radio range of 500 metres, this would allow two boats to be in range for 120 seconds, enough time for the maximum number of messages to be transferred between two boats.  \\ \\
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{ |c|c|c| } 
@@ -1172,7 +1173,7 @@ Run & Time for Node C /Seconds & Time for Node D /Seconds \\
 
 \subsubsection{Symmetric}
 Symmetric evaluation of the network gave the two pairs of nodes different sets of messages.
-The average time for nodes to receive all 30 messages was 130 seconds, 23.5 seconds greater than an asymmetric partition.
+The average time for nodes to receive all 30 messages was 130 seconds, 23.5 seconds greater than an asymmetric partition. This is due to the anti-entropy process having to occur in both directions, as both nodes involved in the message exchange hold messages the other nodes have not seen. 
 \begin{table}[h]
 \begin{center}
 \begin{tabular}{ |c|r| } 
@@ -1194,10 +1195,10 @@ D & 129 \\
 \FloatBarrier
 
 \subsection{Four Node Field Evaluation}
-The percentage of packets delivered is best illustrated by the test with five nodes. To run this test, I recruited four volunteers to move around a large field, approximately 500 x 500 metre area. This allowed nodes to move in and out of range of each other. Each node had a 0.1 probability of generating a message each second, with up to 30 messages being generated. The transmission range of the nodes was reduced to 30m. The nodes moved around this test area for approximately 15 minutes. This test was run twice, with results being compared to ensure no anomalies occurred. In both these tests, 100\% of packets were delivered. \\ \\
-This part of the evaluation is a reduced version of the evaluation performed in Vahdat and Becker's paper \cite{epidemic}, where 50 nodes were simulated within a 1500 x 300 metre area. Unfortunately, Vahdat and Becker do not release the implementation details for their paper, so a direct comparison of the two implementations is not available. However, we can compare our results to their results and draw conclusions from this. The coverage floor for both evaluations is calculated as $\pi * r^2 / a$ where $a$ is the total testing area ($m^2$) and $r$ is the transmission range of the radios ($m$).  \\ 
-The results of the five node evaluation fit with the trend shown in Vahdat and Becker's evaluation. Table 4.4 shows the results I obtained in my evaluation and the results Vahdat and Becker obtained. The coverage floor I used did not exactly match any of the values in their evaluation, so the surrounding two have been selected. The coverage floor and latency have an inverse relationship, best described by a reciprocal function. The average and maximum latency found in my evaluation fit this trend. \\ \\
-Figure 4.8 shows the latency of the four nodes with the average trend in black. The fourth node, in cyan, seems to be an outlier. The differences between the lines are likely due to the non random nature of the humans walking in the test area, and any deviations in the hardware I set up. This part of the evaluation could be expanded by using more nodes and a more random walk for each set of people. 
+This part of the evaluation was conducted as is as close to the use case as can be conducted on land. This evaluation is also most similar to the evaluation conducted by Vahdat and Becker \cite{epidemic}. The percentage of packets delivered is best illustrated in the evaluation with four nodes. To run this test, I recruited four volunteers to move around a large field, approximately 500 x 500 metre area. This allowed nodes to move in and out of range of each other. Each node had a 0.1 probability of generating a message each second, with 30 messages generated. The transmission range of the nodes was reduced to 30m. The nodes moved around this area for approximately 15 minutes. This test was run twice, with results being compared to ensure no anomalies occurred. \\ \\
+This part of the evaluation is a reduced version of the evaluation performed in Vahdat and Becker's paper \cite{epidemic}, where 50 nodes were simulated within a 1500 x 300 metre area. Unfortunately, Vahdat and Becker do not release the implementation details for their paper, so a direct comparison of the two implementations is not available. However, we can compare our results to their results and draw conclusions from this. The coverage floor for both evaluations is calculated as $\pi * r^2 / a$ where $a$ is the total testing area (metres\textsuperscript{2}) and $r$ is the transmission range of the radios (metres).  \\ 
+The results of the five node evaluation fit with the trend shown in Vahdat and Becker's evaluation. Table 4.4 shows the results I obtained in my evaluation and the results Vahdat and Becker obtained \cite{epidemic}. The coverage floor I used did not exactly match any of the values in their evaluation, so the surrounding two coverage floors are shown. The coverage floor and latency have an inverse relationship, best described by a reciprocal function. The average and maximum latency found in my evaluation fit this trend. However, the maximum latency in my evaluation is much higher than that is Vahdat and Becker's evaluation. This could be due to the hardware used in the evaluation, or could simply be a result of one node being out of range of other nodes for a prolonged period of time.\\ \\
+Figure 4.8 shows the latency of the four nodes with the average trend in black. The fourth node, in cyan, seems to be an outlier. The differences between the lines are likely due to the non random nature of the humans walking in the test area, and any deviations in the hardware I set up. This part of the evaluation could be expanded by using more nodes and a more random path for each node. 
 \begin{table}[h]
 \begin{center}
 \resizebox{\textwidth}{!}{\begin{tabular}{ |c|r|r|r|r| } 
@@ -1223,11 +1224,11 @@ Vahdat and Becker & 100 & 153.0 & 760 & 0.44\\
 \end{figure}
 
 \section{Evaluating the Crash Prevention System}
-The water evaluation was conducted last due to the increased risk of the project becoming water damaged or falling into the river. The system works on rowing boats, notifying rowers of other boats who are using the system and of registered obstacles. The water evaluation was completed in coxless single person boats.\\ 
+The system works. When used on rowing boats, it notified rowers of other boats who are using the system and of registered obstacles. The water evaluation was completed in coxless single person boats. This section of the evaluation ensured that I fufilled the third success criteria, \emph{an application layer has been implemented to allow utility of the network}. The water evaluation was conducted last due to the increased risk of the project becoming water damaged or falling into the river. \\ 
 
 \subsection{GPS}
-Rivers and lakes are in many ways ideal for the GPS, being large open spaces with few obstacles to the system's view of the sky. However, I was concerned that bridges or similar obstructions to the sky would interfere with the GPS tracking on each boat. This was of particular concern as a bridge could be an obstacle. The GPS tracking on water was examined by logging the location at regular intervals in a GPX file. \\
-Figure 4.7 shows the GPS trace underneath a bridge. While the error caused by the bridge is minimal, it could be improved by applying a Gaussian or Kalman filter, as done in other GPS tracking for rowing boats. An issue this experiment inadvertently highlighted is that the trace does not appear to be accurate, showing the boat moving along the ground at some points. When comparing this to the GPS points taken in later experiments, this does not seem to be a systematic error, but rather a random error in the placement of the GPS in that outing. This suggests that an obstacle may be recorded in the wrong place due to an inaccurate GPS reading.
+Rivers and lakes are in many ways ideal for the GPS, being large open spaces with few obstacles blocking the system's view of the sky. However, I was concerned that bridges or similar obstructions would interfere with the GPS tracking on each boat. This was of particular concern as a bridge could also be an obstacle. The GPS tracking on water was examined by logging the location at regular intervals in a GPX file. \\
+Figure 4.7 shows the GPS trace underneath a bridge. While the error caused by the bridge is minimal, it could be improved by applying a Gaussian or Kalman filter, as done in other GPS tracking for rowing boats. An issue this experiment inadvertently highlighted is that the trace does not appear to be accurate, showing the boat moving along the ground at some points. When comparing this to the GPS points taken in later experiments, this does not seem to be a systematic error, but rather a random error in the placement of the GPS during that outing. This suggests an obstacle may be recorded in the wrong place due to an inaccurate GPS reading.
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.3]{bridgeGPS.jpg}
@@ -1237,9 +1238,9 @@ Figure 4.7 shows the GPS trace underneath a bridge. While the error caused by th
 
 \subsection{Crash Prevention on Water}
 \subsubsection{Notification of Other Rowing Boats}
-To ensure the system worked in the use case environment, I went rowing with a volunteer, each of us with a device on our boat. We ensured that the boats were notified when they were approaching each other. We found this notification to come at around 10 metres between boats. However, when the boats are rowing alongside one another, with no chance of collision, they continually alert the user to the other boat. \\
+To ensure the system worked in the use case environment, I went rowing with a volunteer, each of us with a device on our boat. We ensured that the boats were notified when they were approaching each other. We found this notification to come at around 10 metres between boats. However, when the boats are rowing alongside one another, with no chance of collision, they continually alert the user to the other boat. This was fixed by giving each obstacle a unique ID and only notifying the user of a particular obstacle if they have not been notified of this obstacle in the last 3 minutes. While this does not eliminate the problem, it significantly reduce it and ensures users are still notified of an obstacle they go past twice. \\
 \subsubsection{Propagation and Notification of Obstacles}
-The nodes also transferred knowledge of obstacles between them. To test this, one boat went further up the river and registered a `new obstacle' at a pre-agreed point (shown in Figure 4.8, opposite the Goldie Boat House) by pressing the button on the device. The first boat then returned to the second, which moved towards the potential obstacle. This gave a time delay between the boats approaching the obstacle, showing that messages are propagated through the network to warn other boats of the obstacles. The node warned the other boat of the obstacle. 
+The nodes transferred knowledge of obstacles between them. To test this, one boat went further up the river and registered a `new obstacle' at a pre-agreed point (shown in Figure 4.8, opposite the Goldie Boat House) by pressing the button on the device. The first boat then returned to the second, which moved towards the potential obstacle. This gave a time delay between the boats approaching the obstacle, showing that messages are propagated through the network to warn other boats of the obstacles. The node warned the other boat of the obstacle. 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.3]{obstacle.jpg}
@@ -1248,24 +1249,17 @@ The nodes also transferred knowledge of obstacles between them. To test this, on
 \end{figure}
 
 \subsection{User Evaluation}
-To evaluate how useful the system was to the users, I surveyed the rower in the other single. While their overall impression was positive, the survey highlighted extra work that needed to be done to the user interface. They pointed out that the buzzer, even if the bug for notifying users about boats they are rowing alongside is fixed, might be a violation of rules about noise during certain times, so it could include another button to turn off the buzzer if needed. \\
+To evaluate how useful the system was to the users, I interviewed the rower in the other single. While their overall impression was positive, the survey highlighted extra work that needed to be done to the user interface. They pointed out that the buzzer, even with the bug notifying users about boats they are rowing alongside fixed, might be a violation of noise rules at certain times. Additionally, the box had to be unscrewed to plug in or unplug the power pack, turning each node on and off. These could be fixed by including another button to turn off the buzzer, notifying users only through the LED and a switch external to the node to turn it on and off. \\
 
 \subsection{Limitations from the Implementation}
-There are some limitations to the system due to its design. The format of the packets has meant that there can be at most 255 nodes in the system, as there are two bytes reserved for the node address and address 0 is reserved for broadcast. The number of obstacles stored in memory is limited by the available memory on the chip, 1.9MB as 1MB is dedicated to the code running the node. Assuming each obstacle takes 10 bytes, 95000 obstacles can be stored on a device. This is sufficient. However, the message buffer is limited to 30. This limit on the number of messages a node can propagate is placed there to allow the unique ID for each message to fit into a single 64 byte packet, but means that the maximum number of obstacles a node can pass to a neighbour is 30.
+There are some limitations to the system due to its design. The packets format means there can be at most 255 nodes in the system, as two bytes are reserved for the node address and address 0 is reserved for broadcast. The number of obstacles stored in memory is limited by the available memory on the chip, 1.9MB as 1MB is dedicated to the code running the node. As the obstacle size is 10 bytes, 95000 obstacles can be stored on a device, which is sufficient. However, the message buffer is limited to 30. This limit on the message buffer is there to allow the unique ID for each message to fit into a single 64 byte packet, but means that the maximum number of obstacles a node can pass to a neighbour is 30.
 
 %%% CONCLUSION %%%
 \newchapter{5}{Conclusion}
 \setcounter{figure}{0}
 \section{Achievements}
-In the introduction I highlighted the issues around crashes in rowing boats and the need for a system to help prevent such crashes. This dissertation has presented such a system, propagating knowledge about obstacles through a network of rowing boats using the Epidemic routing protocol. Figure 5.1 shows a node from the final product, a box attached to a single scull.
-\begin{figure}[h]
-\begin{center}
-\includegraphics[scale=0.15]{boxOnBoat.jpeg}
-\end{center}
-\caption{The final product in use, attached to the canvas of a rowing boat}
-\end{figure}
-\FloatBarrier
-Three success criteria were laid out as part of the preparation: \\
+In the introduction I highlighted the issues around crashes in rowing boats and the need for a system to help prevent such crashes. This dissertation has presented such a system, propagating knowledge about obstacles through a network of rowing boats using the Epidemic routing protocol. Users are notified by a buzzer and an LED when they approach an obstacle and can add obstacles they are unfortunate enough to discover. Figure 5.1 shows a node from the final product, a box attached to a single scull. \\ \\
+Three success criteria were laid out as part of the preparation: \\ 
 {\begin{tabular}{ll}
 The Epidemic routing protocol is implemented within the network\\
 An evaluation of the network has been carried out\\
@@ -1274,11 +1268,19 @@ An application layer has been implemented to allow utility of the network \\
 This project has met and exceeded the success criteria. Amongst the extension criteria achieved, medium access control was implemented, high and low priority messaging was defined within Epidemic routing, and a review of the application layer was conducted. \\ \\
 As part of this project, I have contributed to open source libraries and furthered my knowledge of microcontrollers, GPS and networking. 
 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.15]{boxOnBoat.jpeg}
+\end{center}
+\caption{The final product in use, attached to the canvas of a rowing boat}
+\end{figure}
+\FloatBarrier
+
 \section{Reflections}
+There were upsides and downsides to implementing the project in hardware. It taught me huge amounts about serial communication protocols and other low level implementation details. It also allowed for a more holistic approach to the evaluation, using the system on rowing boats. However, it is undeniable that the hardware made some aspects of the project more difficult, particularly when it came to debugging a problem. For instance, I soldered an antenna to a radio module in such a way that caused errors in the received packets, a problem I did not diagnose until I swapped the module for another one. Issues like this were commonplace, particularly as the nodes were still being researched and developed when I was using them, so they were not as robust I would have liked. \\
+An aspect that went well was the choice of hardware. The availability of widely tested libraries for that hardware that I could modify gave me a level of flexibility in the low level aspects, but allowed me to delegate some of the boilerplate coding. \\ \\
 The preparation chapter lays out the choices I made with respect to the software development methodology, tools and programming language. These choices were all found to be effective in designing and building the system. It was particularly helpful to have a plan that split the project into stages with defined deliverables at each stage. \\ \\ 
-While the research phase is designed to cover broad parts of the area in order to find the best solution to a problem, I spent too much time researching various potential routing protocols. With the benefit of hindsight, it would have been beneficial to settle on the Epidemic routing protocol earlier in the process. \\ \\
-There were both upsides and downsides to implementing the project in hardware. It taught me huge amounts about serial communication protocols and other low level implementation details. It also allowed for a more holistic approach to the evaluation, using the system on rowing boats. However, it is undeniable that the hardware made some aspects of the project more difficult, particularly when it came to debugging a problem. For instance, I soldered an antenna to a radio module in such a way that caused errors in the received packets, a problem I did not diagnose until I swapped the module for another one. \\
-An aspect that went well was the choice of hardware. The availability of widely tested libraries for that hardware that I could modify gave me a level of flexibility in the low level aspects, but allowed me to delegate some of the boilerplate coding. \\
+While the research phase was designed to cover broad parts of the area in order to find the best solution to a problem, I spent too much time researching various potential routing protocols. With the benefit of hindsight, it would have been beneficial to settle on the Epidemic routing protocol earlier in the process. \\
 
 \subsection{Other Approaches}
 There have been other approaches to this problem. ROWCUS used radar to attempt to solve this problem. This technological approach has the benefit that no person has to mark the location of an obstacle to be warned of it but is likely to miss some obstacles, particularly those submerged underneath the water, arguably the most dangerous obstacles as the users cannot see them. ROWCUS has ``decided not to pursue'' their system any further. \\
