@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: MIT
 
 """
-`adafruit_gps`
 ====================================================
 GPS parsing module.  Can parse simple NMEA data sentences from serial GPS
 modules to read latitude, longitude, and more.

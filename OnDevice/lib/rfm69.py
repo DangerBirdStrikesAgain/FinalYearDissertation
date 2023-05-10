@@ -1,5 +1,5 @@
 """
-By Alex Riddell-Webster
+Alex Riddell-Webster
 Modified from adafruit_rmf69 by Tony DiCola, Jerry Needell
 
 Designed to send and recieve packets with Adafruit's RFM69HCW transceiver radio breakout, to support an implementation of Epidemic routing
@@ -9,11 +9,6 @@ Software and Dependencies:
     Adafruit CircuitPython firmware for the ESP8622 and M0-based boards: https://github.com/adafruit/circuitpython/releases
     Adafruit's Bus Device library: https://github.com/adafruit/Adafruit_CircuitPython_BusDevice
 """
-
-# TODO - remove unncessary items
-# TODO - make function strings consistent 
-# TODO - remove any references to time.monotonic rather than supervisor as we know won't be used
-# TODO CRC check 
 
 
 import time
@@ -52,7 +47,6 @@ _REG_PREAMBLE_LSB = const(0x2D)
 _REG_SYNC_CONFIG = const(0x2E)
 _REG_SYNC_VALUE1 = const(0x2F)
 _REG_PACKET_CONFIG1 = const(0x37)
-# FIFO buffer size is 30
 _REG_FIFO_THRESH = const(0x3C)
 _REG_PACKET_CONFIG2 = const(0x3D)
 _REG_AES_KEY1 = const(0x3E)
@@ -68,7 +62,6 @@ _TEST_PA2_NORMAL = const(0x70)
 _TEST_PA2_BOOST = const(0x7C)
 
 # The crystal oscillator frequency and frequency synthesizer step size.
-# See the datasheet for details of this calculation.
 _FXOSC = 32000000.0
 _FSTEP = _FXOSC / 524288
 
@@ -80,7 +73,7 @@ FS_MODE = 0b010
 TX_MODE = 0b011
 RX_MODE = 0b100
 
-# supervisor.ticks_ms() contants
+# supervisor.ticks_ms() constants
 _TICKS_PERIOD = const(1 << 29)
 _TICKS_MAX = const(_TICKS_PERIOD - 1)
 _TICKS_HALFPERIOD = const(_TICKS_PERIOD // 2)
@@ -142,7 +135,7 @@ class RFM69:
     _BUFFER = bytearray(4)
 
     class _RegisterBits:
-        # Class to simplify access to the many configuration bits avaialable
+        # Class to simplify access to the many configuration bits available
         # on the chip's registers.  This is a subclass here instead of using
         # a higher level module to increase the efficiency of memory usage
         # (all of the instances of this bit class will share the same buffer
@@ -244,10 +237,8 @@ class RFM69:
         self._write_u8(_REG_FIFO_THRESH, 0b10001111)
         # Configure low beta off.
         self._write_u8(_REG_TEST_DAGC, 0x30)
-        # Disable boost TODO - what is boost? Perhaps enable?
         self._write_u8(_REG_TEST_PA1, _TEST_PA1_NORMAL)
         self._write_u8(_REG_TEST_PA2, _TEST_PA2_NORMAL)
-        # Set the syncronization word TODO - is this needed?
         self.sync_word = sync_word
         self.frequency_mhz = frequency  # Set frequency
         self.encryption_key = None  # Set encryption key
@@ -262,7 +253,6 @@ class RFM69:
         self.afc_bw_exponent = 0b000
         if fixed_length:
             self.packet_format = 0  
-            # TODO - set the payload length register here
         else:
             self.packet_format = 1 # Variable length.
         

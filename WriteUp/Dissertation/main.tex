@@ -171,7 +171,7 @@ My project has a very personal motivation, as a friend was hit by a larger rowin
 \begin{center}
 \includegraphics[scale=0.5]{boatCrash.jpg.png}
 \end{center}
-\caption{An eight colliding with Barnes Bridge\textsuperscript{1} \\ \footnotesize\textsuperscript{3}Simon Ramskill, Twitter post, March 2023, \url{https://twitter.com/lliksmar/status/1637147870682906624?cxt=HHwWgIC8zY_UqLgtAAAA}, Accessed March 2023}
+\caption{An eight colliding with Barnes Bridge\textsuperscript{3} \\ \footnotesize\textsuperscript{3}Simon Ramskill, Twitter post, March 2023, \url{https://twitter.com/lliksmar/status/1637147870682906624?cxt=HHwWgIC8zY_UqLgtAAAA}, Accessed March 2023}
 \end{figure}
 \stepcounter{footnote}
 
@@ -1193,12 +1193,11 @@ D & 129 \\
 \end{table}  
 \FloatBarrier
 
-\subsection{Five Node Field Evaluation}
+\subsection{Four Node Field Evaluation}
 The percentage of packets delivered is best illustrated by the test with five nodes. To run this test, I recruited four volunteers to move around a large field, approximately 500 x 500 metre area. This allowed nodes to move in and out of range of each other. Each node had a 0.1 probability of generating a message each second, with up to 30 messages being generated. The transmission range of the nodes was reduced to 30m. The nodes moved around this test area for approximately 15 minutes. This test was run twice, with results being compared to ensure no anomalies occurred. In both these tests, 100\% of packets were delivered. \\ \\
 This part of the evaluation is a reduced version of the evaluation performed in Vahdat and Becker's paper \cite{epidemic}, where 50 nodes were simulated within a 1500 x 300 metre area. Unfortunately, Vahdat and Becker do not release the implementation details for their paper, so a direct comparison of the two implementations is not available. However, we can compare our results to their results and draw conclusions from this. The coverage floor for both evaluations is calculated as $\pi * r^2 / a$ where $a$ is the total testing area ($m^2$) and $r$ is the transmission range of the radios ($m$).  \\ 
-The results of the five node evaluation fit with the trend shown in Vahdat and Becker's evaluation. Table 4.4 shows the results I obtained in my evaluation and the results Vahdat and Becker obtained. The coverage floor I used did not exactly match any of the values in their evaluation, so the surrounding two have been selected. The the coverage floor and latency have an inverse relationship, best described by a reciprocal function.
-
-% graphs 
+The results of the five node evaluation fit with the trend shown in Vahdat and Becker's evaluation. Table 4.4 shows the results I obtained in my evaluation and the results Vahdat and Becker obtained. The coverage floor I used did not exactly match any of the values in their evaluation, so the surrounding two have been selected. The coverage floor and latency have an inverse relationship, best described by a reciprocal function. The average and maximum latency found in my evaluation fit this trend. \\ \\
+Figure 4.8 shows the latency of the four nodes with the average trend in black. The fourth node, in cyan, seems to be an outlier. The differences between the lines are likely due to the non random nature of the humans walking in the test area, and any deviations in the hardware I set up. This part of the evaluation could be expanded by using more nodes and a more random walk for each set of people. 
 \begin{table}[h]
 \begin{center}
 \resizebox{\textwidth}{!}{\begin{tabular}{ |c|r|r|r|r| } 
@@ -1215,8 +1214,13 @@ Vahdat and Becker & 100 & 153.0 & 760 & 0.44\\
 \end{center}
 \caption{Results from the five node evaluation and comparison to other papers}
 \end{table}  
-% Start doing TABLES :)
-% graph for the latency for messages on each node -- want to have two analysis files 
+
+\begin{figure}[h]
+\begin{center}
+\input{fiveNodes.pgf}
+\end{center}
+\caption{The latency of packets in the Five Node Field Test}
+\end{figure}
 
 \section{Evaluating the Crash Prevention System}
 The water evaluation was conducted last due to the increased risk of the project becoming water damaged or falling into the river. The system works on rowing boats, notifying rowers of other boats who are using the system and of registered obstacles. The water evaluation was completed in coxless single person boats.\\ 
@@ -1314,17 +1318,17 @@ Such a system could be utilised for other applications. The most obvious is coll
 \setcounter{figure}{0}
 \input{evaluationPlan}
 
-\newpage
-\section*{C -- Progress Report}
-\label{appendixC}
-\addcontentsline{toc}{section}{C -- Progress Report}  
-\setcounter{figure}{0}
-\input{progressReport}
+%\newpage
+%\section*{C -- Progress Report}
+%\label{appendixC}
+%\addcontentsline{toc}{section}{C -- Progress Report}  
+%\setcounter{figure}{0}
+%\input{progressReport}
 
 \newpage
-\section*{D -- Project Proposal}
-\label{appendixD}
-\addcontentsline{toc}{section}{D -- Project Proposal}  
+\section*{C -- Project Proposal}
+\label{appendixC}
+\addcontentsline{toc}{section}{C -- Project Proposal}  
 \setcounter{figure}{0}
 \input{phase3}
 

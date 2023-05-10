@@ -2,10 +2,8 @@ import storage
 import supervisor
 import deviceCode
 
-storage.remount("/", False)
-
 if  supervisor.runtime.serial_connected:
-    print("entering debugging mode")
+    storage.remount("/", False)
 
 else: 
     deviceCode.main()
