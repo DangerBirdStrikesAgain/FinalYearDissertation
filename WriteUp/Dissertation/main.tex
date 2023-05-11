@@ -13,7 +13,7 @@
 \titleclass{\subsubsubsection}{straight}[\subsection]
 
 \usepackage{dirtree}
-
+\usepackage{scalerel}
 \newcounter{subsubsubsection}[subsubsection]
 \renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
 
@@ -51,12 +51,14 @@
 \usepackage{verbatim}
 \usepackage[utf8]{inputenc}
 \usepackage{caption}
+\captionsetup[table]{skip=0pt}
+\captionsetup[figure]{skip=0pt}
 \usepackage{placeins}
 \captionsetup{justification=raggedright,singlelinecheck=false}
 \usepackage[none]{hyphenat}
 \usepackage{graphicx}				% Allows for photos to be added
 %\usepackage{parskip} 				% Stops the horrific spacing 
-\usepackage[top=0cm, foot=1.5em, bottom=2.5cm, left=2cm, right=2cm]{geometry} 	% Set margins to .5 inches 
+\usepackage[top=0.5cm, foot=1.5em, bottom=2.5cm, left=2cm, right=2cm]{geometry} 	% Set margins to .5 inches 
 \addtolength{\topmargin}{0.5in}		% Set top margin to 1 inch
 \usepackage{hyperref}				% Hyperlinks package
 \hypersetup{colorlinks=true, linkcolor=blue, citecolor = blue, filecolor=black, urlcolor=blue} 	% Make types of hyperlinks
@@ -86,6 +88,8 @@
 \clubpenalty1000
 \widowpenalty1000
 
+
+
 \setlength{\parindent}{0pt} % get to fuck paragraph indent
 \begin{document}
 
@@ -114,11 +118,11 @@ I am content for my dissertation to be made available to the students and staff 
 \leftline{\textbf{Signed} }
 \includegraphics[scale=0.35]{sig.jpg} \\
 \leftline{\textbf{Date}} \\ 
-May 10, 2023
+May 11, 2023
 
 %%% ACKNOWLEDGEMENTS %%%
 \chapter*{Acknowledgements}
-This dissertation owes a huge amount to Matthew Ireland, for supervising me. My UTO, Jon Crowcroft was invaluable. Thanks to the members of Cambridge University Boat Club for allowing me to put strange boxes on their boats, advising me on communication over water and helping me evaluate the system. Special thanks to CUBC members Patrick Ryan, Mike Taylor,  and Imogen Grant. I also thank Duncan Barnes for discussing GPS and electronics on rowing boats with me.
+This dissertation owes a huge amount to Matthew Ireland, for supervising me. My UTO, Jon Crowcroft was invaluable. Thanks to the members of the Cambridge University Boat Club for allowing me to put strange boxes on their boats, advising me on communication over water and helping me evaluate the system. Special thanks to CUBC members Patrick Ryan, Mike Taylor, and Imogen Grant. I also thank Duncan Barnes for discussing GPS and electronics on rowing boats with me.
 
 
 %%% PROFORMA %%%
@@ -126,14 +130,14 @@ This dissertation owes a huge amount to Matthew Ireland, for supervising me. My 
 
 {\large
 \begin{tabular}{ll}
-\bf Candidate Number:   & 23487C \\
+\bf Candidate Number:   & 2347C \\
 \bf Project Title:  & A System to Help Prevent \\
 & Crashes in Rowing Boats \\
 \bf Examination:  & Computer Science Tripos -- Part II, May 2023      \\
-\bf Word Count:    & 10332 \footnotemark[1]   \\
+\bf Word Count:    & 11332 \footnotemark[1]   \\
 \bf Code Line Count:    & 6429 \footnotemark[2] \\ 
 \bf Project Originator: & The Candidate     \\
-\bf Supervisor:         & Mr Matthew Ireland  \\ 
+\bf Supervisor:   & Mr Matthew Ireland  \\ 
 \bf University Teaching Officer:  & Prof. Jon Crowcroft \\ 
 \end{tabular}
 }
@@ -147,9 +151,9 @@ This dissertation owes a huge amount to Matthew Ireland, for supervising me. My 
 The objective of this project was to design a system to help prevent crashes in rowing boats. The goal of this system was to warn rowers and coxes when they approach obstacles, be they other boats or items in the river. This project also aimed to evaluate such a system.
 
 \section*{Work Completed}
-All core success criteria of were met and some extension criteria implemented. \\ 
-This project created such a system to help prevent crashes in rowing boats. Knowledge about obstacles were propagated through a mobile ad hoc network (MANET) of rowing boats using the Epidemic routing protocol. Users were warned when approaching a known obstacle by means of a buzzer and LED light. The MANET and system were thoroughly evaluated. \\
-The whole system was documented and will be available, open source, after my graduation. \\ 
+All core success criteria were met and some extension criteria implemented. \\ 
+This project created such a system to help prevent crashes in rowing boats. Knowledge about obstacles was propagated through a mobile ad hoc network (MANET) of rowing boats using the Epidemic routing protocol. Users were warned when approaching a known obstacle by means of a buzzer and LED light. The MANET and system were thoroughly evaluated. \\
+The whole system was documented and will be available, open-source, after my graduation. \\ 
 \section*{Special Difficulties}
 None.
 
@@ -161,8 +165,8 @@ None.
 
 %%% INTRODUCTION %%%
 \newchapter{1}{Introduction}
-I built a system to help prevent crashes in rowing boats. The system is implemented in hardware, culminating in a series of boxes that can be attached to boats. The project is split into two parts: the mobile ad hoc network (MANET) that allows nodes to communicate a dynamic collection of known obstacles, and the application layer to warn users when they are approaching an obstacle and allows the user to add obstacles. The free and open source software will be available online, fully documented, after my graduation. It includes a `how to' guide [\hyperref[appendixA]{Appendix A}] for the construction of a node so any rowing club can use my project as a collision avoidance tool. \\
-The final system achieved its goal. It propagated obstacles through the network and warned users of upcoming obstacles. \\
+I built a system to help prevent crashes in rowing boats. The system is implemented in hardware, culminating in a series of boxes that can be attached to boats. The project is split into two parts; the mobile ad hoc network (MANET) that allows nodes to communicate a dynamic collection of known obstacles, then the application layer to warn users when they are approaching an obstacle and allows the user to add obstacles. The free and open-source software will be available online, fully documented, after my graduation. It includes a `how to' guide [\hyperref[appendixA]{Appendix A}] for the construction of a node so any rowing club can use my project as a collision avoidance tool. \\
+The system this project produced achieved its goal. The system propagated obstacles through the network, warned users of upcoming obstacles, and allowed users to generate their own obstacles. \\
 
 \section{Motivation}	
 Crashes between rowing boats and obstacles or other boats injure rowers and cause equipment damage. Unfortunately, crashes are common. Figure 1.1 shows a boat on the Thames, having collided with a bridge at a regatta in March 2023. Some boats have coxswains, responsible for steering a boat, while others are coxless, where rowers who face away from the direction of travel are responsible for steering boats. This project is designed for use in both coxed and coxless boats. \\
@@ -171,8 +175,9 @@ My project has a very personal motivation, as a friend was hit by a larger rowin
 \begin{center}
 \includegraphics[scale=0.5]{boatCrash.jpg.png}
 \end{center}
-\caption{An eight colliding with Barnes Bridge\textsuperscript{3} \\ \footnotesize\textsuperscript{3}Simon Ramskill, Twitter post, March 2023, \url{https://twitter.com/lliksmar/status/1637147870682906624?cxt=HHwWgIC8zY_UqLgtAAAA}, Accessed March 2023}
+\caption{An eight colliding with Barnes Bridge\textsuperscript{3}}
 \end{figure}
+\footnotetext[3]{Simon Ramskill, Twitter post, March 2023, \url{https://twitter.com/lliksmar/status/1637147870682906624?cxt=HHwWgIC8zY_UqLgtAAAA}, Accessed March 2023}
 \stepcounter{footnote}
 
 \subsection{Feedback from Users}
@@ -185,11 +190,11 @@ Olympian and Cambridge Student, Imogen Grant said
 \subsection{Networking}
 The Defence Advanced Research Projects Agency (DARPA) Packet Radio Network (PRNET) \cite{prnet} was the first wireless data network, using store-and-forward routing over packet radios. Jubin and Tornow lay out the state of PRNET in 1987, nearly 15 years after research began on it, in their paper \emph{The DARPA Packet Radio Network Protocols}. The work on PRNET fed into DARPA's Survivable Radio Network (SURAN) \cite{suran}. This connection between the military and ad hoc networking still exists today, with MANETs used in conflicts \cite{military}, as well as autonomous vehicles \cite{vehicle} and disaster relief scenarios where previously existing infrastructure is destroyed \cite{disaster}. \\ \\
 %As technology improved, radio cards were made available for personal computing in the 1990s 
-Each node in a MANET is free to move  in any direction, so the topology of the network changes in an unpredictable way. Every must also forward traffic, making it a router. \\
-The nodes in my MANET would be rowing boats. Rowing boats frequently move at speeds greater than 15 km/h, making the topology of any network of boats very unpredictable and dynamic. In addition to this, the network may move between rivers, meaning no existing infrastructure would be available. These form the primary challenge for my network; routing messages through the network without pre-existing infrastructure, giving each node enough information to pass messages to other nodes. \\
+Each node in a MANET is free to move  in any direction, so the topology of the network changes in an unpredictable way. Every node must also forward traffic, making it a router. \\
+The nodes in my MANET would be rowing boats. Rowing boats frequently move at speeds greater than 15 km/h, making the topology of any network of boats unpredictable and dynamic. In addition to this, the network may move between rivers, meaning no existing infrastructure would be available. These form the primary challenge for my network; routing messages through the network without pre-existing infrastructure, and giving each node enough information to pass messages to other nodes. \\
 This is made more difficult by the small CPU and memory on the Raspberry Pi Pico \cite{rp2040}, limiting the processing power and information each node has.  \\
 \subsection{Medium Access Control}
-While routing corresponds to many hops across a network, medium access control considers only one. Medium access control protocols control access to the transmission media to prevent collisions between packets. Collisions could result in packets being corrupted and lower the overall utility of the network. This project implemented medium access control. \\
+While routing corresponds to many hops across a network, medium access control considers only one. Medium access control protocols manage access to the transmission media to prevent collisions between packets. Collisions could result in packets being corrupted and lower the overall utility of the network. This project implemented medium access control. \\
 \subsection{OSI Model}
 The Open Systems Interconnection (OSI) model for computer networking provides a standardisation for communication over a network. The OSI model consists of seven layers: Application, Presentation, Session, Transport, Network, Data Link, and Physical \cite{ib}. Based on this model, my project uses the libraries provided with hardware for the physical and data link layers. It focuses mainly on the networking layer, sending messages between nodes. \\
 
@@ -204,6 +209,7 @@ There is precedent for using MANETs on rowing boats. I spoke to the team behind 
 \end{figure}
 
 \footnotetext[4]{Photographs courtesy of Mike Taylor}
+\stepcounter{footnote}
 
 \subsection{Delay Tolerant Routing}
 Delay tolerant routing assumes that networks will lack connectivity, with partitions between nodes. Vahdat and Becker's paper \emph{Epidemic Routing for Partially-Connected Ad Hoc Networks} \cite{epidemic} introduces a replication-based, delay-tolerant routing protocol where messages are passed onto nodes that do not have a copy of the message. Vahdat and Becker's paper is the key paper used to implement routing in this project. \\
@@ -216,7 +222,7 @@ ROWCUS \cite{rowcus}, a company based in Switzerland, has attempted to solve the
 \newchapter{2}{Preparation}
 \setcounter{figure}{0}
 \section{Starting Point} 
-I had no previous experience with microcontrollers, although I had worked with single-board computers. Therefore, over summer I dedicated a small amount of time to learning about microcontrollers and MicroPython, completing basic tasks such as flashing an onboard LED. While this was useful, my project was eventually implemented in CircuitPython, so it would have been more beneficial to have researched CircuitPython. \\ \\
+I had no previous experience with microcontrollers, although I had worked with single-board computers. Therefore, over the summer I dedicated a small amount of time to learning about microcontrollers and MicroPython, completing basic tasks such as flashing an onboard LED. While this was useful, my project was eventually implemented in CircuitPython, so it would have been more beneficial to have researched CircuitPython. \\ \\
 I had some experience with networking and routing protocols prior to starting this project. This was composed of the Part IB Networking module and two weeks' work during an internship on a MANET with a different routing protocol, much further abstracted than this project. During my project, I took the \emph{Part II Principles of Communications} course, further expanding my knowledge. \\
 
 \section{Requirements}
@@ -227,14 +233,14 @@ The three requirements I identified as my success criteria were: \\ \\
 \textbf{An application layer has been implemented to allow utility of the network}  & Achieved \\
 \end{tabular} \\ \\
 All of these requirements have been implemented during this project. \\ \\ 
-I also laid out several extension tasks. The key extension was medium access control. Other extension tasks were drawn from my research into networking protocols other than Epidemic. For instance, using a metric of transmission quality -- received strength signal indicator (RSSI) in radio communication -- to influence whether an anti-entropy session was initiated. Additionally, the GPS location could be used, either by only contacting nearby nodes to increase the probability that an anti-entropy session is successful, or prioritising sending messages about new obstacles to nodes that are near these obstacles. While time constraints have not allowed me to implement all extensions, I have allowed messages to have two priorities, normal and urgent. \\
+I also laid out several extension tasks. The key extension was medium access control. Other extension tasks were drawn from my research into networking protocols other than Epidemic. For instance, using a metric of transmission quality -- received strength signal indicator (RSSI) in radio communication -- to influence whether an anti-entropy session is initiated. Additionally, the GPS location could be used, either by only contacting nearby nodes to increase the probability that an anti-entropy session is successful, or prioritising sending messages about new obstacles to nodes that are near these obstacles. While time constraints have not allowed me to implement all extensions, I have implemented two priorities of message, normal and urgent. \\
 
 \subsection{Analysis}
-The requirements for this project came from analysis of the problem; they were building blocks for a system to help prevent crashes in rowing boats. Nodes would be attached to rowing boats, which the have high mobility and frequently move at speeds around 15 km/h. The networks generated by rowing boats have a high chance of partition and are unpredictable. This topology required a high degree of flexibility within the network, pointing towards a delay tolerant routing protocol. The limited compute power available was also a consideration. I chose to implement Epidemic as it is a delay-tolerant routing protocol and best suited to the network topology likely to be generated by rowing boats \cite{epidemic}. \\
-As the nodes in the network were all going to communicate on the same medium, some medium access control would be needed to prevent collisions between messages. This was an extension criteria. \\
+The requirements for this project came from an analysis of the problem; they were building blocks for a system to help prevent crashes in rowing boats. Nodes would be attached to rowing boats, which have high mobility and frequently move at speeds around 15 km/h. The networks generated by rowing boats have a high chance of partition and are unpredictable. This topology required a high degree of flexibility within the network, pointing towards a delay-tolerant routing protocol. The limited computing power available was also a consideration. I chose to implement Epidemic as it is a delay-tolerant routing protocol and best suited to the network topology likely to be generated by rowing boats \cite{epidemic}. \\
+As the nodes in the network were all going to communicate on the same medium, some medium access control would be needed to prevent collisions between messages. This was an extension criterion. \\
 
 \subsection{Network Topology}
-Many of my requirements were based around the topologies of networks generated by rowing boats. The potential topology of networks was therefore analysed. This was done by looking at example distributions of rowing boats on lakes and rivers. I analysed Google Maps and Earth's satellite view of the Thames along a 5.5km stretch of the Championship Course, pinpointing rowing boats and coaching launches, adding them to a map with potential connections between nodes, assuming the radios have a range of 500m, alongside obstacles. Figure 2.1 shows a satellite image of two rowing boats, potential nodes in this network. Figure 2.2 shows the annotated map of the Thames, and Figure 2.3 presents the abstracted network topology of these rowing boats.
+Many of the requirements were based on the topologies of networks generated by rowing boats. The potential topology of networks was analysed. This was done by looking at example distributions of rowing boats on lakes and rivers. I analysed Google Maps and Earth's satellite view of the Thames along a 5.5km stretch of the Championship Course, pinpointing rowing boats and coaching launches, adding them to a map with potential connections between nodes, assuming the radios have a range of 500m, alongside obstacles. Figure 2.1 shows a satellite image of two rowing boats, potential nodes in this network. Figure 2.2 shows the annotated map of the Thames, and Figure 2.3 presents the abstracted network topology of these rowing boats.
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.5]{earthSculler.jpg}
@@ -314,22 +320,23 @@ A mobile ad hoc network (MANET) is characterised by wireless nodes, a frequently
 \subsection{Routing}
 Routing protocols find a path from a source to one or more destinations destination within the network. Different routing protocols optimise different parameters and are better suited for different network topologies and applications \cite{princom}. Within MANETs, a routing protocol must allow the network topology to change over time. They tend to contain node discovery techniques to allow for this. \\ \\
 Before deciding on Epidemic routing for the project, several other protocols were considered. The Better Approach to Ad Hoc Mobile Networking (BATMAN) routing protocol \cite{batman} is designed to route messages through MANETs, broadcasting originator messages (OGM) for node discovery. BATMAN has the interesting addition of a transmit quality (TQ) metric in the OGM packets, allowing the quality of connections between nodes to be factored into the route packets take through the network. While BATMAN does allow messages to be broadcast to all nodes, its primary focus is routing messages from one node to another. Additionally, while it allows for message mobility, it is not delay-tolerant.\\ \\
-Greedy Perimeter Stateless Routing (GPSR) is a location-based routing protocol \cite{gpsr}. GPSR exploits the relation between geographic position and connectivity in a wireless network, where each node tells its immediate neighbours its current location. Greedy forwarding is predominantly used to send packets to nodes that are progressively closer to the destination until the destination coordinates can be reached. Where greedy forwarding fails, GPSR uses perimeter forwarding (forwarding the packets around the perimeter of the region) until greedy forwarding can be used again. This protocol was ultimately deemed to be unsuitable for my project as, similar to BATMAN, its primary focus is on sending messages between two nodes. Additionally, the high mobility of the nodes in the use case means that forwarding packets to a set of coordinates does not mean the message will reach the intended destination, as the node may have moved. \\
+Greedy Perimeter Stateless Routing (GPSR) is a location-based routing protocol \cite{gpsr}. GPSR exploits the relation between geographic position and connectivity in a wireless network, where each node tells its immediate neighbours its current location. Greedy forwarding is predominantly used to send packets to nodes that are progressively closer to the destination until the destination coordinates can be reached. Where greedy forwarding fails, GPSR uses perimeter forwarding (forwarding the packets around the perimeter of the region) until greedy forwarding can be used again. This protocol was ultimately deemed to be unsuitable for my project as, similar to BATMAN, its primary focus is on sending messages between two nodes. Additionally, the high mobility of nodes in the use case means forwarding packets to a set of coordinates does not guarantee the message will reach the intended destination, as the node may have moved.
 
-\subsection{Epidemic}
-Epidemic routing was implemented as it is a delay-tolerant routing protocol and best suited to the network topology likely to be generated by rowing boats \cite{epidemic}. The networks generated by rowing boats have a high chance of partition, and the nodes are highly mobile. Epidemic routing allows all nodes to carry information through the network. This makes it useful for the potential topology of the use case. Additionally, Epidemic routing supports a broadcast functionality, sending messages to every node in the network, which is necessary for the use case as every boat should hear about potential obstacles. \\
-Epidemic routing gains its name from its similarity to the spreading of infections. Each node holds a buffer of messages that it has seen. When a node comes into contact with another node it has not recently contacted, it replicates and transmits messages this neighbour. This message exchange is known as anti-entropy. \\
+\subsection{Epidemic Routing}
+Epidemic routing was implemented as it is a delay-tolerant routing protocol and best suited to the network topology likely to be generated by rowing boats \cite{epidemic}. The networks generated by rowing boats have a high chance of partition, and the nodes are highly mobile. Epidemic routing allows all nodes to carry information through the network. This makes it useful for the topologies of the use case. Additionally, Epidemic routing supports a broadcast functionality, sending messages to every node in the network, which is necessary for the use case as every boat should hear about potential obstacles. \\
+Epidemic routing gains its name from its similarity to the spreading of infections. Each node holds a buffer of messages that it has seen. When a node comes into contact with another node it has not recently contacted, it replicates and transmits messages to this neighbour. This message exchange is known as anti-entropy.
 
 \subsubsection{Anti-Entropy}
-The term `anti-entropy', as used in my dissertation, comes from Vahdat and Becker's paper. Anti-entropy is the process of exchanging messages to pass them through the network. It is a key part of Epidemic routing. A more detailed explanation is in the Implementation section, although a brief overview is provided here. \\
-When two nodes come into communication range, they transfer messages the other node has not seen to each other. Each node then stores these messages to exchange later. 
+The term `anti-entropy' is used in my dissertation as it is used in the associated literature, notably Vahdat and Becker's paper \cite{epidemic}. The term appears to have been coined in the 1987 paper \emph{Epidemic Algorithms for Replicated Database Maintenance} by Demers et all \cite{demers} and used in similar contexts by other papers. \\
+In this dissertation, anti-entropy is the process of exchanging messages to pass them through the network. It is a key part of Epidemic routing. A more detailed explanation is in the Implementation chapter, although a brief overview is provided here.
+When two nodes come into communication range, they transfer messages the other node has not seen to each other. Each node then stores these messages to exchange later. \\
 
 \subsection{Medium Access Control}
 While these routing protocols often have mechanisms to minimise the probability of collisions, such as adding a jitter in the sending of discovery messages, none of them contain medium access control. Due to the probability of collisions between messages causing disruption to the sending of messages, particularly as all nodes are broadcasting on the same radio frequency (433 MHz). It was  therefore prudent to include media access control in the system. \\
 Multiple Access with Collision Avoidance for Wireless (MACAW) is often used by ad hoc networks \cite{macaw}. MACAW uses request to send (RTS) and clear to send (CTS) messages to minimise the probability of collision. As discussed in the System Design section, MACAW inspired the medium access control in my project. \\
 
 \subsection{Serial Communication}
-Serial communication protocols were used to transmit data between the Raspberry Pi Pico and peripherals. All data was transferred over relatively short distances. The two main protocols used were the serial peripheral interface (SPI) and universal asynchronous transmitter / receiver (UART) protocols. 
+Serial communication protocols are used to transmit data between a microcontroller and peripherals. All data was transferred over relatively short distances. The two main protocols used in this project were the serial peripheral interface (SPI) and universal asynchronous transmitter / receiver (UART) protocols. 
 \subsubsection{SPI}
 SPI is a full duplex synchronous serial communication interface. The communication is synchronised by a clock signal, output from the controller on Serial Clock (SCLK). The four logic signals specified are SCLK, Peripheral Out Controller In (POCI), Peripheral In Controller Out (PICO), and Chip Select (CS). 
 \begin{figurehere}
@@ -369,36 +376,38 @@ The waterfall model of software development is based around the five stages: \\
 \centerline{Requirements $\rightarrow$ System Design $\rightarrow$ Implementation $\rightarrow$ Testing $\rightarrow$ Maintenance} \\ \\
 From the waterfall model of software development, I took the focus on planning and documentation, particularly as I wanted others to be able to reproduce my results. \\ \\ 
 Agile software development is based on 12 principles that highlight responding to change and generating working software \cite{agile}. \\
-I integrated the tenets \emph{``Simplicity -- the art of maximizing the amount of work not done -- is essential''} \cite{agilep} and \emph{``Welcome changing requirements, even late in development.''} \cite{agilep} into the project.  \\ \\ 
-The work to be done was broken down into blocks, with concrete deliverables as criteria for completion of each block. This helped prevent scope creep and keep me on track for each part. I also tested each component of the project as it was built, ensuring that it worked and making debugging the final product easier. \\
+I integrated the agile tenets \emph{``Simplicity -- the art of maximizing the amount of work not done -- is essential''} and \emph{``Welcome changing requirements, even late in development.''} into the project \cite{agilep}.  \\ \\ 
+The work to be done was broken down into blocks, with concrete deliverables as criteria for completion of each block. This helped prevent scope creep and keep me on track for each part. I also tested each component of the project as it was built, ensuring that it worked and making debugging the final product easier.
 
 \subsection{Programming}  
-This project used CircuitPython, a branch of MicroPython, an implementation of Python 3 for microcontrollers. CircuitPython was used as it can easily be run on the Raspberry Pi Pico. Additionally, it allowed me to use Pylint to statically analyse code. This was particularly useful as the code was run on an external Raspberry Pi Pico, so running the code to find small errors would have been time consuming. Additionally, the existing AdaFruit libraries I used in the project were written in CircuitPython, so keeping the whole project in the same language reduced complexity. \\ \\
+This project used CircuitPython, a branch of MicroPython, an implementation of Python 3 for microcontrollers. CircuitPython was used as it is easy to run on the Raspberry Pi Pico. Additionally, it allowed Pylint to be used to statically analyse code. This was particularly useful as the code was run on an external Raspberry Pi Pico, so running the code to find small errors would have been time consuming. Additionally, the existing AdaFruit libraries I used in the project were written in CircuitPython, so keeping the whole project in the same language reduced complexity. \\ \\
 GitHub was used to perform version control on the code and dissertation for this project. This also allowed me to fork others' repositories and submit a pull request to AdaFruit. \\ \\ 
-I used Visual Studio Code as my main integrated development environment (IDE) as I have used it in previous projects, and it offered support for CircuitPython via an extension. \\
+I used Visual Studio Code as my main integrated development environment (IDE) as I have used it in previous projects, and it offered support for CircuitPython via an extension.
 
 \subsection{Licencing}
-The project is licenced under the MIT licence. All libraries used in the project are licenced under the same or more permissive licences. The MIT licence was chosen as it allows the project to use these libraries, and as it allows others to use and expand the system. \\
+The project is licenced under the Massachusetts Institute of Technology (MIT) licence. All libraries used in the project are licenced under the same or more permissive licences. The MIT licence was chosen as it allows the project to use these libraries, and as it allows others to use and expand the system. \\
 
 \section{Choice of Hardware}
-The decision to build the system in hardware was not taken lightly. I was aware that it would bring new challenges, such as unusual bugs and more setup issues. However, it would give a better evaluation from a human point and allow parameters to be more carefully tuned for a use case environment. \\
-Hardware was ordered before the start of the Michaelmas term, in order to guarantee its availability for the project proposal. The main factors in my hardware choices were size, weight, power consumption and cost. Items needed to be relatively small to allow them to fit on a rowing boat. If the components were overly costly, it may prohibit other rowing clubs from producing their own networks. \\ \\
-I chose to use a microcontroller to run the system due to the reduction in power consumption and costs it would offer over a single-board computer. The Raspberry Pi Pico is an microcontroller with a dual-core Arm processor \cite{rp2040}. One unit costs £3.90 at the time of writing \cite{buypico}. The price factored into my choice of microcontroller so it would be affordable for most rowing clubs. It was also chosen due to its large peripheral set, with support for both UART, SPI, and I2C protocols. This allowed for greater flexibility throughout the project. Figure 2.6 shows the pinout for the Raspberry Pi Pico. 
+The decision to build the system in hardware was not taken lightly. I was aware that it would bring challenges, unusual bugs and additional setup issues. However, it allowed proof that the project is viable and can be used. The hardware implementation allowed parameters to be more carefully tuned for a use case environment. Finally, the hardware implementation allowed a user interface evaluation.\\ \\
+Hardware was ordered before the start of the Michaelmas term, in order to guarantee its availability for the project proposal. The main factors in my hardware choices were size, weight, power consumption and cost. A node needed to be relatively small to allow it to fit on a rowing boat. If components were overly expensive, the cost could prohibit other rowing clubs from producing their own networks. \\ \\
+I chose to use a microcontroller to run the system due to the reduction in power consumption it would offer over a single-board computer. The Raspberry Pi Pico is a microcontroller with a dual-core Arm processor \cite{rp2040}. One unit costs £3.90 at the time of writing \cite{buypico}. The price factored into my choice of microcontroller so it would be affordable for most rowing clubs. It was also chosen due to its large peripheral set, with support for UART, SPI, and I2C protocols. This allowed greater flexibility throughout the project. Figure 2.6 shows the pinout for the Raspberry Pi Pico. \\
+For GPS and radio, AdaFruit boards were chosen due to the strong community surrounding the hardware, and the boards being supported by open source libraries that allow rudimentary operations to be performed. \\
+The AdaFruit RFM69 radio has an SPI interface and 500m range, appropriate for the use case as rowing boats will take around 2 minutes to cover 500m. Additionally, I chose to use the 433 MHz industrial, scientific, and medical (ISM) band as it is free to use without licencing, allowing me and other rowing clubs to use it without incurring additional costs. \\
+The CD-PA1616S GPS has benefits similar to the RFM69, with community support and libraries for basic communication. It was additionally chosen as it includes a patch antenna and a relatively short cold start time -- these were important for the use case, as a delay in the collision avoidance device starting up reduces the overall utility of the system.
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.2]{picopinout.png}
+\includegraphics[scale=0.25]{picopinout.png}
 \end{center}
-\caption{The pinout for the Raspberry Pi Pico. Unchanged from Raspberry Pi, licenced under the Creative Commons Attribution-ShareAlike 4.0 licence \cite{pinout}}
+\caption{The pinout for the Raspberry Pi Pico\textsuperscript{5}}
 \end{figure}
-For GPS and radio, AdaFruit boards were chosen due to the strong community surrounding the hardware, with the AdaFruit boards being supported by open source libraries that allow rudimentary operations to be performed. \\
-The AdaFruit RFM69 radio has an SPI interface and 500m range, appropriate for the use case as rowing boats will take around 2 minutes to cover 500m. Additionally, I chose to use the 433 MHz industrial, scientific, and medical (ISM) band as it is free to use without licencing, allowing me and other rowing clubs to use it without incurring additional costs. \\
-The CD-PA1616S GPS has benefits similar to the RFM69, with community support and libraries for basic communication. It was additionally chosen as it includes a patch antenna and a relatively short cold start time -- these were important for the use case, as a delay in the collision avoidance device starting up reduces the overall utility of the system. \\
+\footnotetext[5]{From Raspberry Pi, licenced under the Creative Commons Attribution-ShareAlike 4.0 licence \cite{pinout}}
+\stepcounter{footnote}
 
 \section{Timeline}
-The Project Proposal laid out a timeline for the creation of the system. For the most part, this timeline was followed, with the exception of implementing the MANET, which took longer than the time allowed. Figure 2.7 shows a Gantt chart with the proposed and actual timelines.
+The Project Proposal laid out a timeline for the creation of the system, alongside milestones for completion of each part of the timeline [\hyperref[appendixC]{Appendix C}]. For the most part, this timeline was followed, with the exception of implementing the MANET, which took longer than the time allowed. Figure 2.7 shows a Gantt chart with the proposed and actual timelines.
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.5]{gantt.pdf}
+\includegraphics[scale=0.55]{gantt.pdf}
 \end{center}
 \caption{A Gantt chart with proposed and actual timelines}
 \end{figure}
@@ -423,46 +432,45 @@ The Project Proposal laid out a timeline for the creation of the system. For the
 
 \section{Final System}
 \subsection{Hardware}
-Figure 3.1 shows a wiring diagram of the system, produced on Fritzing software, so others can replicate the system. Figure 3.2 shows a virtual breadboard with the system included, again so others can replicate it. Figure 3.3 is an image of the final system, before it is contained in a box. I have soldered the Raspberry Pi Pico `upside down' so I can more easily view the pin numbers, so while the wiring in Figures 3.2 and 3.3 seems different at first glance, it is all the same. 
+Figure 3.1 shows a wiring diagram of the system, produced on Fritzing software, so others can replicate the system. Figure 3.2 shows a virtual breadboard with the system included, again so others can replicate it. Figure 3.3 is an image of the final system before it is contained in a box. I have soldered the Raspberry Pi Pico `upside down' so I can more easily view the pin numbers, so while the wiring in Figures 3.2 and 3.3 seems different at first glance, it is all the same. 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.8]{wiring.pdf}
 \end{center}
-\caption{A wiring digram for the system}
+\caption{Wiring digram for the system}
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
 \includegraphics{breadboard.pdf}
 \end{center}
-\caption{A virtual breadboard with the system}
+\caption{Virtual breadboard showing the system}
 \end{figure}
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.15]{insideBox.jpeg}
+\includegraphics[scale=0.141]{inBoxRuler.jpeg}    \includegraphics[scale=0.147]{outBoxRuler.jpeg}
 \end{center}
-\caption{The wiring of the final system}
+\caption{The final system}
 \end{figure}
 \FloatBarrier
 
 \subsection{Software}
-Figure 3.4 shows the final state machine representing the software running on the Raspberry Pi Pico. The software differs slightly from the software designed, although both designs have the same effects. The two key differences are in the Epidemic routing protocol and multithreading. \\ 
-Within Epidemic, routing packets were merged with the medium access control packets to minimise the number of packets used in each anti-entropy session. This is discussed in more detail under the Epidemic section. \\
-Unfortunately, some of the hardware did not have libraries that worked in MicroPython. Therefore, the system was not multithreaded, but ran all on one thread. This is further detailed in the MicroPython section.
+Figure 3.4 shows the final state machine describing the software running on the Raspberry Pi Pico. The software differs slightly from what was designed, although both designs have the same effects. The software that was designed at the start is detailed below, under \emph{3.2 System Design}. This section discussed the final software that runs on the system. \\ 
+Within my implementation of Epidemic routing, message exchange packets were merged with the medium access control packets to minimise the number of packets used in each anti-entropy session. This is detailed under section \emph{3.6 Epidemic Routing}. \\
+Unfortunately, the libraries needed to interface with the hardware could not be ported to MicroPython. Therefore, the system was not multithreaded, instead running one thread. This is explored in section \emph{3.9 MicroPython}.
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.4]{finalMachine.pdf}
+\includegraphics[scale=0.45]{finalMachine.pdf}
 \end{center}
 \caption{The final state machine representation of the software}
 \end{figure}
 \FloatBarrier
 
-
-
 \subsection{Packet Design}
-The structure of the packets sent within the network is standardised. These structures are influenced by the structures of packets in previous routing protocols I examined,particularly BATMAN \cite{batman}. I attempted to keep the structure of the start of the packets  Figures 3.5 and 3.6 show the overall design for packets sent on the network. The preamble for all packet types start with the length of the packet so the system knows how much data to expect. Figures 3.7 to 3.9 show the breakdown of the payload by packet type, given that the preamble is the same for all packets.  \\ \\
-The address \verb'0x00' is designated for broadcast, then each node numbered sequentially and uniquely. This limits the number of nodes a network can contain to be 255.
+The structure of the packets sent within the network was clearly defined. These structures are influenced by the structures of packets in previous routing protocols I researched. BATMAN was particularly influential, as it has a widely available and clearly documented implementation \cite{batman}. \\
+Figures 3.5 and 3.6 show the overall design for packets sent on the network. I kept the preamble of all packet types identical so unwanted packets can easily be identified and dropped by a node. The preamble for all packet types starts with the length of the packet so the system knows how much data to expect. Figures 3.7 to 3.9 show the breakdown of the payload by packet type, given that the preamble is the same for all packets.  \\ \\
+The address \verb'0x00' is designated for broadcast, then each node is given a unique address. This limits the number of nodes a network can contain to 255, which is sufficient for the use case as it is unlikely there will be this many boats on a river at once. 
 \begin{figure}[h]
 \begin{center}
 \begin{tabular}{ |c|c|c|c|c| } 
@@ -576,14 +584,15 @@ ACK &  \verb'0x04' \\
 \FloatBarrier
 
 \subsection{Open Source}
-The system was designed and documented so it could be reproduced by other rowing clubs and used to help prevent crashes. Due to plagiarism rules the repositories and documentation, including README, have not yet been made available. They will be made public immediately after my graduation. \\
-The repository is licenced under the MIT licence, allowing others to use and expand on the system. \\
+The system was designed and documented so it could be reproduced by other rowing clubs and used to help prevent crashes. This allows it to be used by other rowing clubs without needing to go through compliance testing and other certification. Due to the University's plagiarism rules, the repositories and documentation have not yet been made available. They will be made public immediately after my graduation. \\
+The repository is licenced under the MIT licence, allowing others to use and expand on the system. \\ \\
+\bigskip
 
 
 \section{System Design}
+This section details the system that was designed at the start of the project. The software changed slightly in development and the final system is above, in \emph{3.1 Final System}. \\
 Before designing the system, it was decided the system would identify obstacles using GPS coordinates. The Epidemic routing protocol would be used to propagate obstacles through the network. Users need to be notified of upcoming obstacles and be able to add new obstacles. \\
-From these criteria, the structure of the software to run on each node was designed. The Raspberry Pi Pico uses the RP2040 chip, containing two cores \cite{rp2040}. To make best use of the hardware, application and networking threads were designed to run on each core. Global data structures and concurrency control were chosen to pass messages between the two layers and allow both layers access to the GPS. \\ \\
-While these state machines were broadly implemented, the overall structure of the software changed, with only one thread running due to the limitations of CircuitPython and difficulties transitioning into MicroPython. \\
+From these criteria, the structure of the software to run on each node was designed. The Raspberry Pi Pico uses the RP2040 chip, an ARM based dual-core chip with 264kB of SRAM \cite{rp2040}. To best use the hardware, application and networking threads were designed to run on each core. Global data structures and concurrency control were chosen to pass messages between the two layers and allow both layers access to the GPS. \\ 
 
 
 \subsection{Application}
@@ -598,8 +607,7 @@ The application thread was responsible for notifying the user when they are too 
 
 \subsection{Networking}
 % literially anything about the flooding state machine thing
-The networking thread was designed to propagate messages through the network. It contained the implementation of Epidemic with medium access control. While routing and medium access control are typically handled separately -- in the OSI model they are in the second and third layers respectively -- they were considered together in this system to prevent work being repeated and use limited computing resources effectively. These traditionally separate layers were combined as some data structures, such as the contacted node dictionary, would need to be shared between layers, increasing complexity and compute time. Figure 3.11 shows the Networking machine. \\
-This meant Vahdat and Becker's implementation of Epidemic was adjusted. A quiet state was defined, where a node did not send any messages after hearing a CTS for a set period of time, or until it hears an ACK. The message vector exchange was combined into the CTS and RTS messages. This minimised the number of packets sent over the network, reducing the probability of collisions or errors in transmission.
+The networking thread was designed to propagate messages through the network. It contained the implementation of Epidemic with medium access control. While routing and medium access control are typically handled separately -- in the OSI model they are in the second and third layers respectively -- they were considered together in this system to prevent work from being repeated and use limited computing resources effectively. These traditionally separate layers were combined as some data structures, such as the contacted node dictionary, need to be shared between layers, increasing complexity and compute time. This merging of layers meant Vahdat and Becker's implementation of Epidemic was adjusted. A quiet state was defined, where a node did not send any messages after hearing a CTS for a set period of time, or until it hears an ACK. The message vector exchange was combined into the CTS and RTS messages. This minimised the number of packets sent over the network, reducing the probability of collisions or errors in transmission.  Figure 3.11 shows the Networking machine.
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.4]{appLayer.pdf}
@@ -654,7 +662,7 @@ Messages & Dictionary of & The messages' ID is constructed from the \\
 \FloatBarrier
 
 \section{Debugging}
-Throughout the project, different pieces of hardware and unusual issues needed to be debugged. To debug hardware, a multimeter was used to detect if data was being sent along various connections. On occasions when the multimeter could not be accessed, the anode of an LED was attached to the connection being examined and the cathode grounded. The LED would light up when data was passing through this connection. \\
+Throughout the project, various pieces of hardware and communication issues needed to be debugged. To debug these, a multimeter was used to measure the voltage and therefore signal sent over various connections. On occasions when the multimeter could not be accessed, the anode of an LED was attached to the connection being examined and the cathode grounded. The LED would light up when current was passing through this connection. \\
 When debugging more persistent issues, such as the MicroPython-CircuitPython communication, my supervisor kindly lent me a logic analyser. Figure 3.12 shows a node being examined with a logic analyser. \\ \\ 
 \begin{figure}[h]
 \begin{center}
@@ -665,7 +673,7 @@ When debugging more persistent issues, such as the MicroPython-CircuitPython com
 
 
 \section{Logging}
-Logging was done via a bespoke class. The class had functions to handle different types of log. It output series of statements, printed and saved to the flash memory on the Pico in a `logging.txt' file. This allowed easy modelling of the relationships between nodes. The docstring from the logging class reads:\begin{verbatim}
+Logging was done via a bespoke class. The class had functions to handle different events. It generated a series of statements that were flash memory on the Pico in a \verb'logging.txt' file and printed to the terminal if the device was connected to a computer. This made debugging any problems easier and allowed straightforward modelling of the relationships between nodes. The docstring from the logging class reads:\begin{verbatim}
 Class with multiple functions to handle logging
     
 Logs: 
@@ -684,33 +692,37 @@ Event Types:
 
 
 \section{Point to Point}
-Before starting to implement Epidemic, I ensured that the two nodes in line of sight could communicate. This was successful; each node could send a packet to another node. Several interesting variables were found in the communication between point to point nodes. \\ \\
-A quarter wave whip antenna was used -- a piece of wire cut to 17.4 cm (1/4 of the wavelength) and soldered to the antenna port and ground plane. I found that the thickness of the wire had an impact on the signal, with thicker wire having a longer range. This is likely due to the lower resistance of ticket wire. Figure 3.13 shows the antenna of varying thickness on three of the radio. The antenna were one of the main practical difficulties I had with the choice to implement the system in hardware. They had a tendency to break or fall off and a small error in application results in a significant reduction in communication range. 
+Before starting to implement Epidemic routing, I ensured that the two nodes in line of sight could communicate. This was successful; each node could send a packet to another node. Several interesting variables were found in the communication between point to point nodes. \\ \\
+A quarter wave whip antenna was used -- a piece of wire cut to 17.4 cm (1/4 of the wavelength) and soldered to the antenna port and ground plane. I found that the thickness of the antenna wire had an impact on the signal, with a thicker wire having a longer range. This is likely due to the lower resistance of the thicker wire. Figure 3.13 shows the antenna of varying thickness on three of the radio. The antennae were one of the main practical difficulties that came from implementing the system in hardware. They had a tendency to break or fall off and a small error in application results in a significant reduction in communication range. \\ \\
 \begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.1]{wires1.jpeg}           \includegraphics[scale=0.12]{wires2.jpeg}
 \end{center}
 \caption{A selection of antenna on the radios}
 \end{figure}
-\FloatBarrier
-It was also found that when the rate and length of packets sent increased, more errors were found in transmission and decoding. To fix this, I wanted to move to fixed length packets, padded with 0s. However, the \verb'adafruit_rfm69' library did not allow for fixed length packets. I therefore added this functionality. I consulted the RFM69HCW datasheet \cite{radiodata}, set the packet format register to 0 (indicating fixed length) and the packet length to 64 (the size of the FIFO buffer). I integrated configurable length fixed length packets into a fork of the \verb'adafruit_rfm69' library \cite{radiogit} and have submitted a pull request so others can use this functionality. \\ \\
+It was also found that when the rate and length of packets sent increased, more errors occurred in transmission and decoding. To fix this, I wanted to move to fixed length packets. However, the \verb'adafruit_rfm69' library did not allow for fixed length packets. I therefore added this functionality. I consulted the RFM69HCW datasheet \cite{radiodata}, set the packet format register to 0 (indicating fixed length), and the packet length to 64 (the size of the FIFO buffer). Additionally, I integrated fixed length packets into a fork of the \verb'adafruit_rfm69' library \cite{radiogit} and submitted a pull request so others can use this functionality. \\
 
-\section{Epidemic}
-\subsection{Discovery Messages}
-The point to point messages were then moved to sending and receiving discovery messages, of type \verb'0x00', also known as HELLO packets. These messages used the broadcast address, \verb'0x00'. These packets used structure defined in the Final System section. To test discovery packets, it was ensured that HELLO packets were correctly sent and received. The payload of HELLO packets contained the node's current GPS location, so it could be recognised as an obstacle by other nodes. When first initiated, this location was generated by a stand in function that gave a random set of numbers, later replaced by a call to the GPS board. 
+\section{Epidemic Routing}
+\subsection{Node Discovery}
+The point to point packets were used as the basis for node discovery messages, of type \verb'0x00', also called HELLO packets. These packets were broadcast and used the structure defined in section \emph{3.1 Final System}. To test node discovery, I checked that HELLO packets were correctly sent and received. The payload of HELLO packets contained the node's current GPS location, so it could be recognised as an obstacle by other nodes. When first initiated, this location was generated by a stand-in function that gave a random set of numbers, later replaced by a call to the GPS board. I made sure that the location contained in any HELLO packets a node received was added to the list of obstacles. 
 
 \subsection{Anti-Entropy}
-When a new node is discovered, anti-entropy will occur. An anti-entropy session allows nodes to exchange messages and occurs when two nodes come into communication range. In Vahdat and Becker's Epidemic paper \cite{epidemic}, anti-entropy is initiated by the node with the lower ID to prevent collisions. Figure 3.14 shows the first half of anti-entropy. Node A, with a lower ID, initiates anti-entropy by sending a summary vector (SV\textsubscript{A}) to node B. This summary vector is represents the messages node A holds. Node B calculates the logical AND between this summary vector and the negation of its own summary vector (SV\textsubscript{B}) to produce the messages it has not seen, but the other node holds. It sends this request (SV\textsubscript{A} + $\neg$ SV\textsubscript{B}) to node A. Node A responds by sending the requested messages to node B. \\
-The roles are then reversed, with node B sending its summary vector (SV\textsubscript{B}) to A. A requests messages it has not seen from B (SV\textsubscript{B} + $\neg$ SV\textsubscript{A}) and receives them. \\
-After a successful message exchange, node B is added to node A's list of recently contacted nodes, preventing anti-entropy from being repeatedly conducted between two nodes. This list is periodically cleared. \\
+When a new node is discovered via HELLO packet, anti-entropy will occur. Anti-entropy is the mechanism by which a node (A) determines what messages another node (B) holds that A has not seen and exchanges these messages. An anti-entropy session resolves any differences in the messages held by the two nodes and occurs when two nodes are in communication range. \\
+Anti-entropy in the context of Epidemic routing is first defined by Vahdat and Becker, in their paper \emph{Epidemic Routing for Partially-Connected Ad Hoc Networks} \cite{epidemic}. Some aspects of their anti-entropy session were not suitable for this project, so have been changed. This dissertation first lays out how Vahdat and Becker implemented anti-entropy, then my project's implementation. 
+
+\subsubsection{In Literature}
+In Vahdat and Becker's Epidemic routing paper \cite{epidemic}, anti-entropy is initiated by the node with the lower ID to prevent collisions. Figure 3.14 shows the first half of anti-entropy. Node A, with a lower ID, initiates anti-entropy by sending a summary vector (SV\textsubscript{A}) to node B. This summary vector represents the messages node A holds. Node B calculates the logical AND between this summary vector and the negation of its own summary vector (SV\textsubscript{B}) to produce the messages it has not seen, but the other node holds. It sends this request (SV\textsubscript{A}  $\wedge \neg$ SV\textsubscript{B}) to node A. Node A responds by sending the requested messages to node B. \\
+The roles are then reversed, with node B sending its summary vector (SV\textsubscript{B}) to A. A requests messages it has not seen from B (SV\textsubscript{B} $\wedge \neg$ SV\textsubscript{A}) and receives them. \\
+If anti-entropy succeeds, B is added to A's list of recently contacted nodes, preventing anti-entropy from being repeatedly conducted between two nodes. This list is periodically cleared. \\ \\
+I am unsure why the nodes send both a summary vector and a request calculated from the summary vector. It sends more packets than needed while not saving on any computing time, as both nodes must compute a request. Therefore this was changed in the project's implementation of Epidemic routing. Vahdat and Becker imply it allows each node to retain autonomy in which messages they request and therefore hold, for instance only requesting messages under a certain size. This is not a concern in this project as all messages are of the same size. Additionally, if a node does not want to hold a message, it drops it.
 \begin{figurehere} 
 \begin{center}
 \begin{tikzpicture}
-[node/.style={circle, draw=black, very thick, minimum size=30mm}]
+[node/.style={circle, draw=black, very thick, minimum size=25mm}]
 \node[node]      (A)         {\Huge A};
 \node[node]        (B)    [right =3cm of A]   {\Huge B};
 \draw[-latex, line width=0.5mm, blue] (A.30)--(A.30-|B.-150) node[midway, above] {SV\textsubscript{A}};
-\draw[-latex, line width=0.5mm, red] (B)--(A) node[midway, above] {SV\textsubscript{A} + $\neg$ SV\textsubscript{B}};
+\draw[-latex, line width=0.5mm, red] (B)--(A) node[midway, above] {SV\textsubscript{A} $\wedge \neg$ SV\textsubscript{B}};
 \draw[-latex, line width=0.5mm, blue] (A.-30)--(A.-30-|B.-150) node[midway, above] {Messages};
 \end{tikzpicture}
 \end{center}
@@ -718,8 +730,9 @@ After a successful message exchange, node B is added to node A's list of recentl
 \end{figurehere} 
 \bigskip
 
-The implementation of Epidemic routing in this project is broadly the same as Vahdat and Becker's, initiated by the lower ID node. However, the implementation in this project combines medium access control with the exchange of summary vectors, with SV\textsubscript{A} being combined with the RTS and SV\textsubscript{B} combined with CTS. These contained the message keys that are held on that node. \\
-The other key difference is in requests. As all nodes use the same mechanism to construct a request to send to the other nodes, this can be moved off node. Once a node has received the summary vector from the other node, it will calculate the messages the node wants by comparing the message keys each node holds (SV\textsubscript{A} + $\neg$ SV\textsubscript{B}). This removes two messages from the anti-entropy process, reducing the opportunity for error. Figure 3.15 shows updated anti-entropy.
+\subsubsection{In the Project}
+The implementation of Epidemic routing in this project is broadly the same as Vahdat and Becker's. A session is initiated by the lower ID node. However, the implementation in this project combines medium access control with the exchange of summary vectors, with SV\textsubscript{A} being combined with the RTS and SV\textsubscript{B} combined with CTS. These contained the message keys that are held on that node. This is done to reduce the number of messages sent in each anti-entropy exchange. \\
+The other difference is requests. As mentioned above, all nodes use the same mechanism to construct a request, so this can be constructed on the node that will send messages. Once a node has received the summary vector from the other node, it will calculate the messages the node wants by comparing the message keys each node holds (SV\textsubscript{A} $\wedge \neg$ SV\textsubscript{B}). This removes two messages from the anti-entropy process, reducing the opportunity for error. Figure 3.15 shows this implementation of anti-entropy.
 
 \begin{figurehere} 
 \begin{center}
@@ -738,9 +751,10 @@ The other key difference is in requests. As all nodes use the same mechanism to 
 \end{figurehere} 
 \bigskip
 
-The message exchange in the system design was also tweaked. Again, these changes were made to reduce the number of packets sent, and therefore the bandwidth taken up by the anti-entropy process and possibility for errors. The design has DATA FRAME (DF) and DATA packets, where the DF packet sets up the number of expected DATA packets. Instead of sending a separate packet, the number of DATA packets expected was designated the first byte of the payload. Each DATA packet given an ID, its number from the total. When the initiating node (A) has sent all its packets, it waits for the DATA packets sent from the other node as an acknowledgement all DATA packets have been received. If DATA packets are not seen within the timeout, set in the \verb'config.py' file, the node resends the DATA packets. If this is repeated as many times as defined in the \verb'config.py' file, the initiating node (A) ceases anti-entropy and enters the listening state again. \\ 
-If node A successfully receives all DATA packets from node B, it sends an acknowledgement (ACK) to indicate no resends are necessary and ends the anti-entropy process. \\ \\
-When the non-initiating node (B) sees it has received all the DATA packets from node A, and has sent all DATA packets, it waits for the ACK from A. If unseen after a certain time, specified in the \verb'config.py' file, it resends the DATA messages. Should the resends still not be acknowledged, the anti-entropy times out. Figure 3.16 shows a timing diagram for the implemented Epidemic routing. 
+The message exchange in the system design was also tweaked. Again, these changes were made to reduce the number of packets sent, and therefore the bandwidth taken up by the anti-entropy process and potential for errors. The design includes DATA FRAME (DF) and DATA packets, where the DF packet sets up the number of expected DATA packets. Instead of sending a separate DF packet, the number of DATA packets expected was set as the first byte of the payload. Each DATA packet is given an ID, its number from the total. When the initiating node (A) has sent all its packets, it waits for the DATA packets sent from the other node as an acknowledgement that all DATA packets have been received. If DATA packets are not seen within the timeout, set in the \verb'config.py' file, the node resends the DATA packets. If this is repeated too many times, again defined in the \verb'config.py' file, the initiating node (A) ceases anti-entropy and enters the listening state again. This prevents A getting stuck in an infinite sending loop if node B stops responding. \\ 
+If node A successfully receives all DATA packets from node B, it sends an acknowledgement (ACK) to indicate no resends are necessary and ends the anti-entropy process. \\
+When the non-initiating node (B) sees it has received all the DATA packets from node A, and has sent all DATA packets, it waits for the ACK from A. If unseen after a certain time, specified in the \verb'config.py' file, it resends the DATA messages. If an acknowledgement is not seen after a set number of resends, the anti-entropy times out. Figure 3.16 shows a timing diagram for the implemented Epidemic routing.  \\ \\
+These variables are configurable to allow users to choose values that work best for their environment. The sensitivity analysis below determined the values I selected when evaluating and using the system.
 \begin{figure}[h]
 \begin{center}
 \tikzset{
@@ -837,12 +851,30 @@ When the non-initiating node (B) sees it has received all the DATA packets from 
 \end{center}
 \caption{Messages and states of two nodes completing anti-entropy with no missed messages}
 \end{figure}
-\bigskip 
+\FloatBarrier
 
-These variables remain configurable to allow each user to choose values that work best for their use. The sensitivity analysis was the basis for the values I used when Evaluating and using the system.
+\subsection{Sensitivity Analysis}
+The value of each configurable value in the network was determined experientially. The most important of these was how often a HELLO packet would be sent. This has a direct impact on how often anti-entropy would be initiated, and therefore the latency of messages. \\ 
+Figure 3.17 shows the latency of 30 messages being sent between two nodes with interference from another node. From this experiment, I decided to send HELLO packets every 5 seconds (with a random jitter). This was a trade-off between potential collisions of HELLO packets, the power consumption involved in sending packets, and the latency of messages passing through the network. The average latency of a message in this analysis when HELLO packets are sent every 5 seconds was 17 seconds. 
+\begin{figure}[h]
+\begin{center}
+\input{sensitivity.pgf}
+\end{center}
+\caption{The time taken to deliver messages over distance intervals}
+\end{figure}
+\FloatBarrier
+
+\subsection{Testing}
+Testing the Epidemic routing implementation ensured that it worked, particularly with edge cases. The edge cases tested involved: \\
+Both nodes contain a full messages dictionary, with 30 messages \\
+One node holding some messages and one node with no messages \\
+Both nodes have identical messages \\
+Both nodes holding no messages \\ \\
+This testing highlighted an issue with anti-entropy, where no DATA packets were sent if there were no messages the other node needed. This was a problem as it meant the node would hold the connection open and repeatedly resend messages it believed had not been seen. The issue was rectified by sending one empty DATA packet to indicate that the node had no new messages. \\ \\
+Once the edge case testing was finished, I demonstrated the utility of the network by allowing the user to type in a message on the terminal of a laptop on one node. This message was passed through the network to another node and displayed on the attached screen.
 
 \subsection{Pseudocode}
-Figure 3.17 shows an abstracted and commented version of the Epidemic routing. Note that logging, error messages have been cut out. The full code is available in the code repository, under \verb'/OnDevice/DeviceCode.py'.
+Figure 3.18 shows an abstracted and commented version of the Epidemic routing. Note that logging and error messages have been cut out. The full code is available in the code repository, under \verb'/OnDevice/DeviceCode.py'.
 \begin{figure}[h] 
 \begin{verbatim}
 if state == config.LISTEN:
@@ -862,7 +894,6 @@ elif state == config.RECEIVED_HELLO:
             contacted.update({sender : config.CONTACTED_LIVES})
     state = config.LISTEN
 
-    
 elif state == config.RECEIVED_RTS:
     # Initiate anti-entropy from the side of sending a CTS       
     success, messages = CTSAntiEntropy(sender, messages, RTSpacket)
@@ -874,29 +905,9 @@ if state == config.LISTEN and timers.hello():
 \caption{Abstracted Epidemic routing code}
 \end{figure}
 \FloatBarrier
-
-\subsection{Sensitivity Analysis}
-The value of each configurable value in the network was determined experientially. The most important of these was how often a HELLO packet would be sent. This has a direct impact on how often anti-entropy would be initiated, and therefore the latency of messages. \\ 
-Figure 3.18 shows the latency of 30 messages being sent between two nodes with interference from another node. From this experimentation, I decided to send HELLO packets every 5 seconds (with a random jitter). This was a trade-off between collisions of HELLO packets, the power consumption involved in sending packets, and the latency of packets sent through the network. The average latency of a message in when HELLO packets are sent every 5 seconds was 17 seconds. 
-\begin{figure}[h]
-\begin{center}
-\input{sensitivity.pgf}
-\end{center}
-\caption{The time taken to deliver messages over distance intervals}
-\end{figure}
-\FloatBarrier
-
-\subsection{Testing}
-Testing the Epidemic implementation ensured that it worked, particularly with edge cases. The edge cases tested involved: \\
-Both nodes containing full messages dictionary, with 30 messages \\
-One node holding some messages and one node with no messages \\
-Both nodes having identical messages \\
-Both nodes holding no messages \\ \\
-This testing highlighted an issue with anti-entropy, where no DATA packets were sent if there were no messages the other node needed. This was rectified by sending one empty DATA packet to indicate that the node had no new messages. \\ \\
-Once the edge testing was finished, I demonstrated the utility of the network by allowing the user to type in a message on the terminal of a laptop on one node. This message was passed to another node and displayed on the attached screen. \\
-
+\newpage
 \section{Medium Access Control}
-Medium access control was implemented alongside the Epidemic routing protocol, detailed in the previous section. If a node overheard the exchange of an RTS / CTS message exchange between two other nodes, it enters a silent state. The node does not broadcast any HELLO or CTS messages, nor respond to RTS messages. The node remains in the silent state until an ACK is seen, sent by the appropriate node matching the exchange of RTS / CTS messages, or until the timer has elapsed, based on a time set in the \verb'config.py' file, currently set to 15 seconds. This timeout was chosen as a worst case scenario for a very long exchange of messages between two nodes, so even an unusually long exchange will not be interrupted. 
+Medium access control was implemented alongside the Epidemic routing protocol, detailed in \emph{3.6 Epidemic Routing}. If a node overheard the exchange of an RTS / CTS message exchange between two other nodes, it enters a silent state. The node does not broadcast any HELLO or CTS messages, nor respond to RTS messages. The node remains in the silent state until an ACK is seen, sent by the appropriate node matching the exchange of RTS / CTS messages, or until the timer has elapsed, based on a time set in the \verb'config.py' file, currently set to 15 seconds. This timeout was chosen as a worst-case scenario for a very long exchange of messages between two nodes, so even an unusually long exchange will not be interrupted. 
 
 \subsection{Pesudocode}
 \begin{figure}[h]
@@ -918,8 +929,8 @@ if state == config.QUIET:
 
 
 \section{GPS} 
-Before integrating the GPS into the system, I ensured that it worked. Several different serial communication protocols were used, staring with SPI. In the end, UART was used as the asynchronicity worked best with the GPS. To ensure that the GPS generated the correct coordinates, I checked that the coordinates given were my location. \\ \\ 
-I found that the GPS had a long time to first fix (TTFF) on a cold start. This was because there was no long term memory when power was lost to the device, so any real time clock (RTC) and downloaded almanac data would be lost. A holder for and CR1220 coin cell were added to allow the GPS to keep accurate RTC data when the system was powered off. This significantly reduced the TTFF. Additionally, it allowed the GPS chip to use its built in EASY assist system \cite{gpsdata}, which helps with quick positioning by calculating up to three days of ephemeris data and saving these predictions. \\ \\
+Before integrating the GPS into the system, I checked that it worked. Several different serial communication protocols were used, starting with SPI. In the end, UART was used as the asynchronicity worked best with the GPS. To ensure that the GPS generated the correct coordinates, I checked that the coordinates given were my location. \\ \\ 
+I found that the GPS had a long time to first fix (TTFF) on a cold start. This was because there was no long term memory when power was lost to the device, so any real time clock (RTC) and downloaded almanac data would be lost. A holder for and CR1220 coin cell were added to allow the GPS to keep accurate RTC data when the system was powered off. This significantly reduced the TTFF. Additionally, it allowed the GPS chip to use its built-in EASY assist system, presented in the chip's datasheet \cite{gpsdata}. The EASY assist system allows for faster positioning by calculating up to three days of ephemeris data and saving these predictions. \\ \\
 The messages generated by the GPS chip are National Marine Electronics Association (NMEA) 0183 messages, which are then parsed by the system using the \verb'adafruit_gps.py' library. \\
 
 
@@ -931,7 +942,7 @@ To test the tracking on the GPS, a short program was written to generate GPX fil
 \end{center}
 \caption{The first attempt at tracking a walk with GPS. The red line is the GPX track generated by the board, the blue line is the GPX track generated by a smartwatch \cite{googlemapsgeneral}}
 \end{figure}\\ 
-As can be seen from Figure 3.4, the track generated by the system's GPS was jagged and inaccurate. On examination of the GPS coordinates generated by the board, they are only precise to five significant figures, so it is unsurprising that the coordinates are not precisely accurate. Therefore, the degrees and minutes were combined to generate more precise coordinates, to eight significant figures. Figure 3.5 shows the GPX track with the more accurate coordinates. Based on the route taken when walking, the board's GPX track is slightly more accurate than the smartwatch's. 
+As can be seen from Figure 3.4, the track first generated by the system's GPS was jagged and inaccurate. On examination of the GPS coordinates generated by the board, they are only precise to five significant figures, so it is unsurprising that the coordinates are not precisely accurate. Therefore, the degrees and minutes were combined to generate more precise coordinates, to eight significant figures. Figure 3.5 shows the GPX track with the more accurate coordinates. Based on the route taken when walking, the board's GPX track is slightly more accurate than the smartwatch's. 
 \begin{figure} [h]
 \begin{center}
 \includegraphics[scale=0.4]{gps2.jpg}
@@ -941,7 +952,7 @@ As can be seen from Figure 3.4, the track generated by the system's GPS was jagg
 \FloatBarrier
 
 \subsection{Haversine Formula}
-The haversine formula was used to calculate the distance between two sets of GPS coordinates. This was chosen as it is relatively simple to compute. The haversine formula is very commonly used to find distance between two sets of GPS coordinates \cite{haversine}. It is notable that this formula finds two points on a sphere, and the earth is an ellipsoid. The radius of the earth is not consistent across the globe. The average radius of the earth was used instead. As this is an approximation, it will result in errors of up to 0.5\% \cite{haversine}. The distances being measured are relatively small, so this was not a problem. \\
+The haversine formula was used to calculate the distance between two sets of GPS coordinates. This was chosen as it is relatively simple to compute. The haversine formula is very commonly used to calculate distance between GPS coordinates \cite{haversine}. It is notable that this formula finds two points on a sphere, and the earth is an ellipsoid and the radius of the earth is not consistent across the globe. The average radius of the earth was used instead. As this is an approximation, it will result in errors of up to 0.5\% \cite{haversine}. The distances being measured are relatively small, so this was not a problem. \\
 Vincenty's formulae takes the ellipsoidal nature of the earth into consideration, but is more complicated and due to the small distances involved it was decided that the saving made on compute time would be more beneficial than the additional accuracy in distance measurements. \\
 \subsubsection{Equations}
 The haversine is defined: \\
@@ -954,32 +965,32 @@ Combining these equations gives us the distance between the two points as \\
 $d = r * 2 * sin^{-1}(\sqrt{sin((\phi_2 - \phi_1)/2))^2 + cos(\lambda_1) * cos(\lambda_2) * sin((\lambda_2 - \lambda_1)/2))^2})$
 
 \subsection{Satellite Error}
-It was found that the GPS location moved even when the board was stationary. I believed this to be an error in the library, perhaps related to the precision of floating point numbers. However, research indicated that this was due to noise at the receiver causing the GPS location to move around. This noise was due to the clock phase noise and interpolation of ephemeris data \cite{satellite}. Implementing a Gaussian or Kalman filter to remove some of the noise would be possible and is further work. Another solution to this problem is demonstrated by the telemetry in the Boat Race, where an external antenna is uses and compared to the values from a base station that has been previously gathering data.  %In the meantime it is necessary to accept a small quantity of error in the reading. %After attempting to debug this and talking to the gentleman who took GPS measurements for the Oxford Cambridge Boat Race, I discovered that this is a limitation of the technology, and that as satellites move across the sky they generate noise in the readings. In their solution to this problem, the Boat Race sets their own base station up at the end of the course, uses an external antenna and a  reads from the GPS up to 20 times a second. They then feed this data through a Kalman filter to give the final value for location. Implementing a Gaussian or Kalman filter to remove some of the noise from the GPS would be possible in this system and is further work. In the meantime it is necessary to accept a small quantity of error in the reading. 
+It was found that the GPS location moved even when the board was stationary. I believed this to be an error in the library, perhaps related to the precision of floating point numbers. However, research indicated that this was due to noise at the receiver causing the GPS location to move around. This noise was due to the clock phase noise and interpolation of ephemeris data \cite{satellite}. Implementing a Gaussian or Kalman filter to remove some of the noise would be possible and is further work. Another solution to this problem is demonstrated by the telemetry in the Boat Race, where an external antenna is used and GPS readings are compared to the values from a base station that has been previously gathering data.  %In the meantime it is necessary to accept a small quantity of error in the reading. %After attempting to debug this and talking to the gentleman who took GPS measurements for the Oxford Cambridge Boat Race, I discovered that this is a limitation of the technology, and that as satellites move across the sky they generate noise in the readings. In their solution to this problem, the Boat Race sets their own base station up at the end of the course, uses an external antenna and a  reads from the GPS up to 20 times a second. They then feed this data through a Kalman filter to give the final value for location. Implementing a Gaussian or Kalman filter to remove some of the noise from the GPS would be possible in this system and is further work. In the meantime it is necessary to accept a small quantity of error in the reading. 
  
  
 \section{MicroPython}
-The libraries to allow rudimentary interface with the RFM69 and GPS boards were both written in CircuitPython. I opted to use these libraries to interface with this hardware rather than write my own libraries. \\ 
-MicroPython supports both multithreading and interrupts, neither of which CircuitPython supports. It was therefore prefered to use MicroPython to implement the core of the system, particularly so the application and networking threads could run concurrently, maximally utilising the two cores in the Raspberry Pi Pico \cite{rp2040}. I ensured the Raspberry Pi Pico could run two threads by defining two functions that calculate the Fibonacci sequence using two global variables and a lock to ensure concurrency control. This code successfully calucalted the Fibonacci sequence when I allocated a thread to each core. \\ \\ 
-CircuitPython should have a library, Blinka \cite{blinka}, that emulates the CircuitPython API, and allows hardware operating in CircuitPython to work with MicroPython. However, when attempting to run a simple sending packet and receiving packet setup, I found the code did not work. To debug this problem, I ran two nodes trying to send messages to each other one running CircuitPython and one running MicroPython with the Blinka libraries. A third node read any packets that were sent and logged them. The MicroPython node continued not to receive or send any data. I lowered the baud rate in case the Blinka or SPI interfaces were being overwhelmed. Even with a dramatic reduction, no change was found. \\
-This was when my supervisor kindly lent me his expertise and logic analyser. We found that while the Pico was sending data to the RFM69, it was sending it twice, and the RFM69 clearly did not know how to deal with this so did not respond. \\ \\
-Rather than trawl through the Blinka library looking for the bugs that caused this, we decided instead to use CircuitPython for the whole system. This meant it had to be redesigned to run on only one core. This ensured project time was spent working on the system, rather than searching for a bug. 
+The libraries to allow a rudimentary interface with the RFM69 and GPS boards were both written in CircuitPython. I opted to use these libraries to interface with this hardware rather than write my own libraries. \\ 
+MicroPython supports both multithreading and interrupts, neither of which CircuitPython supports. It was therefore preferred to use MicroPython to implement the core of the system, particularly so the application and networking threads could run concurrently, maximally utilising the two cores in the Raspberry Pi Pico \cite{rp2040}. I ensured the Raspberry Pi Pico could run two threads by defining two functions that calculate the Fibonacci sequence using two global variables and a lock to ensure concurrency control. This code successfully calculated the Fibonacci sequence when I allocated a thread to each core. \\ \\ 
+CircuitPython has an associated library, Blinka \cite{blinka}, that should emulate the CircuitPython API, allowing CircuitPython software to work with MicroPython. However, when attempting to run a simple sending packet and receiving packet setup, I found the code did not work. To debug this problem, I ran two nodes trying to send messages to each other one running CircuitPython and one running MicroPython with the Blinka libraries. A third node read any packets that were sent and logged them. The MicroPython node continued not to receive or send any data. I lowered the baud rate in case the Blinka or SPI interfaces were being overwhelmed. Even with a dramatic reduction, no change was found. \\
+This was when my supervisor kindly lent me his expertise and logic analyser. We found that the Pico was sending data to the RFM69. However, it was sending all communication twice, so the RFM69 did not respond. \\ \\
+Rather than trawl through the Blinka library looking for the bugs that caused this, we decided instead to use CircuitPython for the whole system. This meant the two state machines had to be redesigned to run on only one core. Changing to CircuitPython allowed project time to be spent working on the system, rather than searching for a bug. 
 
 
 \section{User Interface}
 \subsection{Hardware Choice}
-In order for the MANET and GPS to be useful, a rudimentary user interface was built. The plan initially contained only a buzzer and button. An LED was added to allow the device to be more accessible for those who cannot hear the buzzer. 
-Therefore, a button with a built in LED was chosen. This kept the design of a node simple, so easy to construct, and less likely to get moisture inside the box. The button chosen was also waterproof, the system will get wet in rowing boats. It was a momentary, non-locking, relatively large button to allow the user to effortlessly press it when they encounter an obstacle. \\
-A 2k$\Omega$ resistor was chosen to be used in series with the buzzer. This resistance modulates the tone of the buzzer. A brief survey of rowers indicated the eventual tone to be most suitable as a warning. 
+In order for the MANET and GPS to be useful, a rudimentary user interface was built. This initially contained only a buzzer and button. An LED was added to allow the device to be more accessible to those who cannot hear the buzzer. \\
+Therefore, a button with a built-in LED was chosen.  The chosen button was also waterproof, momentary, non-locking, and relatively large. These characteristics were chosen to keep the design of a node simple, easy to construct, and less likely to get moisture inside the box, as the system will get wet in rowing boats. They also allowed the user to effortlessly press the button when they encounter an obstacle. \\
+A 2k$\Omega$ resistor was used in series with the buzzer to modulate the tone. A brief survey of rowers indicated the tone generated by a 2k$\Omega$ resistor to be most suitable as a warning. 
 
 \subsection{Integration}
 The buzzer and LED were wired in parallel to the same pin in the Pico, to allow the flashing and buzzing to occur simultaneously. This is shown in the wiring diagram under the Final System section. If the system detected that the current GPS position of the node was within the distance specified by the \verb'GPS_DISTANCE' value in \verb'config.py', using the haversine formula. \\ \\ 
 As CircuitPython does not allow interrupts, the value of the button was polled. If the value was true, the button was pressed. The value was polled again after 0.5 seconds. If the value was still true, this was considered to be a `long' press, meaning the obstacle that had been detected should be marked as urgent and propagated through the network at an accelerated rate. \\ \\
-With the user interface integrated, the third success criteria, \emph{`An application layer had been implemented to allow utility of the network'}, was achieved. 
+With the user interface integrated, the third success criterion, \emph{`An application layer had been implemented to allow utility of the network'}, was achieved. 
 
 \subsection{Testing}
-The testing of the user interface first ensuring each piece of hardware worked. I wrote a short program to flash the LED and sound the buzzer when the button was pressed. \\
-The next stage of testing ensured the system generated new obstacles, adding them to the message buffer, when the button was pressed. This was done by generating messages and ensuring that these messages were received by nearby nodes.  \\ \\
-A surprising issue occurred when a node was powered from a power bank, where the node would shut down in a nondeterministic fashion. After experimenting with other power packs and powering the node from mains power, I decided that the power bank likely had some fail safe if a certain level of current was drawn from the power pack, it shut off power as a safety concern. This was rectified by using a different power bank, although batteries could also be used.  
+The testing of the user interface first made sure each piece of hardware worked. I wrote a short program to flash the LED and sound the buzzer when the button was pressed. \\
+The next stage of testing ensured the system generated new obstacles, adding them to the message buffer, when the button was pressed. This was done by generating messages and checking that these messages were received by nearby nodes.  \\ \\
+A surprising issue occurred when a node was powered from a power bank, where the node would shut down in a non-deterministic fashion. After experimenting with other power packs and powering the node from mains power, I decided that the power bank probably had an automatic shutoff if a certain level of current was drawn from the power pack as a safety feature. This was rectified by using a different power bank, although batteries could have been used.  
 \pagebreak
 \section{Repository Overview}
 \renewcommand*\DTstylecomment{\fontfamily{cmss}\selectfont}
@@ -995,9 +1006,14 @@ A surprising issue occurred when a node was powered from a power bank, where the
 .3 Application.
 .3 MACEpidemic.
 .3 Misc.
-.3 {\footnotesize \fontfamily{cmss}\selectfont Contains the code used in development of the system. \texttt{MACEpidemic} and \texttt{Application} contain the code generated when building the MANET and interface to it respectively. \texttt{Misc} contains a more varied set of files, generated when trying out hardware and other small components of the system. \\ }.
+.3 {\footnotesize \fontfamily{cmss}\selectfont Contains code used in the development of the system. \texttt{MACEpidemic} and \texttt{Application} contain the code generated when building the MANET and interface to it respectively. \texttt{Misc} contains a more varied set of files, generated when testing out hardware and other components of the system. \\ }.
 .2 Evaluation.
-.3 {\footnotesize \fontfamily{cmss}\selectfont Split into various folders depending on the evaluation being conducted. It contains the code used to run each subsection of the evaluation, results and python files for analysis of the results. \\}.
+.3 Bandwidth.
+.3 FourNodes.
+.3 Latency.
+.3 OnWater.
+.3 Partition.
+.3 {\footnotesize \fontfamily{cmss}\selectfont Contains various folders depending on the evaluation being conducted. Each folder contains the code used to run that subsection of the evaluation, CSV files of results, and Python code for analysis of the results. \\}.
 }
 
 %%% EVALUATION %%%
@@ -1005,7 +1021,7 @@ A surprising issue occurred when a node was powered from a power bank, where the
 \setcounter{figure}{0}
 The goal of the evaluation was to prove correctness and utility. The evaluation also allows comparison between the MANET and other implementations of Epidemic routing, using common benchmarks. \\
 The majority of the evaluation was conducted according to the plan in Appendix B [\hyperref[appendixB]{Appendix B}]. Evaluation was split into a performance evaluation of the MANET, and an evaluation of the whole system, including a qualitative evaluation. \\
-The key metrics evaluated in the MANET were percentage of packets delivered, latency, bandwidth and time taken to propagate message after partition. \\
+The key metrics evaluated in the MANET were percentage of packets delivered, latency, bandwidth and time taken to propagate messages after partition. \\
 The whole system evaluation considered the GPS readings taken by the system and its interaction with the user.\\ 
 
 \section{Evaluating the MANET}
@@ -1042,7 +1058,7 @@ a/.style={circle, draw=black, very thick, minimum size=17mm},]
 \end{figurehere}
 \FloatBarrier
 \bigskip
-The results of the latency evaluation are shown below. Figure 4.2 shows the percentage of packets delivered over time. Figure 4.3 breaks down the data behind this, showing the times that each packet arrived. Table 4.1 shows the raw data. The metrics for 0 and 10 metres differ little, with an average delivery time of 15.0 and 15.7 seconds respectively. The 100 metre interval follows a similar pattern. There is a significant drop-off when the distance is increased to 250 and 500 metres, as more than one hop is needed to transmit messages from A to B. There is an increase in the standard deviation, due to the increased variability from passing messages over multiple nodes. As distance increases, the latency increases. This is likely due to the spreading of signal causing more errors in transmission. \\
+The results of the latency evaluation are shown below. Figure 4.2 shows the percentage of packets delivered over time. Figure 4.3 breaks down the data behind this, showing the times that each packet arrived. Table 4.1 shows the raw data. The metrics for 0 and 10 metres differ little, with an average delivery time of 15.0 and 15.7 seconds respectively. The 100 metre interval follows a similar pattern. There is a significant drop-off when the distance is increased to 250 and 500 metres, as more than one hop is needed to transmit messages from A to B. There is an increase in the standard deviation, due to the increased variability from passing messages over multiple nodes. As distance increases, the latency increases. This is likely due to spreading of the signal causing more errors in transmission. \\
 At first glance, these latencies seem unusually high. However, when compared to the latencies in Vahdat and Becker's paper, we see their latencies are also high \cite{epidemic}. This is due to the design of Epidemic routing. Epidemic routing is delay tolerant, optimised to transmit messages through networks with a high chance of partition, rather than optimised for latency. A message is not sent as soon as it is generated. Instead, neighbouring nodes periodically poll each other to find any messages that are not on both nodes. This polling also explains the increased variability in delivery times when more than one hop is taken, as the anti-entropy process needs to occur multiple times to allow a message to reach its destination.
 \begin{figure}[h]
 \begin{center}
@@ -1103,13 +1119,14 @@ node/.style={circle, draw=black, very thick, minimum size=17mm},
 \end{center}
 \caption{The bandwidth of a fully connected two node network with an increasing number of messages generated each second}
 \end{figure}
+\newpage
 
 \subsection{Percentage of Packets Delivered}
 With the exception of the bandwidth evaluation, where more packets were generated than could be delivered, 100\% of packets were delivered throughout the evaluation. This mirrors the results found by Vahdat and Becker, where their simulation had a 100\% delivery rate when the number of messages was smaller or equal to the size of the message buffer \cite{epidemic}.\\
 
 \subsection{Partitions}
 The network was broken into smaller networks to ensure that messages are propagated through the network after partition and compare the time taken to propagate messages after partition. \\
-Partition evaluation was conducted with four nodes. The first experiments used two pairs. Each pair was set up to communicate with each other, then brought into range of the other pair. Figures 4.6 and 4.7 show the starting and finishing states of the network. 
+Partition evaluation was conducted with four nodes. The experiments used two pairs. Each pair was set up to communicate with each other, then brought into range of the other pair. Figures 4.6 and 4.7 show the starting and finishing states of the network. 
 \begin{figurehere}
 \begin{center}
 \begin{tikzpicture}[
@@ -1198,7 +1215,7 @@ D & 129 \\
 This part of the evaluation was conducted as is as close to the use case as can be conducted on land. This evaluation is also most similar to the evaluation conducted by Vahdat and Becker \cite{epidemic}. The percentage of packets delivered is best illustrated in the evaluation with four nodes. To run this test, I recruited four volunteers to move around a large field, approximately 500 x 500 metre area. This allowed nodes to move in and out of range of each other. Each node had a 0.1 probability of generating a message each second, with 30 messages generated. The transmission range of the nodes was reduced to 30m. The nodes moved around this area for approximately 15 minutes. This test was run twice, with results being compared to ensure no anomalies occurred. \\ \\
 This part of the evaluation is a reduced version of the evaluation performed in Vahdat and Becker's paper \cite{epidemic}, where 50 nodes were simulated within a 1500 x 300 metre area. Unfortunately, Vahdat and Becker do not release the implementation details for their paper, so a direct comparison of the two implementations is not available. However, we can compare our results to their results and draw conclusions from this. The coverage floor for both evaluations is calculated as $\pi * r^2 / a$ where $a$ is the total testing area (metres\textsuperscript{2}) and $r$ is the transmission range of the radios (metres).  \\ 
 The results of the five node evaluation fit with the trend shown in Vahdat and Becker's evaluation. Table 4.4 shows the results I obtained in my evaluation and the results Vahdat and Becker obtained \cite{epidemic}. The coverage floor I used did not exactly match any of the values in their evaluation, so the surrounding two coverage floors are shown. The coverage floor and latency have an inverse relationship, best described by a reciprocal function. The average and maximum latency found in my evaluation fit this trend. However, the maximum latency in my evaluation is much higher than that is Vahdat and Becker's evaluation. This could be due to the hardware used in the evaluation, or could simply be a result of one node being out of range of other nodes for a prolonged period of time.\\ \\
-Figure 4.8 shows the latency of the four nodes with the average trend in black. The fourth node, in cyan, seems to be an outlier. The differences between the lines are likely due to the non random nature of the humans walking in the test area, and any deviations in the hardware I set up. This part of the evaluation could be expanded by using more nodes and a more random path for each node. 
+Figure 4.8 shows the latency of the four nodes with the average trend in black. The fourth node, in cyan, seems to be an outlier. The differences between the lines are likely due to the non-random nature of the humans walking in the test area, and any deviations in the hardware I set up. This part of the evaluation could be expanded by using more nodes and a more random path for each node. 
 \begin{table}[h]
 \begin{center}
 \resizebox{\textwidth}{!}{\begin{tabular}{ |c|r|r|r|r| } 
@@ -1213,18 +1230,18 @@ Vahdat and Becker & 100 & 153.0 & 760 & 0.44\\
 \hline
 \end{tabular}}
 \end{center}
-\caption{Results from the five node evaluation and comparison to other papers}
+\caption{Results from the four node evaluation and comparison to other papers}
 \end{table}  
 
 \begin{figure}[h]
 \begin{center}
 \input{fiveNodes.pgf}
 \end{center}
-\caption{The latency of packets in the Five Node Field Test}
+\caption{The latency of packets in the four node evaluation}
 \end{figure}
 
 \section{Evaluating the Crash Prevention System}
-The system works. When used on rowing boats, it notified rowers of other boats who are using the system and of registered obstacles. The water evaluation was completed in coxless single person boats. This section of the evaluation ensured that I fufilled the third success criteria, \emph{an application layer has been implemented to allow utility of the network}. The water evaluation was conducted last due to the increased risk of the project becoming water damaged or falling into the river. \\ 
+The system works. When used on rowing boats, it notified rowers of other boats who are using the system and of registered obstacles. The water evaluation was completed in coxless single person boats. This section of the evaluation ensured that I fulfilled the third success criteria, \emph{an application layer has been implemented to allow utility of the network}. The water evaluation was conducted last due to the increased risk of the project becoming water damaged or falling into the river. \\ 
 
 \subsection{GPS}
 Rivers and lakes are in many ways ideal for the GPS, being large open spaces with few obstacles blocking the system's view of the sky. However, I was concerned that bridges or similar obstructions would interfere with the GPS tracking on each boat. This was of particular concern as a bridge could also be an obstacle. The GPS tracking on water was examined by logging the location at regular intervals in a GPX file. \\
@@ -1238,7 +1255,7 @@ Figure 4.7 shows the GPS trace underneath a bridge. While the error caused by th
 
 \subsection{Crash Prevention on Water}
 \subsubsection{Notification of Other Rowing Boats}
-To ensure the system worked in the use case environment, I went rowing with a volunteer, each of us with a device on our boat. We ensured that the boats were notified when they were approaching each other. We found this notification to come at around 10 metres between boats. However, when the boats are rowing alongside one another, with no chance of collision, they continually alert the user to the other boat. This was fixed by giving each obstacle a unique ID and only notifying the user of a particular obstacle if they have not been notified of this obstacle in the last 3 minutes. While this does not eliminate the problem, it significantly reduce it and ensures users are still notified of an obstacle they go past twice. \\
+To ensure the system worked in the use case environment, I went rowing with a volunteer, each of us with a device on our boat. We ensured that the boats were notified when they were approaching each other. We found this notification to come at around 10 metres between boats. However, when the boats are rowing alongside one another, with no chance of collision, they continually alert the user to the other boat. This was fixed by giving each obstacle a unique ID and only notifying the user of a particular obstacle if they have not been notified of this obstacle in the last 3 minutes. While this does not eliminate the problem, it significantly reduces it and ensures users are still notified of an obstacle they go past twice. \\
 \subsubsection{Propagation and Notification of Obstacles}
 The nodes transferred knowledge of obstacles between them. To test this, one boat went further up the river and registered a `new obstacle' at a pre-agreed point (shown in Figure 4.8, opposite the Goldie Boat House) by pressing the button on the device. The first boat then returned to the second, which moved towards the potential obstacle. This gave a time delay between the boats approaching the obstacle, showing that messages are propagated through the network to warn other boats of the obstacles. The node warned the other boat of the obstacle. 
 \begin{figure}[h]
@@ -1252,13 +1269,13 @@ The nodes transferred knowledge of obstacles between them. To test this, one boa
 To evaluate how useful the system was to the users, I interviewed the rower in the other single. While their overall impression was positive, the survey highlighted extra work that needed to be done to the user interface. They pointed out that the buzzer, even with the bug notifying users about boats they are rowing alongside fixed, might be a violation of noise rules at certain times. Additionally, the box had to be unscrewed to plug in or unplug the power pack, turning each node on and off. These could be fixed by including another button to turn off the buzzer, notifying users only through the LED and a switch external to the node to turn it on and off. \\
 
 \subsection{Limitations from the Implementation}
-There are some limitations to the system due to its design. The packets format means there can be at most 255 nodes in the system, as two bytes are reserved for the node address and address 0 is reserved for broadcast. The number of obstacles stored in memory is limited by the available memory on the chip, 1.9MB as 1MB is dedicated to the code running the node. As the obstacle size is 10 bytes, 95000 obstacles can be stored on a device, which is sufficient. However, the message buffer is limited to 30. This limit on the message buffer is there to allow the unique ID for each message to fit into a single 64 byte packet, but means that the maximum number of obstacles a node can pass to a neighbour is 30.
+There are some limitations to the system due to its design. The packet format means there can be at most 255 nodes in the system, as two bytes are reserved for the node address and address 0 is reserved for broadcast. The number of obstacles stored in memory is limited by the available memory on the chip, 1.9MB as 1MB is dedicated to the code running the node. As the obstacle size is 10 bytes, 95000 obstacles can be stored on a device, which is sufficient. However, the message buffer is limited to 30. This limit on the message buffer is there to allow the unique ID for each message to fit into a single 64 byte packet, but means that the maximum number of obstacles a node can pass to a neighbour is 30.
 
 %%% CONCLUSION %%%
 \newchapter{5}{Conclusion}
 \setcounter{figure}{0}
 \section{Achievements}
-In the introduction I highlighted the issues around crashes in rowing boats and the need for a system to help prevent such crashes. This dissertation has presented such a system, propagating knowledge about obstacles through a network of rowing boats using the Epidemic routing protocol. Users are notified by a buzzer and an LED when they approach an obstacle and can add obstacles they are unfortunate enough to discover. Figure 5.1 shows a node from the final product, a box attached to a single scull. \\ \\
+In the introduction, I highlighted the issues around crashes in rowing boats and the need for a system to help prevent such crashes. This dissertation has presented such a system, propagating knowledge about obstacles through a network of rowing boats using the Epidemic routing protocol. Users are notified by a buzzer and an LED when they approach an obstacle and can add obstacles they are unfortunate enough to discover. Figure 5.1 shows a node from the final product, a box attached to a single scull. \\ \\
 Three success criteria were laid out as part of the preparation: \\ 
 {\begin{tabular}{ll}
 The Epidemic routing protocol is implemented within the network\\
@@ -1270,14 +1287,14 @@ As part of this project, I have contributed to open source libraries and further
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[scale=0.15]{boxOnBoat.jpeg}
+\includegraphics[scale=0.13]{boxOnBoat.jpeg}
 \end{center}
 \caption{The final product in use, attached to the canvas of a rowing boat}
 \end{figure}
 \FloatBarrier
 
 \section{Reflections}
-There were upsides and downsides to implementing the project in hardware. It taught me huge amounts about serial communication protocols and other low level implementation details. It also allowed for a more holistic approach to the evaluation, using the system on rowing boats. However, it is undeniable that the hardware made some aspects of the project more difficult, particularly when it came to debugging a problem. For instance, I soldered an antenna to a radio module in such a way that caused errors in the received packets, a problem I did not diagnose until I swapped the module for another one. Issues like this were commonplace, particularly as the nodes were still being researched and developed when I was using them, so they were not as robust I would have liked. \\
+There were upsides and downsides to implementing the project in hardware. It taught me huge amounts about serial communication protocols and other low level implementation details. It also allowed for a more holistic approach to the evaluation, using the system on rowing boats. However, it is undeniable that the hardware made some aspects of the project more difficult, particularly when it came to debugging a problem. For instance, I soldered an antenna to a radio module in such a way that caused errors in the received packets, a problem I did not diagnose until I swapped the module for another one. Issues like this were commonplace, particularly as the nodes were still being researched and developed when I was using them, so they were not as robust as I would have liked. \\
 An aspect that went well was the choice of hardware. The availability of widely tested libraries for that hardware that I could modify gave me a level of flexibility in the low level aspects, but allowed me to delegate some of the boilerplate coding. \\ \\
 The preparation chapter lays out the choices I made with respect to the software development methodology, tools and programming language. These choices were all found to be effective in designing and building the system. It was particularly helpful to have a plan that split the project into stages with defined deliverables at each stage. \\ \\ 
 While the research phase was designed to cover broad parts of the area in order to find the best solution to a problem, I spent too much time researching various potential routing protocols. With the benefit of hindsight, it would have been beneficial to settle on the Epidemic routing protocol earlier in the process. \\
@@ -1288,7 +1305,7 @@ There have been other approaches to this problem. ROWCUS used radar to attempt t
 \section{Future Work}
 There is future work that could be conducted in relation to both the networking and application components of the project. \\ \\
 There are many parameters in the \verb'config.py' file that impact routing. These could be tweaked to optimise communication over water. The experiments to determine the values for these parameters were performed indoors rather than on water (the use case) as it was not pragmatic to perform these experiments on the water.
-The MANET could be further improved by integrating ideas from routing protocols other than Epidemic. For instance, as in GPSR, the GPS location could be used, either by only contacting nearby nodes to increase the probability that an anti-entropy session is successful. The location could also be used to prioritise sending messages about new obstacles to nodes that are near these obstacles.  A metric for transmission quality, in radio communication the received strength signal indicator (RSSI), to influence whether an anti-entropy session was initiated. \\ \\ 
+The MANET could be further improved by integrating ideas from routing protocols other than Epidemic. For instance, as in GPSR, the GPS location could be used, either by only contacting nearby nodes to increase the probability that an anti-entropy session is successful. The location could also be used to prioritise sending messages about new obstacles to nodes that are near these obstacles.  A metric for transmission quality, in radio communication the received strength signal indicator (RSSI), could influence if an anti-entropy session should be initiated. \\ \\ 
 The application component could be further improved by taking the direction of the rowing boat into account when notifying the user of an obstacle. The GPS could be further improved by applying a Gaussian or Kalman filter to reduce the noise in the location, particularly under bridges. Additional improvements could be made from the suggestions of users, such as a switch to mute the buzzer. \\
 
 \section{Other applications}
@@ -1334,4 +1351,4 @@ Such a system could be utilised for other applications. The most obvious is coll
 \setcounter{figure}{0}
 \input{phase3}
 
-\end{document}
+\end{document} 

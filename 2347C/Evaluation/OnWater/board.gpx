@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx creator="AdaFruit GPS breakout V3" version="3">
+<trk>
+<name>BridgeRowing</name>
+<type>Rowing</type>
+<trkseg>
+<trkpt lat="52.21283" lon="0.127764"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21287" lon="0.127707"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21295" lon="0.127547"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21296" lon="0.127525"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21301" lon="0.1273"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21302" lon="0.127265"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21308" lon="0.127046"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21313" lon="0.126873"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21323" lon="0.126591"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21327" lon="0.126421"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21329" lon="0.126366"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21334" lon="0.126135"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21336" lon="0.126059"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21338" lon="0.126007"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.2134" lon="0.125896"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21341" lon="0.125862"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21343" lon="0.125816"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21345" lon="0.125752"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21348" lon="0.125704"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21347" lon="0.125654"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21348" lon="0.125391"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21349" lon="0.125209"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21346" lon="0.125067"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21351" lon="0.124804"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21349" lon="0.124607"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.2135" lon="0.124557"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21351" lon="0.124537"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21351" lon="0.12447"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21349" lon="0.124411"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21344" lon="0.124459"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21344" lon="0.124488"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21344" lon="0.124531"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21347" lon="0.124537"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21344" lon="0.124547"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21343" lon="0.124652"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21341" lon="0.124717"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21339" lon="0.124948"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21338" lon="0.125033"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21331" lon="0.125209"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21328" lon="0.125485"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21327" lon="0.125656"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21324" lon="0.125858"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+<trkpt lat="52.21317" lon="0.126107"> <time>2023-04-16T18:53:21.000Z</time> </trkpt>
+</trkseg>
+</trk>
+</gpx>

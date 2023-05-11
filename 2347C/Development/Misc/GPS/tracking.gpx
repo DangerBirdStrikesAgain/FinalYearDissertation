@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx creator="AdaFruit GPS breakout V3">
+<trk>
+<name>Stationary at home</name>
+<type>Walking</type>
+<trkseg>
+<trkpt lat="52.215731" lon="0.127081"><ele>5.2</ele><time>2023-04-08T9:1:15Z</time></trkpt>
+<trkpt lat="52.215731" lon="0.127081"><ele>5.2</ele><time>2023-04-08T9:1:15Z</time></trkpt>
+<trkpt lat="52.215731" lon="0.127079"><ele>5.2</ele><time>2023-04-08T9:1:16Z</time></trkpt>
+<trkpt lat="52.215731" lon="0.127079"><ele>5.2</ele><time>2023-04-08T9:1:16Z</time></trkpt>
+<trkpt lat="52.215729" lon="0.127079"><ele>5.2</ele><time>2023-04-08T9:1:17Z</time></trkpt>
+<trkpt lat="52.215729" lon="0.127079"><ele>5.2</ele><time>2023-04-08T9:1:17Z</time></trkpt>
+<trkpt lat="52.215729" lon="0.127079"><ele>5.1</ele><time>2023-04-08T9:1:18Z</time></trkpt>
+<trkpt lat="52.215729" lon="0.127079"><ele>5.1</ele><time>2023-04-08T9:1:18Z</time></trkpt>
+<trkpt lat="52.215728" lon="0.127078"><ele>5.1</ele><time>2023-04-08T9:1:19Z</time></trkpt>
+<trkpt lat="52.215726" lon="0.127078"><ele>5.1</ele><time>2023-04-08T9:1:20Z</time></trkpt>
+<trkpt lat="52.215726" lon="0.127078"><ele>5.1</ele><time>2023-04-08T9:1:20Z</time></trkpt>
+<trkpt lat="52.215726" lon="0.127078"><ele>5.1</ele><time>2023-04-08T9:1:21Z</time></trkpt>
+<trkpt lat="52.215726" lon="0.127078"><ele>5.1</ele><time>2023-04-08T9:1:21Z</time></trkpt>
+<trkpt lat="52.215724" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:22Z</time></trkpt>
+<trkpt lat="52.215724" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:22Z</time></trkpt>
+<trkpt lat="52.215724" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:23Z</time></trkpt>
+<trkpt lat="52.215724" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:23Z</time></trkpt>
+<trkpt lat="52.215724" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:24Z</time></trkpt>
+<trkpt lat="52.215724" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:24Z</time></trkpt>
+<trkpt lat="52.215723" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:25Z</time></trkpt>
+<trkpt lat="52.215723" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:26Z</time></trkpt>
+<trkpt lat="52.215723" lon="0.127078"><ele>5.0</ele><time>2023-04-08T9:1:26Z</time></trkpt>
+<trkpt lat="52.215723" lon="0.127078"><ele>4.9</ele><time>2023-04-08T9:1:27Z</time></trkpt>
+<trkpt lat="52.215723" lon="0.127078"><ele>4.9</ele><time>2023-04-08T9:1:27Z</time></trkpt>
+</trkseg>
+</trk>
+</gpx>
