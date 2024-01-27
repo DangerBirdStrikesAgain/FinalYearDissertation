@@ -1,4 +1,5 @@
-Welcome to my Part II Project, A MANET to Facilitate Collision Avoidance in Rowing Boats. This is a repository containing all my code, including all the strange and wonderful experimentation I conducted to get to the final product.
+Welcome to the repo for my final year project: 'A MANET to Facilitate Collision Avoidance in Rowing Boats'. 
+This epository contains all my code, including all the strange and wonderful experimentation I conducted to get to the final product. This README should also allow you to get a network of your own up and running, should you desire it. 
 
 </br>
 
@@ -78,8 +79,7 @@ You'll now need to place the device into its waterproof box with a powerpack. I 
 ![Box all set up](WriteUp/Dissertation/insideBox.jpeg "An image showing all the components nestled safely inside their waterproof box")
 
 ![Attatched to boat](WriteUp/Dissertation/boxOnBoat.jpeg "The node places on the canvas of the stern of a single")
-
 </br>
 
 ## Avoid accidents!
-The device should work immediately on powerup. Row safely!
+The device should work on powerup. Row safely!
