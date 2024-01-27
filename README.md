@@ -70,14 +70,14 @@ If you want to change any other parameters, they are all held in the config.py f
 
 ## SetUp 
 As the button and any LEDs need to be on the outside of the box, you'll have to drill a hole into your waterproof box.  
-![Button](WriteUp\Dissertation\button.jpeg "A button attached to the lid of a node being tested")
+![Button](WriteUp/Dissertation/button.jpeg "A button attached to the lid of a node being tested")
 
 You'll now need to place the device into its waterproof box with a powerpack. I held all the components in place with dual lock to make sure they didn't move when inside the box. 
-![Stick on velcro](WriteUp\Dissertation\sticky.jpeg "An image showing application of stick on velcro")
+![Stick on velcro](WriteUp/Dissertation/sticky.jpeg "An image showing application of stick on velcro")
 
-![Box all set up](WriteUp\Dissertation\insideBox.jpeg "An image showing all the components nestled safely inside their waterproof box")
+![Box all set up](WriteUp/Dissertation/insideBox.jpeg "An image showing all the components nestled safely inside their waterproof box")
 
-![Attatched to boat](WriteUp\Dissertation\boxOnBoat.jpeg "The node places on the canvas of the stern of a single")
+![Attatched to boat](WriteUp/Dissertation/boxOnBoat.jpeg "The node places on the canvas of the stern of a single")
 
 </br>
 
