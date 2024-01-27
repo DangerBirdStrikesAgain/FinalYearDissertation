@@ -41,9 +41,9 @@ This is a list of what I used in my project, and therefore what the software I w
 </br>
 
 ## Wiring
-![breadboard wiring](WriteUp\Dissertation\breadboard.jpg "Wiring for the breadboard on a virtual breadboard")
+![breadboard wiring](WriteUp/Dissertation/breadboard.jpg "Wiring for the breadboard on a virtual breadboard")
 
-![wiring](WriteUp\Dissertation\wiring.jpg "Wiring diagram for the system")
+![wiring](WriteUp/Dissertation/wiring.jpg "Wiring diagram for the system")
 
 </br>
 
