@@ -1,0 +1,95 @@
+% Template for a Computer Science Tripos Part II project dissertation
+\documentclass[12pt,a4paper]{report}
+
+
+
+\usepackage{dirtree}
+\usepackage{scalerel}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+\makeatletter
+\newenvironment{figurehere}
+  {\def\@captype{figure}}
+  {}
+\makeatother
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage{verbatim}
+\usepackage[utf8]{inputenc}
+\usepackage{caption}
+\captionsetup[table]{skip=0pt}
+\captionsetup[figure]{skip=0pt}
+\usepackage{placeins}
+\captionsetup{justification=raggedright,singlelinecheck=false}
+\usepackage[none]{hyphenat}
+\usepackage{graphicx}				% Allows for photos to be added
+%\usepackage{parskip} 				% Stops the horrific spacing 
+\usepackage[top=0.5cm, foot=1.5em, bottom=2.5cm, left=2cm, right=2cm]{geometry} 	% Set margins to .5 inches 
+\addtolength{\topmargin}{0.5in}		% Set top margin to 1 inch
+\usepackage{hyperref}				% Hyperlinks package
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor = blue, filecolor=black, urlcolor=blue} 	% Make types of hyperlinks
+\urlstyle{same}
+\usepackage[none]{hyphenat}			% Stops it splitting words over two lines 
+
+\renewcommand*\familydefault{\sfdefault} 
+\usepackage{setspace}
+\setstretch{1}
+\usepackage{docmute}
+\usepackage{tikz}
+\usetikzlibrary{matrix,chains,positioning,decorations.pathreplacing,arrows, automata,shapes.misc}
+
+%\graphicspath{}			if you have trouble getting images in the thing, asks for graphics in the same folder
+%\usepackage{hhline}         			% Horizontal lines in tables
+\usepackage{siunitx}        			% Correct spacing of units
+\usepackage{amsmath}        			% American Mathematical Society
+\usepackage{amssymb}        			% Maths symbols
+%\usepackage{amsthm}         			% Theorems
+ \usepackage{lastpage}      			% ``n of m'' page numbering
+%\usepackage{mathtools}
+%\usepackage{changepage}
+%\usepackage{blindtext}
+
+\raggedbottom                           % try to avoid widows and orphans
+\sloppy
+\clubpenalty1000
+\widowpenalty1000
+
+
+
+\setlength{\parindent}{0pt} % get to fuck paragraph indent
+\begin{document}
+
+\begin{figurehere} 
+\begin{center}
+\begin{tikzpicture}
+[node/.style={draw=blue, rounded rectangle, thick, minimum width=65mm}]
+    \node (a) [node] {Application};
+    \node (b) [node, below=0.5cm of a] {Presentation};
+    \node (c) [node, below=.5cm of b] {Session};
+    \node (d) [node, below=.5cm of c] {Transport};    
+    \node (e) [node, below=.5cm of d] {Network};
+    \node (f) [node, below=.5cm of e] {Data Link};
+    \node (g) [node, below=.5cm of f] {Physical};
+\end{tikzpicture}
+\caption{Open Systems Information (OSI) stack model of network communication}
+\end{center}
+\end{figurehere} 
+\end{document} 
